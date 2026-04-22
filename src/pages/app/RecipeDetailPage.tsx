@@ -1,22 +1,3 @@
-import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Clock, Users, Sparkles, Lock } from 'lucide-react'
-import { LoadingState } from '@/components/shared/LoadingState'
-import { ErrorState } from '@/components/shared/ErrorState'
-import { useRecipe } from '@/hooks/recipes/useRecipes'
-import { FavoriteButton } from '@/components/recipes/FavoriteButton'
-import { RecipeHero } from '@/components/recipes/RecipeHero'
-import { RecipeIngredients } from '@/components/recipes/RecipeIngredients'
-import { RecipeSteps } from '@/components/recipes/RecipeSteps'
-import { useAuth } from '@/app/providers/AuthProvider'
-import { Button } from '@/components/ui/button'
-
-/**
- * RecipeDetailPage
- * 
- * Displays full recipe information.
- * Implements Premium Guard for restricted content.
- * Refactored into modular components for audit compliance.
- */
 import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Clock, Users, Sparkles, Lock, Utensils, ShoppingBasket, Plus, BarChart3, PillIcon } from 'lucide-react'

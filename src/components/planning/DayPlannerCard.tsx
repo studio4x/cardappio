@@ -9,7 +9,7 @@ interface DayPlannerCardProps {
 
 export function DayPlannerCard({ day, weekId }: DayPlannerCardProps) {
   const slots = [...(day.slots ?? [])].sort((a, b) => a.sort_order - b.sort_order)
-  const isWeekend = day.day_of_week === 'sat' || day.day_of_week === 'sun'
+  const isWeekend = day.day_of_week === 'saturday' || day.day_of_week === 'sunday'
 
   return (
     <div className="space-y-4">

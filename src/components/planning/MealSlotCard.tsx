@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Clock, Star, Sync, Trash2, Plus, Utensils } from 'lucide-react'
+import { Clock, Star, RefreshCw, Trash2, Plus, Utensils } from 'lucide-react'
 import type { MealPlanSlot } from '@/types/planning'
 import { cn } from '@/lib/utils'
 
@@ -60,7 +60,7 @@ export function MealSlotCard({ slot, weekId, onRemove }: MealSlotCardProps) {
                   className="text-warm-gray-medium hover:text-primary transition-colors active:scale-90"
                   title="Trocar"
                 >
-                  <Sync className="h-3.5 w-3.5" />
+                  <RefreshCw className="h-3.5 w-3.5" />
                 </button>
                 <button 
                   onClick={(e) => {
@@ -88,7 +88,7 @@ export function MealSlotCard({ slot, weekId, onRemove }: MealSlotCardProps) {
               </div>
               <div className="flex items-center gap-1 text-[11px] font-medium text-warm-gray-medium font-label-sm">
                 <Star className="h-3 w-3 text-warning-amber fill-warning-amber" />
-                {slot.recipe.difficulty === 'easy' ? 'Fácil' : slot.recipe.difficulty === 'medium' ? 'Médio' : 'Difícil'}
+                {slot.recipe.difficulty_level === 'easy' ? 'Fácil' : slot.recipe.difficulty_level === 'medium' ? 'Médio' : 'Difícil'}
               </div>
             </div>
           </div>

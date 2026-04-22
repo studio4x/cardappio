@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { CalendarDays, Plus, ShoppingCart, ChefHat, Sparkles, BookOpen, Heart } from 'lucide-react'
+import { CalendarDays, Plus, ShoppingCart, ChefHat, Sparkles, BookOpen, Heart, ArrowRight, Star, Utensils, Clock, PiggyBank, CheckSquare as ListChecks } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { LoadingState } from '@/components/shared/LoadingState'
@@ -171,7 +171,7 @@ export function AppHomePage() {
                   <Star className="h-4 w-4 text-tertiary fill-tertiary" />
                 </div>
                 <div className="h-full w-full flex items-center justify-center text-slate-400">
-                   <RestaurantMenu className="h-12 w-12 opacity-20" />
+                   <Utensils className="h-12 w-12 opacity-20" />
                 </div>
               </div>
               <div className="p-4">
@@ -182,7 +182,7 @@ export function AppHomePage() {
                 <h4 className="font-bold text-lg text-on-surface mb-2">Bowl Mediterrâneo de Verão</h4>
                 <div className="flex items-center gap-4 text-text-secondary text-[11px] font-medium">
                   <span className="flex items-center gap-1"><Clock className="h-3 w-3" />Fácil</span>
-                  <span className="flex items-center gap-1"><Savings className="h-3 w-3" />Economize</span>
+                  <span className="flex items-center gap-1"><PiggyBank className="h-3 w-3" />Economize</span>
                 </div>
               </div>
             </div>

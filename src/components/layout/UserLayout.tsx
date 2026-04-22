@@ -1,5 +1,5 @@
 import { Outlet, Link } from 'react-router-dom'
-import { ChefHat, Bell, LogOut } from 'lucide-react'
+import { ChefHat, Bell, LogOut, Utensils } from 'lucide-react'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { MobileBottomNav } from './MobileBottomNav'
 import { config } from '@/config'

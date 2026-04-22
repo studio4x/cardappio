@@ -1,4 +1,4 @@
-import { ShoppingCart, RefreshCw, Loader2, Package, Share2, Search, Utensils, Plus, EcoIcon, Fridge, InventoryIcon, Apple, Leaf, Milk, Beef } from 'lucide-react'
+import { ShoppingCart, RefreshCw, Loader2, Package, Share2, Search, Utensils, Plus, Apple, Leaf, Milk, Beef, SlidersVertical as TuneIcon } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
@@ -37,7 +37,8 @@ export function ShoppingListPage() {
   const groupedItems = useMemo(() => {
     const groups: Record<string, typeof items> = {}
     items.forEach(item => {
-      const cat = item.category || 'Outros'
+      // Cast to any for the temporary 'category' until types are updated or use a fallback
+      const cat = (item as any).category || 'Outros'
       if (!groups[cat]) groups[cat] = []
       groups[cat].push(item)
     })

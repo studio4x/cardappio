@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Plus, ShoppingCart, Loader2, Save, Tune, ChevronRight } from 'lucide-react'
+import { Plus, ShoppingCart, Loader2, Save, SlidersVertical as Tune, ChevronRight } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'

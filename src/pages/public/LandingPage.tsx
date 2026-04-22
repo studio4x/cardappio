@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Utensils, ArrowRight, Clock, Star, Schedule, Savings, RestaurantMenu } from 'lucide-react'
+import { Utensils, ArrowRight, Clock, Star, PiggyBank } from 'lucide-react'
 import { config } from '@/config'
 import { SEO } from '@/components/shared/SEO'
 
@@ -97,7 +97,7 @@ export function LandingPage() {
               style={{ backgroundColor: 'var(--color-surface-container-low)', borderColor: 'var(--color-outline-variant)' }}
             >
               <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: 'color-mix(in srgb, var(--color-tertiary) 10%, transparent)' }}>
-                <Savings className="h-6 w-6" style={{ color: 'var(--color-tertiary)' }} />
+                <PiggyBank className="h-6 w-6" style={{ color: 'var(--color-tertiary)' }} />
               </div>
               <h3 className="text-xl font-bold mb-3">Economize Dinheiro</h3>
               <p className="text-sm text-text-secondary leading-relaxed">
@@ -110,7 +110,7 @@ export function LandingPage() {
               style={{ backgroundColor: 'var(--color-surface-container-low)', borderColor: 'var(--color-outline-variant)' }}
             >
               <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: 'color-mix(in srgb, var(--color-info) 20%, transparent)' }}>
-                <RestaurantMenu className="h-6 w-6" style={{ color: 'var(--color-info)' }} />
+                <Utensils className="h-6 w-6" style={{ color: 'var(--color-info)' }} />
               </div>
               <h3 className="text-xl font-bold mb-3">Coma Melhor</h3>
               <p className="text-sm text-text-secondary leading-relaxed">
