@@ -16,6 +16,9 @@ import { PublicOnlyGuard } from '@/app/guards/PublicOnlyGuard'
 import { LandingPage } from '@/pages/public/LandingPage'
 import { HowItWorksPage } from '@/pages/public/HowItWorksPage'
 import { PublicPlansPage } from '@/pages/public/PublicPlansPage'
+import { FaqPage } from '@/pages/public/FaqPage'
+import { ContactPage } from '@/pages/public/ContactPage'
+import { SupportPage } from '@/pages/public/SupportPage'
 
 // Auth pages
 import { LoginPage } from '@/pages/auth/LoginPage'
@@ -56,10 +59,9 @@ export const router = createBrowserRouter([
       // TODO: Fase posterior
       { path: '/como-funciona', element: <HowItWorksPage /> },
       { path: '/planos', element: <PublicPlansPage /> },
-      // { path: '/faq', element: <FaqPage /> },
-      // { path: '/contato', element: <ContactPage /> },
-      // { path: '/quem-somos', element: <AboutPage /> },
-      // { path: '/suporte', element: <SupportPage /> },
+      { path: '/faq', element: <FaqPage /> },
+      { path: '/contato', element: <ContactPage /> },
+      { path: '/suporte', element: <SupportPage /> },
     ],
   },
 
