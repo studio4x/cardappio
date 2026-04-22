@@ -44,7 +44,7 @@ export function FavoritesPage() {
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {favorites.map((recipe) => (
+          {favorites.map((recipe: any) => (
             <RecipeCard
               key={recipe.id}
               recipe={recipe}

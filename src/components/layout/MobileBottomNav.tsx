@@ -1,12 +1,12 @@
 import { NavLink } from 'react-router-dom'
-import { Home, CalendarDays, ShoppingCart, Heart, User } from 'lucide-react'
+import { Home, Calendar, ShoppingBasket, Utensils, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
-  { label: 'Início', icon: Home, href: '/app' },
-  { label: 'Semana', icon: CalendarDays, href: '/app/semana' },
-  { label: 'Compras', icon: ShoppingCart, href: '/app/compras' },
-  { label: 'Favoritos', icon: Heart, href: '/app/favoritos' },
+  { label: 'Home', icon: Home, href: '/app' },
+  { label: 'Planner', icon: Calendar, href: '/app/semana' },
+  { label: 'Receitas', icon: Utensils, href: '/app/receitas' },
+  { label: 'Compras', icon: ShoppingBasket, href: '/app/compras' },
   { label: 'Perfil', icon: User, href: '/app/perfil' },
 ]
 

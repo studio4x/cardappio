@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Mail, Lock, User, Loader2 } from 'lucide-react'
+import { Mail, Lock, User, Loader2, ArrowRight } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 
 export function SignupPage() {
@@ -30,19 +30,11 @@ export function SignupPage() {
       })
 
       if (authError) {
-        if (authError.message.includes('already registered')) {
-          setError('Este e-mail já está cadastrado. Tente fazer login.')
-        } else {
-          setError(authError.message)
-        }
+        setError(authError.message.includes('already registered') ? 'Este e-mail já está cadastrado.' : authError.message)
         return
       }
 
-      // Profile will be auto-created by the DB trigger (handle_new_user)
-      // If email confirmation is disabled, redirect directly
       setSuccess(true)
-
-      // Navigate to app after small delay for auth state to propagate
       setTimeout(() => {
         navigate('/app/onboarding', { replace: true })
       }, 500)
@@ -55,137 +47,94 @@ export function SignupPage() {
 
   if (success) {
     return (
-      <div className="text-center py-4">
-        <div
-          className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full"
-          style={{ backgroundColor: 'color-mix(in srgb, var(--color-success) 15%, transparent)' }}
-        >
-          <span className="text-2xl">✓</span>
+      <div className="text-center py-10 animate-in zoom-in duration-300">
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[2rem] bg-emerald-100 text-emerald-600 shadow-xl shadow-emerald-600/10">
+          <ArrowRight className="h-10 w-10 rotate-[-45deg]" />
         </div>
-        <h2
-          className="mb-2 text-xl font-bold"
-          style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-on-surface)' }}
-        >
-          Conta criada!
-        </h2>
-        <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-          Redirecionando para o onboarding...
-        </p>
+        <h2 className="text-3xl font-extrabold text-on-surface tracking-tight mb-3">Bem-vindo!</h2>
+        <p className="text-text-secondary">Sua conta foi criada com sucesso. Redirecionando...</p>
       </div>
     )
   }
 
   return (
-    <div>
-      <h2
-        className="mb-1 text-2xl font-bold"
-        style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-on-surface)' }}
-      >
-        Criar conta
-      </h2>
-      <p className="mb-6 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-        Comece a organizar suas refeições da semana.
-      </p>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="space-y-2">
+        <h2 className="text-3xl font-extrabold text-on-surface tracking-tight">Criar conta</h2>
+        <p className="text-text-secondary">Junte-se a nós para simplificar sua vida na cozinha.</p>
+      </div>
 
       {error && (
-        <div
-          className="mb-4 rounded-lg px-4 py-3 text-sm"
-          style={{
-            backgroundColor: 'color-mix(in srgb, var(--color-error) 10%, transparent)',
-            color: 'var(--color-error)',
-          }}
-        >
+        <div className="rounded-xl px-4 py-3 text-xs font-bold bg-red-50 text-red-600 border border-red-100">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="signup-name" className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--color-on-surface)' }}>
-            Nome
-          </label>
-          <div className="relative">
-            <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: 'var(--color-outline)' }} />
-            <input
-              id="signup-name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Seu nome"
-              required
-              className="w-full rounded-lg border py-2.5 pl-10 pr-4 text-sm outline-none transition-colors"
-              style={{
-                borderColor: 'var(--color-outline-variant)',
-                backgroundColor: 'var(--color-surface-container-low)',
-                color: 'var(--color-on-surface)',
-              }}
-            />
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <label htmlFor="signup-name" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">Nome Completo</label>
+            <div className="relative group">
+              <User className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-warm-gray-medium group-focus-within:text-primary transition-colors" />
+              <input
+                id="signup-name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Seu nome"
+                required
+                className="w-full bg-neutral-100 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all text-on-surface placeholder:text-warm-gray-medium"
+              />
+            </div>
           </div>
-        </div>
 
-        <div>
-          <label htmlFor="signup-email" className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--color-on-surface)' }}>
-            E-mail
-          </label>
-          <div className="relative">
-            <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: 'var(--color-outline)' }} />
-            <input
-              id="signup-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              required
-              className="w-full rounded-lg border py-2.5 pl-10 pr-4 text-sm outline-none transition-colors"
-              style={{
-                borderColor: 'var(--color-outline-variant)',
-                backgroundColor: 'var(--color-surface-container-low)',
-                color: 'var(--color-on-surface)',
-              }}
-            />
+          <div className="space-y-1.5">
+            <label htmlFor="signup-email" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">E-mail</label>
+            <div className="relative group">
+              <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-warm-gray-medium group-focus-within:text-primary transition-colors" />
+              <input
+                id="signup-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu@email.com"
+                required
+                className="w-full bg-neutral-100 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all text-on-surface placeholder:text-warm-gray-medium"
+              />
+            </div>
           </div>
-        </div>
 
-        <div>
-          <label htmlFor="signup-password" className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--color-on-surface)' }}>
-            Senha
-          </label>
-          <div className="relative">
-            <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: 'var(--color-outline)' }} />
-            <input
-              id="signup-password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Mínimo 6 caracteres"
-              required
-              minLength={6}
-              className="w-full rounded-lg border py-2.5 pl-10 pr-4 text-sm outline-none transition-colors"
-              style={{
-                borderColor: 'var(--color-outline-variant)',
-                backgroundColor: 'var(--color-surface-container-low)',
-                color: 'var(--color-on-surface)',
-              }}
-            />
+          <div className="space-y-1.5">
+            <label htmlFor="signup-password" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">Senha</label>
+            <div className="relative group">
+              <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-warm-gray-medium group-focus-within:text-primary transition-colors" />
+              <input
+                id="signup-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                required
+                minLength={6}
+                className="w-full bg-neutral-100 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all text-on-surface placeholder:text-warm-gray-medium"
+              />
+            </div>
           </div>
         </div>
 
         <button
           type="submit"
           disabled={isLoading}
-          className="flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50 cursor-pointer"
+          className="w-full py-4 bg-primary text-white font-bold rounded-2xl shadow-xl shadow-primary/10 hover:bg-primary/95 active:scale-[0.98] transition-all flex justify-center items-center gap-2 disabled:opacity-50"
           style={{ backgroundColor: 'var(--color-primary)' }}
         >
-          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          {isLoading ? 'Criando conta...' : 'Criar conta'}
+          {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Criar minha conta'}
+          {!isLoading && <ArrowRight className="h-5 w-5" />}
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-        Já tem conta?{' '}
-        <Link to="/auth/login" className="font-medium" style={{ color: 'var(--color-primary)' }}>
-          Entrar
-        </Link>
+      <p className="text-center font-medium text-text-secondary pt-4">
+        Já tem uma conta? <Link to="/auth/login" className="text-primary font-bold hover:underline">Entre agora</Link>
       </p>
     </div>
   )

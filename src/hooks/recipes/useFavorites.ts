@@ -19,7 +19,7 @@ export function useFavorites() {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      return data?.map((fav) => fav.recipe) ?? []
+      return (data?.map((fav) => fav.recipe) ?? []) as any
     },
   })
 }

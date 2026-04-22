@@ -11,7 +11,7 @@ export function FavoriteButton({ recipeId, className }: FavoriteButtonProps) {
   const { data: favorites, isLoading } = useFavorites()
   const toggleFavorite = useToggleFavorite()
 
-  const isFavorite = favorites?.some((f) => f.id === recipeId) ?? false
+  const isFavorite = favorites?.some((f: any) => f.id === recipeId) ?? false
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation()

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, HelpCircle, ChevronDown } from 'lucide-react'
+import { HelpCircle, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SEO } from '@/components/shared/SEO'
 import { useState } from 'react'

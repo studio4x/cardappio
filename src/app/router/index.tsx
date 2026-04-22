@@ -24,7 +24,6 @@ import { SupportPage } from '@/pages/public/SupportPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { SignupPage } from '@/pages/auth/SignupPage'
 import { RecoverAccessPage } from '@/pages/auth/RecoverAccessPage'
-import { AuthRecoveryPage } from '@/pages/auth/AuthRecoveryPage'
 import { AuthCallbackPage } from '@/pages/auth/AuthCallbackPage'
 
 // App pages

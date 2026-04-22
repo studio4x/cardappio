@@ -9,28 +9,18 @@ interface DayPlannerCardProps {
 
 export function DayPlannerCard({ day, weekId }: DayPlannerCardProps) {
   const slots = [...(day.slots ?? [])].sort((a, b) => a.sort_order - b.sort_order)
+  const isWeekend = day.day_of_week === 'sat' || day.day_of_week === 'sun'
 
   return (
-    <div
-      className="rounded-xl border overflow-hidden"
-      style={{
-        backgroundColor: 'var(--color-surface-container-lowest)',
-        borderColor: 'var(--color-outline-variant)',
-      }}
-    >
-      <div
-        className="px-4 py-3 border-b"
-        style={{
-          backgroundColor: 'var(--color-surface-container-low)',
-          borderColor: 'var(--color-outline-variant)',
-        }}
-      >
-        <h3 className="text-sm font-semibold" style={{ color: 'var(--color-on-surface)' }}>
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 px-1">
+        <span className="w-1.5 h-6 rounded-full" style={{ backgroundColor: isWeekend ? 'var(--color-tertiary)' : 'var(--color-fresh-green)' }}></span>
+        <h3 className="text-lg font-extrabold text-on-surface">
           {DAY_LABELS[day.day_of_week as DayOfWeek]}
         </h3>
       </div>
 
-      <div className="divide-y" style={{ borderColor: 'var(--color-outline-variant)' }}>
+      <div className="grid gap-3">
         {slots.map((slot) => (
           <MealSlotCard key={slot.id} slot={slot} weekId={weekId} />
         ))}

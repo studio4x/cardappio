@@ -14,6 +14,8 @@ export interface Profile {
   status: UserStatus
   last_seen_at: string | null
   onboarding_completed_at: string | null
+  subscription_tier: 'free' | 'pro'
+  subscription_until: string | null
   created_at: string
   updated_at: string
 }

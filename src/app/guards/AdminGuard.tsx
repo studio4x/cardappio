@@ -6,7 +6,7 @@ import { LoadingState } from '@/components/shared/LoadingState'
  * Protects admin routes by requiring admin or super_admin role.
  * Must be nested inside AuthGuard.
  */
-export function AdminGuard() {
+export function AdminGuard({ children }: { children?: React.ReactNode }) {
   const { isAdmin, isLoading } = useAuth()
 
   if (isLoading) {
@@ -17,5 +17,5 @@ export function AdminGuard() {
     return <Navigate to="/app" replace />
   }
 
-  return <Outlet />
+  return children ? <>{children}</> : <Outlet />
 }

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/app/providers/AuthProvider'
 
 export function SubscriptionPage() {
-  const { profile } = useAuth()
+  const { user: profile } = useAuth()
   const { subscription, isLoading, checkoutMutation } = useSubscription()
 
   if (isLoading) return <LoadingState message="Verificando assinatura..." />

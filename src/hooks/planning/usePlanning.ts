@@ -117,7 +117,7 @@ export function useCreateWeek() {
       if (weekError) throw weekError
 
       // 3. Create days
-      const daysToInsert = selectedDays.map((day, i) => ({
+      const daysToInsert = selectedDays.map((day) => ({
         week_id: week.id,
         day_of_week: day,
         sort_order: DAYS_ORDER.indexOf(day),
@@ -132,10 +132,10 @@ export function useCreateWeek() {
 
       // 4. Create empty slots for each day/meal_type
       const slotsToInsert = (days as MealPlanDay[]).flatMap((day) =>
-        mealModes.map((mealType, i) => ({
+        mealModes.map((mealType, idx) => ({
           day_id: day.id,
           meal_type: mealType,
-          sort_order: i,
+          sort_order: idx,
         }))
       )
 
@@ -214,7 +214,7 @@ export function useRepeatWeek() {
         .eq('user_id', supabaseUser.id)
         .eq('status', 'active')
 
-      // 3. Create the new week (dates shift logic could be complex, for now we set today as start)
+      // 3. Create the new week
       const startDate = new Date().toISOString().split('T')[0]
       const endDate = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
