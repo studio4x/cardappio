@@ -1,13 +1,14 @@
-import { useParams, useSearchParams } from 'react-router-dom'
-import { ShoppingCart, RefreshCw, Loader2, Package } from 'lucide-react'
+import { ShoppingCart, RefreshCw, Loader2, Package, Share2, Copy, Check } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { useShoppingList, useGenerateShoppingList, useToggleShoppingItem } from '@/hooks/shopping/useShopping'
+import { useShoppingList, useGenerateShoppingList, useToggleShoppingItem, useShareResource } from '@/hooks/shopping/useShopping'
 import { useActiveWeek } from '@/hooks/planning/usePlanning'
 import { ShoppingChecklistItem } from '@/components/shopping/ShoppingChecklistItem'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
+import { useState } from 'react'
 
 /**
  * ShoppingListPage (Screen 12)
@@ -29,6 +30,27 @@ export function ShoppingListPage() {
   const { data: shoppingList, isLoading, error, refetch } = useShoppingList(weekId)
   const generateList = useGenerateShoppingList()
   const toggleItem = useToggleShoppingItem()
+  const shareResource = useShareResource()
+  const [isCopying, setIsCopying] = useState(false)
+
+  const handleShare = async () => {
+    if (!shoppingList) return
+    try {
+      const data = await shareResource.mutateAsync({
+        resourceType: 'list',
+        resourceId: shoppingList.id
+      })
+      
+      const fullUrl = `${window.location.origin}/compartilhar/${data.token}`
+      await navigator.clipboard.writeText(fullUrl)
+      
+      toast.success('Link de compartilhamento copiado!', {
+        description: 'Válido por 24 horas.'
+      })
+    } catch (err) {
+      toast.error('Erro ao gerar link de compartilhamento')
+    }
+  }
 
   const handleGenerate = async () => {
     if (!weekId) return
@@ -94,20 +116,35 @@ export function ShoppingListPage() {
         title="Lista de Compras"
         subtitle={`${checkedCount} de ${totalCount} itens concluídos`}
         actions={
-          <button
-            onClick={handleGenerate}
-            disabled={generateList.isPending}
-            className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors cursor-pointer"
-            style={{ color: 'var(--color-primary)' }}
-            title="Regenerar lista"
-          >
-            {generateList.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4" />
-            )}
-            Regenerar
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleShare}
+              disabled={shareResource.isPending}
+              className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold transition-all hover:bg-slate-100 cursor-pointer text-slate-600"
+              title="Compartilhar lista"
+            >
+              {shareResource.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Share2 className="h-4 w-4" />
+              )}
+              Compartilhar
+            </button>
+            <button
+              onClick={handleGenerate}
+              disabled={generateList.isPending}
+              className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold transition-all hover:bg-emerald-50 cursor-pointer"
+              style={{ color: 'var(--color-primary)' }}
+              title="Regenerar lista"
+            >
+              {generateList.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              Regenerar
+            </button>
+          </div>
         }
       />
 

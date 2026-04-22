@@ -85,3 +85,37 @@ export function useToggleShoppingItem() {
     },
   })
 }
+
+/**
+ * Generate a shareable link for a week or shopping list.
+ */
+export function useShareResource() {
+  const { supabaseUser } = useAuth()
+
+  return useMutation({
+    mutationFn: async ({
+      resourceType,
+      resourceId,
+      expiresInHours = 24
+    }: {
+      resourceType: 'week' | 'list'
+      resourceId: string
+      expiresInHours?: number
+    }) => {
+      if (!supabaseUser) throw new Error('Not authenticated')
+
+      const { data, error } = await supabase.functions.invoke('generate-share-link', {
+        body: { 
+          resource_type: resourceType, 
+          resource_id: resourceId,
+          expires_in_hours: expiresInHours
+        }
+      })
+
+      if (error) throw error
+      if (!data.success) throw new Error(data.error?.message || 'Failed to generate link')
+
+      return data.data // { token, share_url, expires_at }
+    }
+  })
+}
