@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { CheckCircle2, ShoppingBag, Utensils, CalendarDays, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { SEO } from '@/components/shared/SEO'
 
 export function HowItWorksPage() {
   const steps = [
@@ -23,6 +24,10 @@ export function HowItWorksPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <SEO 
+        title="Como Funciona" 
+        description="Entenda como o Cardappio ajuda você a economizar tempo e dinheiro através do planejamento inteligente de refeições."
+      />
       {/* Hero Section */}
       <section className="bg-white py-16 px-6 sm:py-24">
         <div className="max-w-4xl mx-auto text-center space-y-6">

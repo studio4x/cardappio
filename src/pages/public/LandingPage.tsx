@@ -2,9 +2,15 @@ import { Link } from 'react-router-dom'
 import { ChefHat, CalendarDays, ShoppingCart, ListChecks, ArrowRight, Utensils, Clock } from 'lucide-react'
 import { config } from '@/config'
 
+import { SEO } from '@/components/shared/SEO'
+
 export function LandingPage() {
   return (
     <div>
+      <SEO 
+        title="Planeje seu cardápio semanal com facilidade" 
+        description="Simplifique sua vida na cozinha. O Cardappio organiza suas refeições semanais e gera sua lista de compras automaticamente."
+      />
       {/* Hero */}
       <section
         className="py-16 sm:py-24"
