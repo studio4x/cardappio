@@ -40,6 +40,7 @@ import { CollectionDetailPage } from '@/pages/app/CollectionDetailPage'
 import { ProfilePreferencesPage } from '@/pages/app/ProfilePreferencesPage'
 import { NotificationsPage } from '@/pages/app/NotificationsPage'
 import { HistoryPage } from '@/pages/app/HistoryPage'
+import { SubscriptionPage } from '@/pages/app/SubscriptionPage'
 
 // Admin pages
 import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage'
@@ -132,7 +133,7 @@ export const router = createBrowserRouter([
 
               // Fase 5 - Perfil e monetização
               { path: '/app/perfil', element: <ProfilePreferencesPage /> },
-              // { path: '/app/assinatura', element: <SubscriptionPage /> },
+              { path: '/app/assinatura', element: <SubscriptionPage /> },
               { path: '/app/notificacoes', element: <NotificationsPage /> },
             ],
           },
