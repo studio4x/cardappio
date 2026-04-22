@@ -14,11 +14,14 @@ import { PublicOnlyGuard } from '@/app/guards/PublicOnlyGuard'
 
 // Public pages
 import { LandingPage } from '@/pages/public/LandingPage'
+import { HowItWorksPage } from '@/pages/public/HowItWorksPage'
+import { PublicPlansPage } from '@/pages/public/PublicPlansPage'
 
 // Auth pages
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { SignupPage } from '@/pages/auth/SignupPage'
 import { RecoverAccessPage } from '@/pages/auth/RecoverAccessPage'
+import { AuthRecoveryPage } from '@/pages/auth/AuthRecoveryPage'
 import { AuthCallbackPage } from '@/pages/auth/AuthCallbackPage'
 
 // App pages
@@ -51,8 +54,8 @@ export const router = createBrowserRouter([
     children: [
       { path: '/', element: <LandingPage /> },
       // TODO: Fase posterior
-      // { path: '/como-funciona', element: <HowItWorksPage /> },
-      // { path: '/planos', element: <PlansPage /> },
+      { path: '/como-funciona', element: <HowItWorksPage /> },
+      { path: '/planos', element: <PublicPlansPage /> },
       // { path: '/faq', element: <FaqPage /> },
       // { path: '/contato', element: <ContactPage /> },
       // { path: '/quem-somos', element: <AboutPage /> },

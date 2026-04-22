@@ -44,92 +44,14 @@ export function useGenerateShoppingList() {
     mutationFn: async (weekId: string) => {
       if (!supabaseUser) throw new Error('Not authenticated')
 
-      // 1. Fetch all slots with recipes and ingredients for this week
-      const { data: days, error: daysError } = await supabase
-        .from('meal_plan_days')
-        .select(`
-          slots:meal_plan_slots(
-            recipe:recipes(
-              id,
-              ingredients:recipe_ingredients(name, quantity_label, normalized_name, is_optional)
-            )
-          )
-        `)
-        .eq('week_id', weekId)
+      const { data, error } = await supabase.functions.invoke('rebuild-shopping-list', {
+        body: { week_id: weekId }
+      })
 
-      if (daysError) throw daysError
+      if (error) throw error
+      if (!data.success) throw new Error(data.error?.message || 'Failed to rebuild list')
 
-      // 2. Aggregate ingredients from all recipes
-      const ingredientMap = new Map<string, {
-        label: string
-        normalized: string
-        quantities: string[]
-        recipeCount: number
-      }>()
-
-      for (const day of days ?? []) {
-        for (const slot of (day as { slots: Array<{ recipe: { id: string, ingredients: Array<{ name: string, quantity_label: string | null, normalized_name: string | null, is_optional: boolean }> } | null }> }).slots ?? []) {
-          if (!slot.recipe) continue
-          for (const ing of slot.recipe.ingredients ?? []) {
-            if (ing.is_optional) continue
-            const key = (ing.normalized_name ?? ing.name).toLowerCase().trim()
-            const existing = ingredientMap.get(key)
-            if (existing) {
-              existing.recipeCount++
-              if (ing.quantity_label) existing.quantities.push(ing.quantity_label)
-            } else {
-              ingredientMap.set(key, {
-                label: ing.name,
-                normalized: key,
-                quantities: ing.quantity_label ? [ing.quantity_label] : [],
-                recipeCount: 1,
-              })
-            }
-          }
-        }
-      }
-
-      // 3. Delete existing shopping list for this week (if any)
-      await supabase
-        .from('shopping_lists')
-        .delete()
-        .eq('user_id', supabaseUser.id)
-        .eq('week_id', weekId)
-
-      // 4. Create new shopping list
-      const { data: list, error: listError } = await supabase
-        .from('shopping_lists')
-        .insert({
-          user_id: supabaseUser.id,
-          week_id: weekId,
-          status: 'active',
-          generated_at: new Date().toISOString(),
-        })
-        .select()
-        .single()
-
-      if (listError) throw listError
-
-      // 5. Insert items
-      const items = Array.from(ingredientMap.entries()).map(([, value], idx) => ({
-        shopping_list_id: list.id,
-        ingredient_label: value.label,
-        normalized_name: value.normalized,
-        quantity_label: value.quantities.join(' + ') || null,
-        source_recipe_count: value.recipeCount,
-        is_checked: false,
-        sort_order: idx,
-      }))
-
-      if (items.length > 0) {
-        const { error: itemsError } = await supabase
-          .from('shopping_list_items')
-          .insert(items)
-
-        if (itemsError) throw itemsError
-      }
-
-      return list as ShoppingList
+      return data.data
     },
     onSuccess: (_, weekId) => {
       queryClient.invalidateQueries({ queryKey: ['shopping-list', weekId] })
