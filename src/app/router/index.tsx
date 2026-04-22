@@ -39,6 +39,8 @@ import { HistoryPage } from '@/pages/app/HistoryPage'
 import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage'
 import { AdminRecipesPage } from '@/pages/admin/AdminRecipesPage'
 import { AdminRecipeEditorPage } from '@/pages/admin/AdminRecipeEditorPage'
+import { AdminUsersPage } from '@/pages/admin/AdminUsersPage'
+import { AdminPlansPage } from '@/pages/admin/AdminPlansPage'
 
 export const router = createBrowserRouter([
   // ==========================================
@@ -152,8 +154,8 @@ export const router = createBrowserRouter([
               // { path: '/admin/colecoes', element: <AdminCollectionsPage /> },
               // { path: '/admin/dicas-alertas', element: <AdminNoticesPage /> },
               // { path: '/admin/notificacoes', element: <AdminNotificationsPage /> },
-              // { path: '/admin/usuarios', element: <AdminUsersPage /> },
-              // { path: '/admin/planos', element: <AdminPlansPage /> },
+              { path: '/admin/usuarios', element: <AdminUsersPage /> },
+              { path: '/admin/planos', element: <AdminPlansPage /> },
               // { path: '/admin/assinaturas', element: <AdminSubscriptionsPage /> },
               // { path: '/admin/configuracoes', element: <AdminSettingsPage /> },
               // { path: '/admin/relatorios', element: <AdminReportsPage /> },
