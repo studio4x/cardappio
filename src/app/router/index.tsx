@@ -33,6 +33,7 @@ import { CollectionsPage } from '@/pages/app/CollectionsPage'
 import { CollectionDetailPage } from '@/pages/app/CollectionDetailPage'
 import { ProfilePreferencesPage } from '@/pages/app/ProfilePreferencesPage'
 import { NotificationsPage } from '@/pages/app/NotificationsPage'
+import { HistoryPage } from '@/pages/app/HistoryPage'
 
 // Admin pages
 import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage'
@@ -114,7 +115,7 @@ export const router = createBrowserRouter([
 
               // Fase 4 - Retenção
               { path: '/app/favoritos', element: <FavoritesPage /> },
-              // { path: '/app/historico', element: <HistoryPage /> },
+              { path: '/app/historico', element: <HistoryPage /> },
               { path: '/app/colecoes', element: <CollectionsPage /> },
               { path: '/app/colecoes/:slug', element: <CollectionDetailPage /> },
 
