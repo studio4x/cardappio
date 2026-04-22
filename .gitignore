@@ -24,3 +24,9 @@ dist-ssr
 *.sw?
 
 .vercel
+.env
+.env.*
+!.env.example
+.npmrc
+supabase/.temp/
+consolidated_migrations.sql
