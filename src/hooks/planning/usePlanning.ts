@@ -180,3 +180,94 @@ export function useAssignRecipe() {
     },
   })
 }
+
+/**
+ * Repeat (duplicate) an existing week plan.
+ */
+export function useRepeatWeek() {
+  const queryClient = useQueryClient()
+  const { supabaseUser } = useAuth()
+
+  return useMutation({
+    mutationFn: async (sourceWeekId: string) => {
+      if (!supabaseUser) throw new Error('Not authenticated')
+
+      // 1. Fetch source structure
+      const { data: sourceWeek, error: fetchError } = await supabase
+        .from('meal_plan_weeks')
+        .select(`
+          *,
+          days:meal_plan_days(
+            *,
+            slots:meal_plan_slots(*)
+          )
+        `)
+        .eq('id', sourceWeekId)
+        .single()
+
+      if (fetchError) throw fetchError
+
+      // 2. Archive any existing active week
+      await supabase
+        .from('meal_plan_weeks')
+        .update({ status: 'archived' })
+        .eq('user_id', supabaseUser.id)
+        .eq('status', 'active')
+
+      // 3. Create the new week (dates shift logic could be complex, for now we set today as start)
+      const startDate = new Date().toISOString().split('T')[0]
+      const endDate = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+
+      const { data: newWeek, error: weekError } = await supabase
+        .from('meal_plan_weeks')
+        .insert({
+          user_id: supabaseUser.id,
+          title: `${sourceWeek.title || 'Semana'} (Repetida)`,
+          week_start_date: startDate,
+          week_end_date: endDate,
+          status: 'active',
+          source_week_id: sourceWeekId,
+        })
+        .select()
+        .single()
+
+      if (weekError) throw weekError
+
+      // 4. Duplicate days and slots
+      for (const day of sourceWeek.days || []) {
+        const { data: newDay, error: dayError } = await supabase
+          .from('meal_plan_days')
+          .insert({
+            week_id: newWeek.id,
+            day_of_week: day.day_of_week,
+            sort_order: day.sort_order,
+          })
+          .select()
+          .single()
+        
+        if (dayError) throw dayError
+
+        if (day.slots?.length > 0) {
+          const slotsToInsert = day.slots.map((s: any) => ({
+            day_id: newDay.id,
+            meal_type: s.meal_type,
+            recipe_id: s.recipe_id,
+            sort_order: s.sort_order,
+          }))
+
+          const { error: slotsError } = await supabase
+            .from('meal_plan_slots')
+            .insert(slotsToInsert)
+          
+          if (slotsError) throw slotsError
+        }
+      }
+
+      return newWeek
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['active-week'] })
+      queryClient.invalidateQueries({ queryKey: ['meal-weeks-history'] })
+    }
+  })
+}

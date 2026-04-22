@@ -47,6 +47,10 @@ import { AdminRecipesPage } from '@/pages/admin/AdminRecipesPage'
 import { AdminRecipeEditorPage } from '@/pages/admin/AdminRecipeEditorPage'
 import { AdminUsersPage } from '@/pages/admin/AdminUsersPage'
 import { AdminPlansPage } from '@/pages/admin/AdminPlansPage'
+import { AdminCategoriesPage } from '@/pages/admin/AdminCategoriesPage'
+import { AdminTagsPage } from '@/pages/admin/AdminTagsPage'
+import { AdminCollectionsPage } from '@/pages/admin/AdminCollectionsPage'
+import { AdminNoticesPage } from '@/pages/admin/AdminNoticesPage'
 
 export const router = createBrowserRouter([
   // ==========================================
@@ -154,11 +158,10 @@ export const router = createBrowserRouter([
               { path: '/admin/receitas', element: <AdminRecipesPage /> },
               { path: '/admin/receitas/nova', element: <AdminRecipeEditorPage /> },
               { path: '/admin/receitas/:id', element: <AdminRecipeEditorPage /> },
-              // { path: '/admin/categorias', element: <AdminCategoriesPage /> },
-              // { path: '/admin/tags', element: <AdminTagsPage /> },
-              // { path: '/admin/colecoes', element: <AdminCollectionsPage /> },
-              // { path: '/admin/dicas-alertas', element: <AdminNoticesPage /> },
-              // { path: '/admin/notificacoes', element: <AdminNotificationsPage /> },
+              { path: '/admin/categorias', element: <AdminCategoriesPage /> },
+              { path: '/admin/tags', element: <AdminTagsPage /> },
+              { path: '/admin/colecoes', element: <AdminCollectionsPage /> },
+              { path: '/admin/dicas-alertas', element: <AdminNoticesPage /> },
               { path: '/admin/usuarios', element: <AdminUsersPage /> },
               { path: '/admin/planos', element: <AdminPlansPage /> },
               // { path: '/admin/assinaturas', element: <AdminSubscriptionsPage /> },
