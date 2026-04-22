@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Grocery List - Cardappio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#ffd9e2",
+                    "surface": "#f5fbef",
+                    "on-primary-container": "#003c0b",
+                    "fresh-green": "#4CAF50",
+                    "on-surface-variant": "#3f4a3c",
+                    "inverse-surface": "#2c322a",
+                    "primary-container": "#4caf50",
+                    "on-primary-fixed": "#002204",
+                    "surface-dim": "#d6dcd0",
+                    "inverse-on-surface": "#edf3e7",
+                    "surface-tint": "#006e1c",
+                    "primary": "#006e1c",
+                    "surface-container": "#eaf0e4",
+                    "text-primary": "#2D2D2D",
+                    "on-background": "#171d16",
+                    "info-blue": "#4FC3F7",
+                    "error-container": "#ffdad6",
+                    "warm-gray-medium": "#9E9E9E",
+                    "error": "#ba1a1a",
+                    "on-tertiary": "#ffffff",
+                    "error-red": "#E53935",
+                    "surface-container-low": "#f0f6ea",
+                    "secondary-container": "#fd8863",
+                    "secondary": "#9f4122",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#f5fbef",
+                    "on-error": "#ffffff",
+                    "on-tertiary-container": "#690034",
+                    "on-primary-fixed-variant": "#005313",
+                    "text-secondary": "#757575",
+                    "on-secondary-fixed": "#3a0b00",
+                    "on-surface": "#171d16",
+                    "surface-variant": "#dee4d9",
+                    "warm-gray-light": "#F2F2F0",
+                    "primary-fixed-dim": "#78dc77",
+                    "on-secondary-container": "#722104",
+                    "warm-terracotta": "#FF8A65",
+                    "background": "#f5fbef",
+                    "outline-variant": "#becab9",
+                    "tertiary-container": "#f26f9d",
+                    "on-error-container": "#93000a",
+                    "surface-container-highest": "#dee4d9",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-fixed": "#3e001c",
+                    "tertiary-fixed-dim": "#ffb1c7",
+                    "surface-container-high": "#e4eade",
+                    "tertiary": "#a63360",
+                    "on-tertiary-fixed-variant": "#861948",
+                    "secondary-fixed-dim": "#ffb1c7",
+                    "secondary-fixed": "#ffdbd0",
+                    "primary-fixed": "#94f990",
+                    "inverse-primary": "#78dc77",
+                    "success-green": "#43A047",
+                    "on-secondary": "#ffffff",
+                    "warning-amber": "#FFB300",
+                    "on-secondary-fixed-variant": "#7f2a0d",
+                    "outline": "#6f7a6b",
+                    "off-white": "#F9F9F7"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "section-gap": "40px",
+                    "stack-sm": "8px",
+                    "gutter": "16px",
+                    "stack-lg": "24px",
+                    "container-padding": "20px",
+                    "unit": "8px",
+                    "stack-md": "16px"
+            },
+            "fontFamily": {
+                    "body-sm": ["Work Sans"],
+                    "body-md": ["Work Sans"],
+                    "label-sm": ["Work Sans"],
+                    "h2": ["Plus Jakarta Sans"],
+                    "label-md": ["Work Sans"],
+                    "h3": ["Plus Jakarta Sans"],
+                    "body-lg": ["Work Sans"],
+                    "h1": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "body-sm": ["14px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1", "fontWeight": "500"}],
+                    "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                    "h3": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "h1": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-checkbox:checked + label {
+            text-decoration: line-through;
+            color: #9E9E9E;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-off-white font-body-md text-on-surface min-h-screen pb-24">
+<!-- TopAppBar -->
+<nav class="bg-[#F9F9F7] dark:bg-stone-950 font-['Plus_Jakarta_Sans'] antialiased border-b border-stone-200 dark:border-stone-800 flex justify-between items-center px-5 h-16 w-full fixed top-0 z-50">
+<div class="flex items-center gap-3">
+<button class="active:scale-95 transition-transform p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-900">
+<span class="material-symbols-outlined text-stone-500 dark:text-stone-400" data-icon="menu">menu</span>
+</button>
+<h1 class="text-xl font-bold tracking-tight text-green-700 dark:text-green-500">Cardappio</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="active:scale-95 transition-transform p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-900">
+<span class="material-symbols-outlined text-stone-500 dark:text-stone-400" data-icon="share">share</span>
+</button>
+<button class="active:scale-95 transition-transform p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-900">
+<span class="material-symbols-outlined text-stone-500 dark:text-stone-400" data-icon="print">print</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden ml-2 ring-2 ring-surface-variant">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="portrait of a smiling man with short dark hair in a clean professional studio setting with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDp_PhrRqSpjJCmCZGhBEqzKUxfca4zHxWRUGDMbpQsah5JaKPAvhtLymOBOiGh7PeM9XPA_JqcmI0dzO0v2owCGqGDnmqnURo4WI_CERTI--XoOmm9xTgkwGI_alPkD9ZB1CL4wLgzDssASGm_yYyW6ogjLcxVrzeCRrfMepQ4CImKvvYI3Bxhxg7RCUFyY5GgaR3m7FoBua5Jm3Di7jIekbcoHZzswSe9jzEQaXkuVcf2MB9-h_98MuVQ_i97KW69F7U9txjIbd83"/>
+</div>
+</div>
+</nav>
+<main class="max-w-2xl mx-auto px-5 pt-24">
+<!-- Weekly Summary Header -->
+<header class="mb-section-gap">
+<div class="bg-white rounded-xl p-stack-lg border border-warm-gray-light shadow-sm">
+<div class="flex justify-between items-start mb-stack-md">
+<div>
+<h2 class="font-h2 text-h2 text-text-primary mb-1">Weekly Groceries</h2>
+<p class="font-body-sm text-body-sm text-text-secondary">Feb 12 – Feb 18 • 4 Meals Planned</p>
+</div>
+<span class="bg-primary-container text-on-primary-container px-3 py-1 rounded-full font-label-sm text-label-sm">
+                        28 Items
+                    </span>
+</div>
+<div class="flex flex-wrap gap-stack-sm pt-stack-md border-t border-warm-gray-light">
+<div class="flex items-center gap-2 bg-surface px-3 py-2 rounded-lg">
+<span class="material-symbols-outlined text-[18px] text-fresh-green" data-icon="restaurant">restaurant</span>
+<span class="font-label-sm text-label-sm text-on-surface">Pesto Pasta</span>
+</div>
+<div class="flex items-center gap-2 bg-surface px-3 py-2 rounded-lg">
+<span class="material-symbols-outlined text-[18px] text-fresh-green" data-icon="restaurant">restaurant</span>
+<span class="font-label-sm text-label-sm text-on-surface">Quinoa Salad</span>
+</div>
+<div class="flex items-center gap-2 bg-surface px-3 py-2 rounded-lg">
+<span class="material-symbols-outlined text-[18px] text-fresh-green" data-icon="restaurant">restaurant</span>
+<span class="font-label-sm text-label-sm text-on-surface">Lemon Chicken</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Search / Filter Sticky-ish Bar -->
+<div class="sticky top-20 z-40 bg-off-white pb-gutter">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-4 text-warm-gray-medium" data-icon="search">search</span>
+<input class="w-full bg-warm-gray-light border-none rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-fresh-green font-body-md text-text-primary placeholder:text-warm-gray-medium" placeholder="Search your list..." type="text"/>
+</div>
+</div>
+<!-- Checklist Sections -->
+<div class="space-y-section-gap">
+<!-- Category: Produce -->
+<section>
+<div class="flex items-center gap-2 mb-stack-md">
+<span class="material-symbols-outlined text-warm-terracotta" data-icon="eco">eco</span>
+<h3 class="font-h3 text-h3 text-text-primary">Produce</h3>
+</div>
+<div class="bg-white rounded-xl border border-warm-gray-light overflow-hidden divide-y divide-warm-gray-light">
+<!-- Item -->
+<div class="p-gutter flex items-center justify-between group active:bg-surface transition-colors">
+<div class="flex items-center gap-stack-md flex-1">
+<div class="relative flex items-center">
+<input class="custom-checkbox w-6 h-6 rounded-full border-2 border-warm-gray-medium text-fresh-green focus:ring-fresh-green cursor-pointer" id="item-1" type="checkbox"/>
+<label class="ml-3 font-body-md text-text-primary cursor-pointer select-none" for="item-1">Organic Baby Spinach</label>
+</div>
+</div>
+<span class="font-label-md text-label-md text-warm-gray-medium">2 bags</span>
+</div>
+<!-- Item -->
+<div class="p-gutter flex items-center justify-between group active:bg-surface transition-colors">
+<div class="flex items-center gap-stack-md flex-1">
+<div class="relative flex items-center">
+<input class="custom-checkbox w-6 h-6 rounded-full border-2 border-warm-gray-medium text-fresh-green focus:ring-fresh-green cursor-pointer" id="item-2" type="checkbox"/>
+<label class="ml-3 font-body-md text-text-primary cursor-pointer select-none" for="item-2">Cherry Tomatoes</label>
+</div>
+</div>
+<span class="font-label-md text-label-md text-warm-gray-medium">1 pint</span>
+</div>
+<!-- Item -->
+<div class="p-gutter flex items-center justify-between group active:bg-surface transition-colors">
+<div class="flex items-center gap-stack-md flex-1">
+<div class="relative flex items-center">
+<input class="custom-checkbox w-6 h-6 rounded-full border-2 border-warm-gray-medium text-fresh-green focus:ring-fresh-green cursor-pointer" id="item-3" type="checkbox"/>
+<label class="ml-3 font-body-md text-text-primary cursor-pointer select-none" for="item-3">Fresh Basil Leaves</label>
+</div>
+</div>
+<span class="font-label-md text-label-md text-warm-gray-medium">1 bunch</span>
+</div>
+</div>
+</section>
+<!-- Category: Dairy & Refrigerated -->
+<section>
+<div class="flex items-center gap-2 mb-stack-md">
+<span class="material-symbols-outlined text-info-blue" data-icon="fridge">kitchen</span>
+<h3 class="font-h3 text-h3 text-text-primary">Dairy &amp; Refrigerated</h3>
+</div>
+<div class="bg-white rounded-xl border border-warm-gray-light overflow-hidden divide-y divide-warm-gray-light">
+<!-- Item -->
+<div class="p-gutter flex items-center justify-between group active:bg-surface transition-colors">
+<div class="flex items-center gap-stack-md flex-1">
+<div class="relative flex items-center">
+<input class="custom-checkbox w-6 h-6 rounded-full border-2 border-warm-gray-medium text-fresh-green focus:ring-fresh-green cursor-pointer" id="item-4" type="checkbox"/>
+<label class="ml-3 font-body-md text-text-primary cursor-pointer select-none" for="item-4">Greek Yogurt (Plain)</label>
+</div>
+</div>
+<span class="font-label-md text-label-md text-warm-gray-medium">1 large tub</span>
+</div>
+<!-- Item -->
+<div class="p-gutter flex items-center justify-between group active:bg-surface transition-colors">
+<div class="flex items-center gap-stack-md flex-1">
+<div class="relative flex items-center">
+<input checked="" class="custom-checkbox w-6 h-6 rounded-full border-2 border-warm-gray-medium text-fresh-green focus:ring-fresh-green cursor-pointer" id="item-5" type="checkbox"/>
+<label class="ml-3 font-body-md text-text-primary cursor-pointer select-none" for="item-5">Parmesan Cheese</label>
+</div>
+</div>
+<span class="font-label-md text-label-md text-warm-gray-medium">200g</span>
+</div>
+</div>
+</section>
+<!-- Category: Pantry -->
+<section>
+<div class="flex items-center gap-2 mb-stack-md">
+<span class="material-symbols-outlined text-warning-amber" data-icon="inventory_2">inventory_2</span>
+<h3 class="font-h3 text-h3 text-text-primary">Pantry</h3>
+</div>
+<div class="bg-white rounded-xl border border-warm-gray-light overflow-hidden divide-y divide-warm-gray-light">
+<!-- Item -->
+<div class="p-gutter flex items-center justify-between group active:bg-surface transition-colors">
+<div class="flex items-center gap-stack-md flex-1">
+<div class="relative flex items-center">
+<input class="custom-checkbox w-6 h-6 rounded-full border-2 border-warm-gray-medium text-fresh-green focus:ring-fresh-green cursor-pointer" id="item-6" type="checkbox"/>
+<label class="ml-3 font-body-md text-text-primary cursor-pointer select-none" for="item-6">Whole Grain Penne</label>
+</div>
+</div>
+<span class="font-label-md text-label-md text-warm-gray-medium">2 boxes</span>
+</div>
+<!-- Item -->
+<div class="p-gutter flex items-center justify-between group active:bg-surface transition-colors">
+<div class="flex items-center gap-stack-md flex-1">
+<div class="relative flex items-center">
+<input class="custom-checkbox w-6 h-6 rounded-full border-2 border-warm-gray-medium text-fresh-green focus:ring-fresh-green cursor-pointer" id="item-7" type="checkbox"/>
+<label class="ml-3 font-body-md text-text-primary cursor-pointer select-none" for="item-7">Pine Nuts</label>
+</div>
+</div>
+<span class="font-label-md text-label-md text-warm-gray-medium">1 small bag</span>
+</div>
+</div>
+</section>
+</div>
+<!-- Add Item Button (Inline) -->
+<div class="mt-section-gap">
+<button class="w-full border-2 border-dashed border-warm-gray-medium rounded-xl p-gutter text-text-secondary hover:bg-white hover:border-fresh-green hover:text-fresh-green transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<span class="font-label-md text-label-md">Add extra item</span>
+</button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 px-4 pb-safe bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] font-['Plus_Jakarta_Sans']">
+<!-- Recipes -->
+<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 px-3 py-1 hover:text-green-500 active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="text-[11px] font-medium mt-1">Recipes</span>
+</a>
+<!-- Plan -->
+<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 px-3 py-1 hover:text-green-500 active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="text-[11px] font-medium mt-1">Plan</span>
+</a>
+<!-- Grocery (Active) -->
+<a class="flex flex-col items-center justify-center text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-xl px-3 py-1 active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_basket" style="font-variation-settings: 'FILL' 1;">shopping_basket</span>
+<span class="text-[11px] font-medium mt-1">Grocery</span>
+</a>
+<!-- Settings -->
+<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 px-3 py-1 hover:text-green-500 active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-[11px] font-medium mt-1">Settings</span>
+</a>
+</nav>
+</body></html>

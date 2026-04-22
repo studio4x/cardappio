@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cardappio - Planejador Semanal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+        }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#f5fbef",
+                        "inverse-on-surface": "#edf3e7",
+                        "primary": "#006e1c",
+                        "on-secondary-fixed-variant": "#7f2a0d",
+                        "inverse-primary": "#78dc77",
+                        "tertiary": "#a63360",
+                        "on-tertiary-fixed": "#3e001c",
+                        "on-error-container": "#93000a",
+                        "surface-tint": "#006e1c",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#fd8863",
+                        "surface-container-highest": "#dee4d9",
+                        "surface-container": "#eaf0e4",
+                        "background": "#f5fbef",
+                        "primary-container": "#4caf50",
+                        "warm-gray-medium": "#9E9E9E",
+                        "tertiary-fixed": "#ffd9e2",
+                        "secondary-fixed": "#ffdbd0",
+                        "inverse-surface": "#2c322a",
+                        "warning-amber": "#FFB300",
+                        "surface-container-high": "#e4eade",
+                        "secondary": "#9f4122",
+                        "text-primary": "#2D2D2D",
+                        "warm-gray-light": "#F2F2F0",
+                        "surface-variant": "#dee4d9",
+                        "info-blue": "#4FC3F7",
+                        "primary-fixed-dim": "#78dc77",
+                        "outline": "#6f7a6b",
+                        "on-tertiary-fixed-variant": "#861948",
+                        "on-error": "#ffffff",
+                        "off-white": "#F9F9F7",
+                        "on-tertiary-container": "#690034",
+                        "success-green": "#43A047",
+                        "primary-fixed": "#94f990",
+                        "on-secondary-fixed": "#3a0b00",
+                        "on-primary-fixed": "#002204",
+                        "tertiary-container": "#f26f9d",
+                        "on-secondary": "#ffffff",
+                        "fresh-green": "#4CAF50",
+                        "on-primary-container": "#003c0b",
+                        "tertiary-fixed-dim": "#ffb1c7",
+                        "surface-dim": "#d6dcd0",
+                        "error-red": "#E53935",
+                        "on-primary-fixed-variant": "#005313",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#ffb59e",
+                        "surface-container-low": "#f0f6ea",
+                        "on-surface-variant": "#3f4a3c",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#f5fbef",
+                        "on-secondary-container": "#722104",
+                        "on-background": "#171d16",
+                        "error": "#ba1a1a",
+                        "warm-terracotta": "#FF8A65",
+                        "text-secondary": "#757575",
+                        "on-surface": "#171d16",
+                        "outline-variant": "#becab9"
+                    },
+                    "fontFamily": {
+                        "h1": ["Plus Jakarta Sans"], "h2": ["Plus Jakarta Sans"], "h3": ["Plus Jakarta Sans"],
+                        "body-lg": ["Work Sans"], "body-md": ["Work Sans"], "body-sm": ["Work Sans"],
+                        "label-md": ["Work Sans"], "label-sm": ["Work Sans"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body-md antialiased">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full flex justify-between items-center px-4 h-16 bg-neutral-50/80 dark:bg-neutral-900/80 backdrop-blur-md border-b border-neutral-200/50 dark:border-neutral-800/50 shadow-sm z-50">
+<div class="flex items-center gap-3">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors active:scale-95 duration-200 ease-in-out">
+<span class="material-symbols-outlined text-green-600 dark:text-green-400" data-icon="menu">menu</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] font-semibold tracking-tight text-xl font-extrabold text-green-600 dark:text-green-500 tracking-tighter">Cardappio</h1>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User Profile" data-alt="Portrait of a smiling young woman with warm natural lighting and soft blurred background outdoors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0u9mVpRfiHY6wKgCcW0E8qyaoM0q-P9XnYOeePyP6-rwtI1QG8JPjHoPT7csren5X3dctBJ4YpHOebda_DSLB-5MbHKAGPN42_4f8BvpcdYnnDIor4Yov7x2TKPZWDraZ5HiWak5mEmP-F0G9f-qpSd_c3RTAh23Wp1Wrf7TlHfvjcD4PMp2pvHc4sTRmeIWmbmoyD93pFKv1liy2sGhUqZsFG6EhSQ7kS7Ovf-IGklwuy-RL9gtfvDzXD5GgBTlNsf18NzKkYprH"/>
+</div>
+</header>
+<main class="pt-20 pb-32 px-5 max-w-2xl mx-auto space-y-stack-lg">
+<!-- Week Header -->
+<section class="flex flex-col gap-2">
+<div class="flex justify-between items-end">
+<div>
+<span class="text-label-sm uppercase tracking-widest text-warm-gray-medium">Esta Semana</span>
+<h2 class="font-h1 text-h2 text-text-primary">Meu Planejamento</h2>
+</div>
+<button class="p-2 bg-warm-gray-light rounded-xl hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="tune">tune</span>
+</button>
+</div>
+<!-- Horizontal Day Scroller (Compact) -->
+<div class="flex gap-3 overflow-x-auto py-2 no-scrollbar">
+<div class="flex-shrink-0 flex flex-col items-center justify-center w-14 h-20 rounded-2xl bg-primary text-on-primary shadow-lg ring-4 ring-primary-container/20">
+<span class="text-label-sm opacity-80">SEG</span>
+<span class="text-h3 font-bold">12</span>
+</div>
+<div class="flex-shrink-0 flex flex-col items-center justify-center w-14 h-20 rounded-2xl bg-white border border-neutral-200">
+<span class="text-label-sm text-warm-gray-medium">TER</span>
+<span class="text-h3 font-bold text-text-primary">13</span>
+</div>
+<div class="flex-shrink-0 flex flex-col items-center justify-center w-14 h-20 rounded-2xl bg-white border border-neutral-200">
+<span class="text-label-sm text-warm-gray-medium">QUA</span>
+<span class="text-h3 font-bold text-text-primary">14</span>
+</div>
+<div class="flex-shrink-0 flex flex-col items-center justify-center w-14 h-20 rounded-2xl bg-white border border-neutral-200">
+<span class="text-label-sm text-warm-gray-medium">QUI</span>
+<span class="text-h3 font-bold text-text-primary">15</span>
+</div>
+<div class="flex-shrink-0 flex flex-col items-center justify-center w-14 h-20 rounded-2xl bg-white border border-neutral-200">
+<span class="text-label-sm text-warm-gray-medium">SEX</span>
+<span class="text-h3 font-bold text-text-primary">16</span>
+</div>
+</div>
+</section>
+<!-- Daily Slots -->
+<div class="space-y-section-gap">
+<!-- Monday Section -->
+<div class="space-y-stack-md">
+<div class="flex items-center gap-2 px-1">
+<span class="w-1.5 h-6 bg-fresh-green rounded-full"></span>
+<h3 class="font-h3 text-h3 text-text-primary">Segunda-feira</h3>
+</div>
+<!-- Lunch Slot (Filled) -->
+<div class="relative group">
+<div class="absolute -left-2 top-4 bottom-4 w-1 bg-surface-container rounded-full hidden md:block"></div>
+<div class="bg-white rounded-xl shadow-sm border border-neutral-100 overflow-hidden flex transition-transform active:scale-98">
+<div class="w-24 h-24 flex-shrink-0 bg-neutral-200">
+<img class="w-full h-full object-cover" data-alt="Vibrant healthy salad bowl with roasted vegetables, avocado slices, and fresh greens in a ceramic bowl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBg5pHw7WCdUWuDKKoAN1Gg6khpopKT3Z6jYFI0FERoas5rdSRHJGJaZ_OQgVhRFLMreRGQY5Z5lz8FLWzvophQC4tQ3ThzixV1fY4uzXsAnD7RLQzAFy9N4Y8R8Y7dBR_EG9kbhZ-pZMZ4Sw7hzbj3sUOkwrPGk2uxlRmTeQL70VvMxu9Q3ltXCaZ2Dw6MVJuzaay6Zd38YBPya5FE8nNNG9dSHG77zlJ39KOGkEBWfXihMXaPrcdP8nPwNQKVUNalJ5LlxKxIkfXU"/>
+</div>
+<div class="flex-1 p-3 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<span class="text-label-sm text-fresh-green font-semibold mb-1">ALMOÇO</span>
+<div class="flex gap-2">
+<button class="material-symbols-outlined text-warm-gray-medium text-sm" data-icon="sync">sync</button>
+<button class="material-symbols-outlined text-error-red/60 text-sm" data-icon="delete">delete</button>
+</div>
+</div>
+<h4 class="font-h3 text-body-md text-text-primary line-clamp-1">Salada de Quinoa e Legumes</h4>
+<div class="flex gap-3 mt-1">
+<span class="flex items-center gap-1 text-label-sm text-warm-gray-medium">
+<span class="material-symbols-outlined text-[14px]" data-icon="schedule">schedule</span> 20 min
+                                    </span>
+<span class="flex items-center gap-1 text-label-sm text-warm-gray-medium">
+<span class="material-symbols-outlined text-[14px]" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span> Fácil
+                                    </span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Dinner Slot (Empty) -->
+<div class="border-2 border-dashed border-neutral-200 rounded-xl bg-neutral-50/50 p-4 flex items-center justify-between group hover:border-fresh-green hover:bg-green-50/30 transition-all cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-neutral-300 group-hover:text-fresh-green transition-colors shadow-sm">
+<span class="material-symbols-outlined text-2xl" data-icon="add">add</span>
+</div>
+<div>
+<span class="text-label-sm text-warm-gray-medium font-semibold uppercase tracking-wider">JANTAR</span>
+<p class="text-body-md text-neutral-400">Adicionar receita...</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Tuesday Section -->
+<div class="space-y-stack-md opacity-90">
+<div class="flex items-center gap-2 px-1">
+<span class="w-1.5 h-6 bg-warm-terracotta rounded-full"></span>
+<h3 class="font-h3 text-h3 text-text-primary">Terça-feira</h3>
+</div>
+<!-- Lunch Slot (Empty) -->
+<div class="border-2 border-dashed border-neutral-200 rounded-xl bg-neutral-50/50 p-4 flex items-center justify-between group hover:border-fresh-green hover:bg-green-50/30 transition-all cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-neutral-300 group-hover:text-fresh-green transition-colors shadow-sm">
+<span class="material-symbols-outlined text-2xl" data-icon="add">add</span>
+</div>
+<div>
+<span class="text-label-sm text-warm-gray-medium font-semibold uppercase tracking-wider">ALMOÇO</span>
+<p class="text-body-md text-neutral-400">Clique para planejar</p>
+</div>
+</div>
+</div>
+<!-- Dinner Slot (Filled) -->
+<div class="bg-white rounded-xl shadow-sm border border-neutral-100 overflow-hidden flex transition-transform active:scale-98">
+<div class="w-24 h-24 flex-shrink-0 bg-neutral-200">
+<img class="w-full h-full object-cover" data-alt="Close-up of a rustic bowl with mediterranean vegetable pasta, garnished with fresh basil leaves and parmesan cheese" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEzbQ20s4eM4eB4BVlexTlTferUj4dHjbWpiz-ht-39zz1_BmhdFs7BdxI3ab0LLmO2_oSVSmc1asHF-8HtqvzEgn2Tingy-pxpNe2x68omVKkKL1rE-M2nB8S3tXVaHW-utk4fX4JvOZ1_Ir4QTcEGDRuXsTffMNmt6c7OCrrjNOEKYVHRMbrPQWXwUwAat3wHM99LSsW_6J_5WM0dZyWf1u_EpxpSNAymq1R-d2ZqM2ssAqtZpCWY1OQrOtJRp4fFdzG32UKCMwf"/>
+</div>
+<div class="flex-1 p-3 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<span class="text-label-sm text-warm-terracotta font-semibold mb-1">JANTAR</span>
+<div class="flex gap-2">
+<button class="material-symbols-outlined text-warm-gray-medium text-sm" data-icon="sync">sync</button>
+<button class="material-symbols-outlined text-error-red/60 text-sm" data-icon="delete">delete</button>
+</div>
+</div>
+<h4 class="font-h3 text-body-md text-text-primary line-clamp-1">Pasta Mediterrânea</h4>
+<div class="flex gap-3 mt-1">
+<span class="flex items-center gap-1 text-label-sm text-warm-gray-medium">
+<span class="material-symbols-outlined text-[14px]" data-icon="schedule">schedule</span> 15 min
+                                </span>
+<span class="flex items-center gap-1 text-label-sm text-warm-gray-medium">
+<span class="material-symbols-outlined text-[14px]" data-icon="bolt">bolt</span> Rápido
+                                </span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed bottom-24 right-5 w-14 h-14 bg-fresh-green text-white rounded-full shadow-2xl flex items-center justify-center active:scale-90 transition-transform duration-150 z-40">
+<span class="material-symbols-outlined text-3xl" data-icon="save" data-weight="fill" style="font-variation-settings: 'FILL' 1;">save</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 pb-safe pt-2 h-20 bg-white dark:bg-neutral-950 border-t border-neutral-100 dark:border-neutral-800 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] md:hidden">
+<div class="flex flex-col items-center justify-center text-neutral-400 dark:text-neutral-500 px-3 py-1 hover:text-green-500 dark:hover:text-green-300 active:scale-90 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-xl px-3 py-1 active:scale-90 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="calendar_month" data-weight="fill" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Planner</span>
+</div>
+<div class="flex flex-col items-center justify-center text-neutral-400 dark:text-neutral-500 px-3 py-1 hover:text-green-500 dark:hover:text-green-300 active:scale-90 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Recipes</span>
+</div>
+<div class="flex flex-col items-center justify-center text-neutral-400 dark:text-neutral-500 px-3 py-1 hover:text-green-500 dark:hover:text-green-300 active:scale-90 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="shopping_basket">shopping_basket</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Grocery</span>
+</div>
+</nav>
+</body></html>

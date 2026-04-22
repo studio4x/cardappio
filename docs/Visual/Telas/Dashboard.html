@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#f5fbef",
+                        "inverse-on-surface": "#edf3e7",
+                        "primary": "#006e1c",
+                        "on-secondary-fixed-variant": "#7f2a0d",
+                        "inverse-primary": "#78dc77",
+                        "tertiary": "#a63360",
+                        "on-tertiary-fixed": "#3e001c",
+                        "on-error-container": "#93000a",
+                        "surface-tint": "#006e1c",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#fd8863",
+                        "surface-container-highest": "#dee4d9",
+                        "surface-container": "#eaf0e4",
+                        "background": "#f5fbef",
+                        "primary-container": "#4caf50",
+                        "warm-gray-medium": "#9E9E9E",
+                        "tertiary-fixed": "#ffd9e2",
+                        "secondary-fixed": "#ffdbd0",
+                        "inverse-surface": "#2c322a",
+                        "warning-amber": "#FFB300",
+                        "surface-container-high": "#e4eade",
+                        "secondary": "#9f4122",
+                        "text-primary": "#2D2D2D",
+                        "warm-gray-light": "#F2F2F0",
+                        "surface-variant": "#dee4d9",
+                        "info-blue": "#4FC3F7",
+                        "primary-fixed-dim": "#78dc77",
+                        "outline": "#6f7a6b",
+                        "on-tertiary-fixed-variant": "#861948",
+                        "on-error": "#ffffff",
+                        "off-white": "#F9F9F7",
+                        "on-tertiary-container": "#690034",
+                        "success-green": "#43A047",
+                        "primary-fixed": "#94f990",
+                        "on-secondary-fixed": "#3a0b00",
+                        "on-primary-fixed": "#002204",
+                        "tertiary-container": "#f26f9d",
+                        "on-secondary": "#ffffff",
+                        "fresh-green": "#4CAF50",
+                        "on-primary-container": "#003c0b",
+                        "tertiary-fixed-dim": "#ffb1c7",
+                        "surface-dim": "#d6dcd0",
+                        "error-red": "#E53935",
+                        "on-primary-fixed-variant": "#005313",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#ffb59e",
+                        "surface-container-low": "#f0f6ea",
+                        "on-surface-variant": "#3f4a3c",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#f5fbef",
+                        "on-secondary-container": "#722104",
+                        "on-background": "#171d16",
+                        "error": "#ba1a1a",
+                        "warm-terracotta": "#FF8A65",
+                        "text-secondary": "#757575",
+                        "on-surface": "#171d16",
+                        "outline-variant": "#becab9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "16px",
+                        "section-gap": "40px",
+                        "container-padding": "20px",
+                        "stack-lg": "24px",
+                        "stack-sm": "8px",
+                        "unit": "8px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Plus Jakarta Sans"],
+                        "body-sm": ["Work Sans"],
+                        "label-sm": ["Work Sans"],
+                        "label-md": ["Work Sans"],
+                        "body-md": ["Work Sans"],
+                        "body-lg": ["Work Sans"],
+                        "h3": ["Plus Jakarta Sans"],
+                        "h1": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "1", "fontWeight": "500"}],
+                        "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "h3": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "h1": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #f5fbef;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full flex justify-between items-center px-4 h-16 bg-neutral-50/80 dark:bg-neutral-900/80 backdrop-blur-md border-b border-neutral-200/50 dark:border-neutral-800/50 shadow-sm z-50">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-green-600 cursor-pointer p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors rounded-full active:scale-95 duration-200 ease-in-out" data-icon="menu">menu</span>
+<h1 class="text-xl font-extrabold text-green-600 dark:text-green-500 tracking-tighter">Cardappio</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex gap-6 mr-6">
+<span class="text-green-600 dark:text-green-400 font-bold font-['Plus_Jakarta_Sans'] text-label-md cursor-pointer">Home</span>
+<span class="text-neutral-500 dark:text-neutral-400 font-['Plus_Jakarta_Sans'] text-label-md cursor-pointer hover:text-green-600 transition-colors">Planner</span>
+<span class="text-neutral-500 dark:text-neutral-400 font-['Plus_Jakarta_Sans'] text-label-md cursor-pointer hover:text-green-600 transition-colors">Recipes</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden border border-outline-variant">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="portrait of a smiling woman with glasses and professional attire in a bright office environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQVClES2rORAtb-SiF3844c-lWRbM5Ed5N0ZsmhnGA9UKvO88ddzbwT88iOAIPNjA5BKtBBOP0B3Nr1gacq7jtnF2CIKqRt83jzhskvz12XrJam_MO4-vZUmug8kg-oYo0MouYWd3gBg66ABKU-jxkQZDhNwiuyPP0X-IPks_QFHpRHWjiXu7PlDniUibqyctbUldI9Mmowxk92VQ3jKNQlFl_D5o1l_zzzU91Zb06pAEhIn1oafHRLTPj0Lx6ZikV5TJengy2mM5G"/>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-container-padding max-w-7xl mx-auto">
+<!-- Welcome Section -->
+<section class="mb-section-gap">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-stack-md">
+<div>
+<span class="font-label-md text-primary uppercase tracking-widest text-xs">Dashboard</span>
+<h2 class="font-h1 text-h1 text-on-surface mt-1">Olá, Marina! 👋</h2>
+<p class="text-text-secondary font-body-md mt-2">Você tem 4 refeições planejadas para hoje.</p>
+</div>
+<button class="bg-fresh-green text-on-primary px-6 py-3 rounded-xl font-label-md shadow-lg shadow-fresh-green/20 flex items-center gap-2 active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined text-lg" data-icon="edit_calendar">edit_calendar</span>
+                    Criar/Editar Semana
+                </button>
+</div>
+</section>
+<!-- Bento Grid Main Content -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-stack-lg">
+<!-- Week Summary (Large Card) -->
+<div class="md:col-span-8 bg-surface-container-lowest border border-warm-gray-light rounded-3xl p-6 shadow-sm">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-h3 text-h3 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="calendar_today">calendar_today</span>
+                        Resumo da Semana
+                    </h3>
+<div class="flex gap-2">
+<div class="w-2 h-2 rounded-full bg-fresh-green"></div>
+<div class="w-2 h-2 rounded-full bg-surface-container-highest"></div>
+<div class="w-2 h-2 rounded-full bg-surface-container-highest"></div>
+</div>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-stack-md">
+<div class="bg-surface p-4 rounded-2xl border border-surface-container flex flex-col gap-2">
+<span class="font-label-sm text-text-secondary">SEG</span>
+<div class="h-1 bg-primary w-full rounded-full"></div>
+<p class="font-label-md mt-1">Bowl de Quinoa</p>
+</div>
+<div class="bg-surface p-4 rounded-2xl border border-surface-container flex flex-col gap-2">
+<span class="font-label-sm text-text-secondary">TER</span>
+<div class="h-1 bg-primary w-full rounded-full"></div>
+<p class="font-label-md mt-1">Salmão Grelhado</p>
+</div>
+<div class="bg-surface p-4 rounded-2xl border border-surface-container flex flex-col gap-2">
+<span class="font-label-sm text-text-secondary text-primary">QUA (HOJE)</span>
+<div class="h-1 bg-warning-amber w-full rounded-full"></div>
+<p class="font-label-md mt-1">Pasta ao Pesto</p>
+</div>
+<div class="bg-white p-4 rounded-2xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center gap-1 min-h-[100px]">
+<span class="material-symbols-outlined text-fresh-green" data-icon="add_circle">add_circle</span>
+<span class="font-label-sm text-text-secondary">QUI</span>
+</div>
+</div>
+</div>
+<!-- Quick Access Shopping List -->
+<div class="md:col-span-4 bg-surface-container-highest border border-outline-variant rounded-3xl p-6 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-8xl" data-icon="shopping_basket">shopping_basket</span>
+</div>
+<h3 class="font-h3 text-h3 mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" data-icon="list_alt">list_alt</span>
+                    Lista de Compras
+                </h3>
+<ul class="space-y-3 relative z-10">
+<li class="flex items-center gap-3 bg-white/50 p-3 rounded-xl">
+<div class="w-5 h-5 rounded-full border-2 border-primary"></div>
+<span class="font-body-sm">Rúcula Hidropônica</span>
+</li>
+<li class="flex items-center gap-3 bg-white/50 p-3 rounded-xl">
+<div class="w-5 h-5 rounded-full border-2 border-primary"></div>
+<span class="font-body-sm">Azeite Extra Virgem</span>
+</li>
+<li class="flex items-center gap-3 bg-white/50 p-3 rounded-xl">
+<div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-xs" data-icon="check">check</span>
+</div>
+<span class="font-body-sm text-warm-gray-medium line-through">Tomate Cereja</span>
+</li>
+</ul>
+<button class="w-full mt-6 text-primary font-label-md py-2 border-b-2 border-transparent hover:border-primary transition-all">Ver lista completa</button>
+</div>
+<!-- Favorites & Suggestions -->
+<div class="md:col-span-12">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-h2 text-h2">Inspirado nos seus Favoritos</h3>
+<button class="text-primary font-label-md flex items-center gap-1">
+                        Ver todos <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-stack-lg">
+<!-- Recipe Card 1 -->
+<div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
+<div class="h-48 relative overflow-hidden">
+<img alt="Recipe" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="vibrant salad bowl with avocado, chickpeas, and fresh greens on a light rustic table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0mk0vMoo2RVVumyk2hnnttDSFsUBDOMCy9oUiv_KrozizUV6BRM3SPy_DOqDBaNkbDFycEq8bfKA4v4bu3A39aeI6NMgK1orJbhjzKkB2Z_oPQH-14qdcm3AaJrwN9PCGk7wt0GxR5LNrW73S6NXvL3eX3ycdxPjQhREfkkQ57_3BCZktEkBSB7YaAODgN0GNiwsBlJ3zU_QsKBH8jbYH1NiKSfj9f3lDyfWDqiTRv_QyL_cn_67fLF7O3Ov10zr7TWz35uBzn-WD"/>
+<div class="absolute top-4 right-4 bg-white/90 p-2 rounded-full backdrop-blur-md">
+<span class="material-symbols-outlined text-tertiary" data-icon="favorite" data-weight="fill" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+<div class="p-4">
+<div class="flex gap-2 mb-2">
+<span class="bg-green-50 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Saudável</span>
+<span class="bg-tertiary/10 text-tertiary text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">15 min</span>
+</div>
+<h4 class="font-h3 text-h3 text-on-surface mb-2">Bowl Mediterrâneo de Verão</h4>
+<div class="flex items-center gap-4 text-text-secondary text-sm">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs" data-icon="restaurant">restaurant</span>Fácil</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs" data-icon="local_fire_department">local_fire_department</span>450 kcal</span>
+</div>
+</div>
+</div>
+<!-- Recipe Card 2 -->
+<div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
+<div class="h-48 relative overflow-hidden">
+<img alt="Recipe" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="healthy vegetable power bowl with quinoa and roasted vegetables in a modern ceramic plate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7DCzIImOXn4nzX4yc9nTxz9tyyRZ9-Hb9tDsK4xmZ6-oflz3KGrdCcLWfcHQF6IUeX-NG_H_jib03qiufe6ke7ts8KlkiG5ms5--2Gbb6yp9Eeu8_mRrPS2Bsp8dkT2PIyyD2PEaHB7D-OOCf_pp7rMf-fpbxIkYuMMIvhnPXHTW5GS2Jym8pHIS4Eqwphcw_011dWkfKsTYXrx72aIX9NbJ_2Yw5TsuccOuIdH0cp09mIes0-1gYZqdRzhhPMx095vOxyG-Ahbee"/>
+<div class="absolute top-4 right-4 bg-white/90 p-2 rounded-full backdrop-blur-md">
+<span class="material-symbols-outlined text-warm-gray-medium" data-icon="favorite">favorite</span>
+</div>
+</div>
+<div class="p-4">
+<div class="flex gap-2 mb-2">
+<span class="bg-green-50 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Vegano</span>
+<span class="bg-tertiary/10 text-tertiary text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">25 min</span>
+</div>
+<h4 class="font-h3 text-h3 text-on-surface mb-2">Risoto de Cogumelos Selvagens</h4>
+<div class="flex items-center gap-4 text-text-secondary text-sm">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs" data-icon="restaurant">restaurant</span>Médio</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs" data-icon="local_fire_department">local_fire_department</span>380 kcal</span>
+</div>
+</div>
+</div>
+<!-- Recipe Card 3 -->
+<div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
+<div class="h-48 relative overflow-hidden">
+<img alt="Recipe" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="gourmet thin crust pizza with fresh basil and mozzarella on a wooden peel" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9zs0Mlro6IxKhtW60nQy2vUZZ-7jzLNuhje1Fr5L1K7HRDVktDQ3hEuB5bN7AkR_X5gVSmzzNTVA-m1y-991EwBn8-TUTzAvgczJiehjAsMAoD-o831Jx1K3rUgdinYg8TRcxMJEujQg36U17daOz5C-j1LMZTfhtd7XO0gN93-3R22VTvvzZE8VO7gZlf6AiXDAhi7U8IkUPCjUcEBr6fihc8UUjT_JZOrQ0ysz45M9rFQmlb_uTNgM1YcyScLuhGQQtn30gTsjb"/>
+<div class="absolute top-4 right-4 bg-white/90 p-2 rounded-full backdrop-blur-md">
+<span class="material-symbols-outlined text-warm-gray-medium" data-icon="favorite">favorite</span>
+</div>
+</div>
+<div class="p-4">
+<div class="flex gap-2 mb-2">
+<span class="bg-green-50 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Prático</span>
+<span class="bg-tertiary/10 text-tertiary text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">20 min</span>
+</div>
+<h4 class="font-h3 text-h3 text-on-surface mb-2">Pizza Artesanal Low-Carb</h4>
+<div class="flex items-center gap-4 text-text-secondary text-sm">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs" data-icon="restaurant">restaurant</span>Fácil</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs" data-icon="local_fire_department">local_fire_department</span>520 kcal</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 pb-safe pt-2 h-20 bg-white dark:bg-neutral-950 border-t border-neutral-100 dark:border-neutral-800 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] md:hidden">
+<a class="flex flex-col items-center justify-center text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-xl px-3 py-1 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-neutral-400 dark:text-neutral-500 px-3 py-1 hover:text-green-500 dark:hover:text-green-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Planner</span>
+</a>
+<a class="flex flex-col items-center justify-center text-neutral-400 dark:text-neutral-500 px-3 py-1 hover:text-green-500 dark:hover:text-green-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Recipes</span>
+</a>
+<a class="flex flex-col items-center justify-center text-neutral-400 dark:text-neutral-500 px-3 py-1 hover:text-green-500 dark:hover:text-green-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_basket">shopping_basket</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Grocery</span>
+</a>
+</nav>
+<!-- Floating Action Button (FAB) - Contextual for Planner -->
+<button class="fixed bottom-24 right-6 w-14 h-14 bg-fresh-green text-white rounded-full shadow-2xl flex items-center justify-center active:scale-90 transition-transform duration-200 md:bottom-10 z-40">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</button>
+</body></html>

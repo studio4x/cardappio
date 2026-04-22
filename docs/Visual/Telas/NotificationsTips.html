@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#e4eade",
+                        "surface-container-highest": "#dee4d9",
+                        "on-surface-variant": "#3f4a3c",
+                        "tertiary-fixed-dim": "#ffb1c7",
+                        "secondary-fixed": "#ffdbd0",
+                        "info-blue": "#4FC3F7",
+                        "primary-fixed": "#94f990",
+                        "surface-bright": "#f5fbef",
+                        "on-primary-fixed": "#002204",
+                        "surface-variant": "#dee4d9",
+                        "fresh-green": "#4CAF50",
+                        "secondary": "#9f4122",
+                        "on-surface": "#171d16",
+                        "surface": "#f5fbef",
+                        "error-red": "#E53935",
+                        "primary-fixed-dim": "#78dc77",
+                        "off-white": "#F9F9F7",
+                        "on-tertiary-fixed-variant": "#861948",
+                        "tertiary-container": "#f26f9d",
+                        "outline-variant": "#becab9",
+                        "on-tertiary-container": "#690034",
+                        "on-secondary": "#ffffff",
+                        "surface-container-low": "#f0f6ea",
+                        "warm-gray-light": "#F2F2F0",
+                        "surface-dim": "#d6dcd0",
+                        "text-secondary": "#757575",
+                        "on-tertiary-fixed": "#3e001c",
+                        "tertiary-fixed": "#ffd9e2",
+                        "surface-container-lowest": "#ffffff",
+                        "on-background": "#171d16",
+                        "warm-gray-medium": "#9E9E9E",
+                        "error-container": "#ffdad6",
+                        "secondary-container": "#fd8863",
+                        "warning-amber": "#FFB300",
+                        "success-green": "#43A047",
+                        "on-secondary-container": "#722104",
+                        "text-primary": "#2D2D2D",
+                        "surface-tint": "#006e1c",
+                        "tertiary": "#a63360",
+                        "on-tertiary": "#ffffff",
+                        "warm-terracotta": "#FF8A65",
+                        "outline": "#6f7a6b",
+                        "background": "#f5fbef",
+                        "on-secondary-fixed": "#3a0b00",
+                        "inverse-primary": "#78dc77",
+                        "secondary-fixed-dim": "#ffb59e",
+                        "on-primary-container": "#003c0b",
+                        "primary": "#006e1c",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed-variant": "#005313",
+                        "on-error-container": "#93000a",
+                        "primary-container": "#4caf50",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed-variant": "#7f2a0d",
+                        "inverse-surface": "#2c322a",
+                        "inverse-on-surface": "#edf3e7",
+                        "surface-container": "#eaf0e4",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "section-gap": "40px",
+                        "container-padding": "20px",
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "gutter": "16px",
+                        "stack-lg": "24px"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #F9F9F7;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen text-on-surface font-body-md">
+<!-- Top App Bar -->
+<header class="bg-[#F9F9F7] dark:bg-slate-950 border-b border-[#F2F2F0] dark:border-slate-800 fixed top-0 left-0 w-full z-40">
+<div class="flex justify-between items-center px-5 h-16 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-3">
+<img alt="User" class="w-8 h-8 rounded-full border-2 border-primary-container" data-alt="High quality professional headshot of a smiling person in a soft-lit kitchen environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCW-1JFlVK21RAbCPQ6OCQqLAj3JMaowegk39xIRH0yN1Cn0a0f7ysfui3IpwCUbS-NxIkWDtU806caovrzhUmIRyd3zoom5BXmpBmA0rGpPWhc_E_lLzW8wn5SQHhvsiMSbz7tDoL98f78bEGmmr3jEcXtGeeprtQa3xeOiPZv8uiBwPkUNKIf3x-ofd5Z2drF96pXp_eYhFIEd-f5_uhakMRDuhAAk9Dw8iUmty3y3b0sXbuDuC-KpjMJ272fnT_6GIvgagA4eEfj"/>
+<span class="font-['Plus_Jakarta_Sans'] font-extrabold tracking-tight text-xl text-green-600 dark:text-green-400">Cardappio</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-slate-500 hover:bg-green-50 p-2 rounded-full transition-colors active:scale-95 duration-150">search</button>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-5 max-w-2xl mx-auto">
+<!-- Page Title -->
+<div class="mb-section-gap">
+<h1 class="font-h1 text-h1 text-text-primary mb-2">Updates</h1>
+<p class="font-body-md text-text-secondary">Novidades, dicas semanais e alertas para sua rotina na cozinha.</p>
+</div>
+<!-- Section: Featured Weekly Tip -->
+<section class="mb-section-gap">
+<h2 class="font-h3 text-h3 text-text-primary mb-stack-md flex items-center gap-2">
+<span class="material-symbols-outlined text-warm-terracotta" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                Destaque da Semana
+            </h2>
+<div class="bg-white border border-warm-gray-light rounded-xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.03)] active:scale-[0.98] transition-transform cursor-pointer">
+<div class="relative h-48 bg-slate-200">
+<img class="w-full h-full object-cover" data-alt="Close-up of fresh green aromatic herbs like basil and parsley being carefully wrapped in a damp paper towel to maintain freshness" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdvzz3qXcP-AEq_Wau1aac9Gr-_RsO2R5lkjM1GM7Ujh9hRQ96CGMhS_QAHZ_UJxE0GXL6j5u1s5dygfV_uEtf8Ue_7aOiyAgmLSWuHYH0k21MIm3maRA9xoGM9GffV1QPzvUreOvnAoir97q4izbZccsCsteo-Zi1qZ8gv964g5BpP-Xq_DfxQq8ROt5omv8FRnG9D_EI2BtecCOMa9q2MnAL7RqTt3ZUqodytAW1vXOkFevPWoPa4lWwZUkBQ7XkTJaeBkyHr6l0"/>
+<div class="absolute top-4 left-4 bg-fresh-green text-white px-3 py-1 rounded-full font-label-md text-label-md">Dica do Chef</div>
+</div>
+<div class="p-stack-lg">
+<h3 class="font-h3 text-h3 text-text-primary mb-1">Como conservar ervas frescas por mais tempo</h3>
+<p class="font-body-sm text-text-secondary">Aprenda o método do papel toalha úmido para manter seu manjericão e coentro verdes por até duas semanas.</p>
+</div>
+</div>
+</section>
+<!-- Section: Timeline of Notifications -->
+<section class="space-y-gutter">
+<h2 class="font-label-md text-label-md text-warm-gray-medium uppercase tracking-wider">Recentes</h2>
+<!-- Notification Card: Status Update -->
+<div class="flex gap-4 p-4 bg-white border border-warm-gray-light rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] active:scale-[0.98] transition-transform">
+<div class="flex-shrink-0 w-12 h-12 rounded-full bg-green-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-fresh-green">calendar_today</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<h4 class="font-label-md text-label-md text-text-primary">Plano pronto!</h4>
+<span class="font-label-sm text-label-sm text-warm-gray-medium">2h</span>
+</div>
+<p class="font-body-sm text-text-secondary mt-1">Seu plano alimentar para a próxima semana foi gerado com base nas suas preferências.</p>
+<button class="mt-3 text-fresh-green font-label-md text-label-md hover:underline">Ver meu plano</button>
+</div>
+</div>
+<!-- Notification Card: Shopping List Tip -->
+<div class="flex gap-4 p-4 bg-white border border-warm-gray-light rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] active:scale-[0.98] transition-transform">
+<div class="flex-shrink-0 w-12 h-12 rounded-full bg-secondary-fixed/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary">shopping_basket</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<h4 class="font-label-md text-label-md text-text-primary">Lista de Compras Inteligente</h4>
+<span class="font-label-sm text-label-sm text-warm-gray-medium">Ontem</span>
+</div>
+<p class="font-body-sm text-text-secondary mt-1">Agrupamos seus itens por corredor para você economizar 15 minutos no mercado hoje.</p>
+</div>
+</div>
+<!-- Notification Card: Seasonal Tip -->
+<div class="flex gap-4 p-4 bg-white border border-warm-gray-light rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] active:scale-[0.98] transition-transform">
+<div class="flex-shrink-0 w-12 h-12 rounded-full bg-tertiary-fixed/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary">eco</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<h4 class="font-label-md text-label-md text-text-primary">Frutas da Estação</h4>
+<span class="font-label-sm text-label-sm text-warm-gray-medium">2d</span>
+</div>
+<p class="font-body-sm text-text-secondary mt-1">O Morango está no auge da safra! Adicionamos 2 receitas de sobremesa leves para você.</p>
+</div>
+</div>
+<!-- Notification Card: Housekeeping -->
+<div class="flex gap-4 p-4 bg-white border border-warm-gray-light rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] active:scale-[0.98] transition-transform">
+<div class="flex-shrink-0 w-12 h-12 rounded-full bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">kitchen</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<h4 class="font-label-md text-label-md text-text-primary">Limpeza da Despensa</h4>
+<span class="font-label-sm text-label-sm text-warm-gray-medium">3d</span>
+</div>
+<p class="font-body-sm text-text-secondary mt-1">Faz 15 dias que você não revisa seu estoque. Que tal tirar 5 minutos para atualizar seus itens?</p>
+</div>
+</div>
+</section>
+<!-- Empty State Filler / End of List -->
+<div class="mt-section-gap text-center py-stack-lg border-t border-warm-gray-light">
+<p class="font-label-sm text-label-sm text-warm-gray-medium">Você está em dia com todas as novidades.</p>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-white dark:bg-slate-900 border-t border-[#F2F2F0] dark:border-slate-800 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] h-20 pb-safe">
+<div class="flex justify-around items-center px-4 h-full">
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1 hover:text-green-500 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Plan</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1 hover:text-green-500 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Collections</span>
+</a>
+<a class="flex flex-col items-center justify-center text-green-600 dark:text-green-400 bg-green-50/50 dark:bg-green-900/20 rounded-xl px-3 py-1 active:scale-90 duration-200 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="notifications" style="font-variation-settings: 'FILL' 1;">notifications</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Updates</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1 hover:text-green-500 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings_suggest">settings_suggest</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Admin</span>
+</a>
+</div>
+</nav>
+</body></html>

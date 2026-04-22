@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cardappio - Meal History</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#dee4d9",
+                        "info-blue": "#4FC3F7",
+                        "primary-fixed-dim": "#78dc77",
+                        "text-primary": "#2D2D2D",
+                        "warm-gray-light": "#F2F2F0",
+                        "off-white": "#F9F9F7",
+                        "outline": "#6f7a6b",
+                        "on-tertiary-fixed-variant": "#861948",
+                        "on-error": "#ffffff",
+                        "warm-gray-medium": "#9E9E9E",
+                        "primary-container": "#4caf50",
+                        "warning-amber": "#FFB300",
+                        "surface-container-high": "#e4eade",
+                        "secondary": "#9f4122",
+                        "tertiary-fixed": "#ffd9e2",
+                        "secondary-fixed": "#ffdbd0",
+                        "inverse-surface": "#2c322a",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#fd8863",
+                        "surface-container-highest": "#dee4d9",
+                        "surface-container": "#eaf0e4",
+                        "background": "#f5fbef",
+                        "inverse-primary": "#78dc77",
+                        "tertiary": "#a63360",
+                        "on-tertiary-fixed": "#3e001c",
+                        "on-error-container": "#93000a",
+                        "surface": "#f5fbef",
+                        "inverse-on-surface": "#edf3e7",
+                        "primary": "#006e1c",
+                        "on-secondary-fixed-variant": "#7f2a0d",
+                        "surface-tint": "#006e1c",
+                        "error-container": "#ffdad6",
+                        "on-secondary-container": "#722104",
+                        "on-background": "#171d16",
+                        "error": "#ba1a1a",
+                        "warm-terracotta": "#FF8A65",
+                        "text-secondary": "#757575",
+                        "on-surface": "#171d16",
+                        "outline-variant": "#becab9",
+                        "error-red": "#E53935",
+                        "on-primary-fixed-variant": "#005313",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#ffb59e",
+                        "tertiary-fixed-dim": "#ffb1c7",
+                        "surface-dim": "#d6dcd0",
+                        "surface-bright": "#f5fbef",
+                        "surface-container-low": "#f0f6ea",
+                        "on-surface-variant": "#3f4a3c",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "fresh-green": "#4CAF50",
+                        "on-primary-fixed": "#002204",
+                        "tertiary-container": "#f26f9d",
+                        "on-primary-container": "#003c0b",
+                        "primary-fixed": "#94f990",
+                        "on-tertiary-container": "#690034",
+                        "success-green": "#43A047",
+                        "on-secondary-fixed": "#3a0b00"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "gutter": "16px",
+                        "stack-sm": "8px",
+                        "stack-lg": "24px",
+                        "section-gap": "40px",
+                        "container-padding": "20px",
+                        "stack-md": "16px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Plus Jakarta Sans"],
+                        "body-sm": ["Work Sans"],
+                        "label-sm": ["Work Sans"],
+                        "label-md": ["Work Sans"],
+                        "body-md": ["Work Sans"],
+                        "body-lg": ["Work Sans"],
+                        "h3": ["Plus Jakarta Sans"],
+                        "h1": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "1", "fontWeight": "500"}],
+                        "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "h3": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "h1": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #F9F9F7;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-text-primary">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-5 h-16 bg-[#F9F9F7] dark:bg-gray-950 border-b border-[#F2F2F0] dark:border-gray-800">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden border border-outline-variant">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="close-up portrait of a smiling woman with clear skin and natural lighting in a bright airy studio" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHGDC1nnMPs-DPmxtUOk6erQGD1t8zc6trd8EVMBT8nlkRrxKy5LXB3m862a9lcS63CHheVbMptLWvzVycXqD9IMqU_mrU55qg5dTpy--x_6DV19HpflweT2u36FNEXr7Z1fi9CPQx57aDeyHcogJtoWXgV2zYJ_FeXQLAJQp361u_byv8_HtI0C3rivYmZEtgWMmjwY6MGIF4DrELkqcwW0xtBXzCdRu0p8s_-gg3Ihkt9CsuY2HuUvFRDTPl9d0IoGLVO0WwTMOj"/>
+</div>
+<h1 class="font-['Plus_Jakarta_Sans'] text-xl font-extrabold text-gray-900 dark:text-white">Cardappio</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 active:scale-[0.98] transition-transform duration-200">
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400">notifications</span>
+</button>
+</header>
+<main class="pt-24 pb-32 px-5 max-w-2xl mx-auto">
+<!-- Page Header -->
+<section class="mb-stack-lg">
+<h2 class="font-h1 text-h1 text-on-background mb-2">Plan History</h2>
+<p class="font-body-md text-text-secondary">Revisit and reuse your favorite weekly meal arrangements.</p>
+</section>
+<!-- Stats Highlights -->
+<div class="grid grid-cols-2 gap-gutter mb-section-gap">
+<div class="bg-surface-container-low p-stack-md rounded-xl border border-outline-variant">
+<span class="font-label-sm text-on-surface-variant block mb-1">Total Plans</span>
+<span class="font-h2 text-h2 text-primary">24</span>
+</div>
+<div class="bg-surface-container-low p-stack-md rounded-xl border border-outline-variant">
+<span class="font-label-sm text-on-surface-variant block mb-1">Most Active Day</span>
+<span class="font-h2 text-h2 text-secondary">Sunday</span>
+</div>
+</div>
+<!-- History List -->
+<div class="flex flex-col gap-stack-lg">
+<!-- History Card 1 -->
+<div class="bg-white rounded-xl border border-warm-gray-light shadow-[0_4px_12px_rgba(0,0,0,0.02)] overflow-hidden active:scale-[0.99] transition-all">
+<div class="p-stack-md border-b border-warm-gray-light flex justify-between items-center">
+<div>
+<h3 class="font-h3 text-h3">Oct 23 - Oct 29</h3>
+<span class="font-label-sm text-warm-gray-medium">Current Week</span>
+</div>
+<span class="bg-success-green/10 text-success-green font-label-md px-3 py-1 rounded-full">Active</span>
+</div>
+<div class="p-stack-md bg-off-white flex gap-4 overflow-x-auto pb-stack-sm scrollbar-hide">
+<div class="flex-shrink-0 w-20">
+<div class="aspect-square rounded-lg bg-surface-variant mb-1 overflow-hidden">
+<img alt="Salad" class="w-full h-full object-cover" data-alt="Fresh vibrant grain bowl with avocado, radishes, and chickpeas in a ceramic bowl on a light stone surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnz1HIojti_V3yVNQGoCA7aII3CMG1CNaFmj9YqFKoBTje9Avd-8v1VuanxW0FRGoRe7G34wAlcsSOX8VXpM3mRKsctN3MsSAIK6xK9vvtG7cVJDAl_XSTFC9A96z3N7d_mg_8PlTb8NKuLpqkmznl8tsYQn3lfRzmHSHWvJZMKujhQsMTZUecvVDRtlqkgRSJ-8EoYG93FNc-wbD08dEeLLhUbCrr8PH7AD5E6Dv8whCAUBEMva5Fc4IGTk6aHGSrYdlJWiO3CrFw"/>
+</div>
+<p class="font-label-sm text-on-surface-variant truncate">Quinoa Bowl</p>
+</div>
+<div class="flex-shrink-0 w-20">
+<div class="aspect-square rounded-lg bg-surface-variant mb-1 overflow-hidden">
+<img alt="Pasta" class="w-full h-full object-cover" data-alt="Twirled spaghetti with roasted cherry tomatoes and fresh basil leaves on a white plate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjuYaMMx2p64CwUdrPPmgHY_1qaVBBYBfTs2XqLQmesjuXKSnn8s_qXcWGY7RjzLqZvDn2T2YmcJ5FPPd0r4PwMEXYifzFnbnHIYW0VWURf-ZnFb9S1S1qFJpLcykVKPh9xhsJ3PeXAgKIavPWw7ZDNMurgs8cDKUddZa9_owHJCEP5gGeF7WXY8V0R5ebTmkWwuhqKNYfheTQ8OOsT6FLRk794GttyvWtX3dJ3Jg0LY5VitKz5FOpC8MOYUmmEvFf0h4Zm9nsj1E1"/>
+</div>
+<p class="font-label-sm text-on-surface-variant truncate">Basil Pasta</p>
+</div>
+<div class="flex-shrink-0 w-20">
+<div class="aspect-square rounded-lg bg-surface-variant mb-1 overflow-hidden">
+<img alt="Tacos" class="w-full h-full object-cover" data-alt="Soft street tacos with lime wedges and cilantro on a rustic wooden board" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmPIu959lvflVCYAfJXNtmvmI9fWfDvwdyY9AsPx8BQGB5D26v08bgVlTzNaijRtR-RY-h0ntpbKjh4i38znX20HqwEKRlYNW56jjr5BlNdO-2cTJKiUvAJqe8TYXn-qJPR0x2LxZAksrRsMnmqyB6iGCb37OmSZ_sWHZ27tP_9N0-m2uLIMCrcwmnNvl5YMeUgqPd8X3z2DsoZf4aX3JQRANDU-S4Q14dZlBq2A5OIO46BZ8VAyFygjNUP1DToNwWjHh-luXVM9WZ"/>
+</div>
+<p class="font-label-sm text-on-surface-variant truncate">Street Tacos</p>
+</div>
+<div class="flex-shrink-0 flex items-center justify-center w-20 aspect-square rounded-lg bg-warm-gray-light border border-dashed border-warm-gray-medium">
+<span class="font-label-md text-warm-gray-medium">+4</span>
+</div>
+</div>
+<div class="p-stack-md flex gap-stack-md">
+<button class="flex-1 font-label-md py-3 bg-fresh-green text-white rounded-lg active:scale-[0.98] transition-all">View Details</button>
+<button class="flex-1 font-label-md py-3 border border-fresh-green text-fresh-green rounded-lg active:scale-[0.98] transition-all">Reuse Plan</button>
+</div>
+</div>
+<!-- History Card 2 -->
+<div class="bg-white rounded-xl border border-warm-gray-light shadow-[0_4px_12px_rgba(0,0,0,0.02)] overflow-hidden active:scale-[0.99] transition-all">
+<div class="p-stack-md border-b border-warm-gray-light flex justify-between items-center">
+<div>
+<h3 class="font-h3 text-h3">Oct 16 - Oct 22</h3>
+<span class="font-label-sm text-warm-gray-medium">Healthy Focus</span>
+</div>
+<span class="material-symbols-outlined text-warm-gray-medium">calendar_today</span>
+</div>
+<div class="p-stack-md bg-off-white/50 flex items-center justify-between">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-fresh-green" style="font-variation-settings: 'FILL' 1;">eco</span>
+<span class="font-body-sm text-on-surface-variant">21 Meals Planned</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-info-blue" style="font-variation-settings: 'FILL' 1;">shopping_cart</span>
+<span class="font-body-sm text-on-surface-variant">Shopping list completed</span>
+</div>
+</div>
+<div class="flex -space-x-2">
+<div class="w-10 h-10 rounded-full border-2 border-white bg-surface-variant overflow-hidden">
+<img alt="Meal" class="w-full h-full object-cover" data-alt="Close up of a gourmet roasted salmon fillet with asparagus and lemon butter sauce" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHRKrwJLNPBASSLKA4-dPbM0Kpybj3s1AG9y6Au0jaoXNTAPNRmnY5tbj6vQGJ59gBWnD1ddXY93D3-OevxQUfh_4_Sknnmp1j4guRim0mheWYHZWASVXLp-gUK5yRZY2EHqKuKB9dVwIzwWCfg1TrMVcnzsv8kHClzFBXwhpu-6V55rEK-KTCw12w-4y8uxk3Op7d_wog7yhlrddZbRYmPMOzmnCY6Sg7CNSMORiKcgSe954TshTMkRu6972EdY7Hz30ddioUJN2S"/>
+</div>
+<div class="w-10 h-10 rounded-full border-2 border-white bg-surface-variant overflow-hidden">
+<img alt="Meal" class="w-full h-full object-cover" data-alt="Thick grilled steak with peppercorn sauce and golden roasted potatoes on a dark plate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBdeOkv-fqfRLTADdLwkr8QBiLIkRR9gI_3W4YMhz2tszC-cdqgK36UHgwySXitEt2WUn7oCXaHEYW-K_uwgxFMV5x1ErM5GCVeadNu9KyqL2xdUxPWCJXjFOEy47d2oOoAGdqcHxFdVEBNJktxSTZtYku56oYfnmHpIG-BhmlaurPwh2pCFogIFSV5kjSGcXXlLimWOJPYIsM0v3lNhBNtWeRPxcaEE8Tom3Y2r4wpb6MwFuPm00NNXmisjJQU3aujBJSUBpuAAUS"/>
+</div>
+</div>
+</div>
+<div class="p-stack-md flex gap-stack-md">
+<button class="flex-1 font-label-md py-3 bg-fresh-green text-white rounded-lg active:scale-[0.98] transition-all">View Details</button>
+<button class="flex-1 font-label-md py-3 border border-fresh-green text-fresh-green rounded-lg active:scale-[0.98] transition-all">Reuse Plan</button>
+</div>
+</div>
+<!-- History Card 3 -->
+<div class="bg-white rounded-xl border border-warm-gray-light shadow-[0_4px_12px_rgba(0,0,0,0.02)] overflow-hidden active:scale-[0.99] transition-all">
+<div class="p-stack-md border-b border-warm-gray-light flex justify-between items-center">
+<div>
+<h3 class="font-h3 text-h3">Oct 09 - Oct 15</h3>
+<span class="font-label-sm text-warm-gray-medium">Budget Friendly Week</span>
+</div>
+<span class="material-symbols-outlined text-warm-gray-medium">calendar_today</span>
+</div>
+<div class="p-stack-md bg-off-white/50">
+<div class="grid grid-cols-3 gap-2">
+<div class="bg-surface-container h-1 w-full rounded-full overflow-hidden">
+<div class="bg-fresh-green h-full w-[100%]"></div>
+</div>
+<div class="bg-surface-container h-1 w-full rounded-full overflow-hidden">
+<div class="bg-fresh-green h-full w-[100%]"></div>
+</div>
+<div class="bg-surface-container h-1 w-full rounded-full overflow-hidden">
+<div class="bg-fresh-green h-full w-[40%]"></div>
+</div>
+</div>
+<p class="font-label-sm text-on-surface-variant mt-2">78% of recipes cooked</p>
+</div>
+<div class="p-stack-md flex gap-stack-md">
+<button class="flex-1 font-label-md py-3 bg-fresh-green text-white rounded-lg active:scale-[0.98] transition-all">View Details</button>
+<button class="flex-1 font-label-md py-3 border border-fresh-green text-fresh-green rounded-lg active:scale-[0.98] transition-all">Reuse Plan</button>
+</div>
+</div>
+</div>
+<!-- Load More -->
+<button class="w-full mt-stack-lg py-4 font-label-md text-warm-gray-medium border border-dashed border-warm-gray-medium rounded-xl hover:bg-white transition-colors">
+            Load older plans
+        </button>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center pt-3 pb-6 px-4 bg-white dark:bg-gray-900 border-t border-[#F2F2F0] dark:border-gray-800 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 hover:text-green-500 dark:hover:text-green-300 active:scale-90 transition-all duration-150" href="#">
+<span class="material-symbols-outlined">restaurant</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Plan</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 hover:text-green-500 dark:hover:text-green-300 active:scale-90 transition-all duration-150" href="#">
+<span class="material-symbols-outlined">favorite</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Favorites</span>
+</a>
+<a class="flex flex-col items-center justify-center text-green-600 dark:text-green-400 font-bold active:scale-90 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">history</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">History</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 hover:text-green-500 dark:hover:text-green-300 active:scale-90 transition-all duration-150" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Profile</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-high": "#e4eade",
+                      "surface-container-highest": "#dee4d9",
+                      "on-surface-variant": "#3f4a3c",
+                      "tertiary-fixed-dim": "#ffb1c7",
+                      "secondary-fixed": "#ffdbd0",
+                      "info-blue": "#4FC3F7",
+                      "primary-fixed": "#94f990",
+                      "surface-bright": "#f5fbef",
+                      "on-primary-fixed": "#002204",
+                      "surface-variant": "#dee4d9",
+                      "fresh-green": "#4CAF50",
+                      "secondary": "#9f4122",
+                      "on-surface": "#171d16",
+                      "surface": "#f5fbef",
+                      "error-red": "#E53935",
+                      "primary-fixed-dim": "#78dc77",
+                      "off-white": "#F9F9F7",
+                      "on-tertiary-fixed-variant": "#861948",
+                      "tertiary-container": "#f26f9d",
+                      "outline-variant": "#becab9",
+                      "on-tertiary-container": "#690034",
+                      "on-secondary": "#ffffff",
+                      "surface-container-low": "#f0f6ea",
+                      "warm-gray-light": "#F2F2F0",
+                      "surface-dim": "#d6dcd0",
+                      "text-secondary": "#757575",
+                      "on-tertiary-fixed": "#3e001c",
+                      "tertiary-fixed": "#ffd9e2",
+                      "surface-container-lowest": "#ffffff",
+                      "on-background": "#171d16",
+                      "warm-gray-medium": "#9E9E9E",
+                      "error-container": "#ffdad6",
+                      "secondary-container": "#fd8863",
+                      "warning-amber": "#FFB300",
+                      "success-green": "#43A047",
+                      "on-secondary-container": "#722104",
+                      "text-primary": "#2D2D2D",
+                      "surface-tint": "#006e1c",
+                      "tertiary": "#a63360",
+                      "on-tertiary": "#ffffff",
+                      "warm-terracotta": "#FF8A65",
+                      "outline": "#6f7a6b",
+                      "background": "#f5fbef",
+                      "on-secondary-fixed": "#3a0b00",
+                      "inverse-primary": "#78dc77",
+                      "secondary-fixed-dim": "#ffb59e",
+                      "on-primary-container": "#003c0b",
+                      "primary": "#006e1c",
+                      "on-primary": "#ffffff",
+                      "on-primary-fixed-variant": "#005313",
+                      "on-error-container": "#93000a",
+                      "primary-container": "#4caf50",
+                      "on-error": "#ffffff",
+                      "on-secondary-fixed-variant": "#7f2a0d",
+                      "inverse-surface": "#2c322a",
+                      "inverse-on-surface": "#edf3e7",
+                      "surface-container": "#eaf0e4",
+                      "error": "#ba1a1a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "unit": "8px",
+                      "section-gap": "40px",
+                      "container-padding": "20px",
+                      "stack-sm": "8px",
+                      "stack-md": "16px",
+                      "gutter": "16px",
+                      "stack-lg": "24px"
+              },
+              "fontFamily": {
+                      "label-sm": ["Work Sans"],
+                      "label-md": ["Work Sans"],
+                      "body-sm": ["Work Sans"],
+                      "body-md": ["Work Sans"],
+                      "h1": ["Plus Jakarta Sans"],
+                      "h2": ["Plus Jakarta Sans"],
+                      "h3": ["Plus Jakarta Sans"],
+                      "body-lg": ["Work Sans"]
+              },
+              "fontSize": {
+                      "label-sm": ["12px", {"lineHeight": "1", "fontWeight": "500"}],
+                      "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                      "body-sm": ["14px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "h1": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                      "h3": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+      </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+      </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-off-white text-on-background font-body-md min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="bg-[#F9F9F7] border-b border-[#F2F2F0] docked full-width top-0 z-50 sticky">
+<div class="flex justify-between items-center px-5 h-16 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container overflow-hidden">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional male administrator with a friendly expression in a modern bright office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMi1tlzpc3U-b7UjNw9CN6k6SBtLQRYQm44ywQh0Up_8YazmM-L9DokOADN95QjsLLy5iOI9_jTKlpu-v_LpeLiso5EeA3k9mRRxIM9lIeTMCZ1z317p9Io2CbImHokPzpev7MTr_z-cBVyHIxmHMYQE6ZWS7cvPfMtrpF4I6Q-ZA8yXoqP-93gNwUTwoB59Oo_wKP-LPAzdkyIVBfQczqM9WCDWRwkqlJIUIYfZeHa4Edh-Ha9rz13Dpd5_EIgK7mDH-qQpESg8kw"/>
+</div>
+</div>
+<h1 class="font-['Plus_Jakarta_Sans'] font-extrabold tracking-tight text-xl text-green-600">Cardappio</h1>
+<button class="text-slate-500 hover:bg-green-50 transition-colors p-2 rounded-full active:scale-95 duration-150">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-container-padding py-stack-lg">
+<!-- Dashboard Header -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-gutter mb-section-gap">
+<div>
+<h2 class="font-h2 text-h2 text-text-primary">Gestão de Receitas</h2>
+<p class="font-body-sm text-body-sm text-warm-gray-medium mt-1">Gerencie o catálogo completo de pratos da plataforma.</p>
+</div>
+<button class="bg-fresh-green text-on-primary font-label-md text-label-md px-6 py-3 rounded-lg flex items-center justify-center gap-2 shadow-sm hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                Nova Receita
+            </button>
+</div>
+<!-- Filters & Search Bento Style -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter mb-stack-lg">
+<!-- Search Bar -->
+<div class="md:col-span-6 bg-white border border-warm-gray-light rounded-xl p-3 flex items-center gap-3 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+<span class="material-symbols-outlined text-warm-gray-medium" data-icon="search">search</span>
+<input class="w-full bg-transparent border-none focus:ring-0 font-body-sm text-text-primary placeholder:text-warm-gray-medium" placeholder="Buscar por nome, ingrediente ou autor..." type="text"/>
+</div>
+<!-- Category Filter -->
+<div class="md:col-span-3 bg-white border border-warm-gray-light rounded-xl p-3 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-warm-gray-medium" data-icon="category">category</span>
+<span class="font-label-md text-label-md text-text-primary">Categorias</span>
+</div>
+<span class="material-symbols-outlined text-warm-gray-medium" data-icon="expand_more">expand_more</span>
+</div>
+<!-- Status Filter -->
+<div class="md:col-span-3 bg-white border border-warm-gray-light rounded-xl p-3 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-warm-gray-medium" data-icon="rule">rule</span>
+<span class="font-label-md text-label-md text-text-primary">Status</span>
+</div>
+<span class="material-symbols-outlined text-warm-gray-medium" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<!-- Stats Overview -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-gutter mb-stack-lg">
+<div class="bg-white p-4 rounded-xl border border-warm-gray-light">
+<p class="font-label-sm text-label-sm text-warm-gray-medium mb-1">Total</p>
+<p class="font-h3 text-h3 text-text-primary">1,284</p>
+</div>
+<div class="bg-white p-4 rounded-xl border border-warm-gray-light">
+<p class="font-label-sm text-label-sm text-warm-gray-medium mb-1">Publicadas</p>
+<p class="font-h3 text-h3 text-success-green">942</p>
+</div>
+<div class="bg-white p-4 rounded-xl border border-warm-gray-light">
+<p class="font-label-sm text-label-sm text-warm-gray-medium mb-1">Rascunhos</p>
+<p class="font-h3 text-h3 text-warning-amber">312</p>
+</div>
+<div class="bg-white p-4 rounded-xl border border-warm-gray-light">
+<p class="font-label-sm text-label-sm text-warm-gray-medium mb-1">Novas (Mês)</p>
+<p class="font-h3 text-h3 text-primary">+48</p>
+</div>
+</div>
+<!-- Recipe List/Table Content -->
+<div class="bg-white border border-warm-gray-light rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+<div class="overflow-x-auto scrollbar-hide">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-warm-gray-light">
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant">Receita</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant">Categoria</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant">Autor</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant">Status</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant text-right">Ações</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-warm-gray-light">
+<!-- Row 1 -->
+<tr class="hover:bg-off-white transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-lg bg-surface-variant overflow-hidden flex-shrink-0">
+<img alt="Healthy Salad" class="w-full h-full object-cover" data-alt="Vibrant healthy salad bowl with fresh greens, tomatoes, avocado and seeds on a white plate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiDgxR4k9T0Q7OwxMRl55Ihbk1hpDRMsBB61xxfZnkF70QJDfQo1VJtceU0T6ZaGo4prAx7uh0g2sRpOPclkq40rFPsHp69KTeuLYj1XFJEXuEAlXVAN97KRm-MREvZThFiK5Kdrc5u7oa6SDk8CEvG-iz3gLucxOAVhvwDUSn5jfb2T5BPR_G_-uKbfGH1DCnXYuNO8WzD2KhYl_dV7ESR0HcAGccwh0Iqmd4rVTfruR5t-6tYey3HK3TEKfMhMOxSRhqAgutivkj"/>
+</div>
+<div>
+<p class="font-label-md text-label-md text-text-primary">Salada Mediterrânea</p>
+<p class="font-body-sm text-body-sm text-warm-gray-medium">Criada há 2 dias</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="bg-green-50 text-green-700 px-3 py-1 rounded-full font-label-sm text-label-sm">Saudável</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-slate-200 overflow-hidden">
+<img alt="Chef" class="w-full h-full object-cover" data-alt="Professional female chef headshot with a friendly smile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbgbHtjdPi93LUieOgfsiUW2W1r_Kf9PwlxU_3bYjuJmNjKL-mpDBj3ALDwLb1zloj5Kl8xxRm4SB5pvtRBPlVVWR9MJz_aSiJ4oUDS03Eo_40O7pUPVLcu79nq9sKKLQa1XGrSVVQpEOaKCTFSAR3nsUgg5KwcWjoM_bVJGXEzRzb8RYJ_JMJxIXQVtb-oqRGCLio-DtlHSX-2kDOvl7saOOegmsOPRzmulm_5CBuERYJxW-_DA0drWsHNX5lTYKGvyGiYrYjwrLW"/>
+</div>
+<span class="font-body-sm text-body-sm text-text-primary">Mariana Silva</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1.5 text-success-green">
+<span class="w-2 h-2 rounded-full bg-success-green"></span>
+<span class="font-label-sm text-label-sm">Publicado</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-warm-gray-medium hover:text-fresh-green transition-colors p-1">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="text-warm-gray-medium hover:text-error-red transition-colors p-1 ml-2">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-off-white transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-lg bg-surface-variant overflow-hidden flex-shrink-0">
+<img alt="Margherita Pizza" class="w-full h-full object-cover" data-alt="Rustic Italian Margherita pizza with bubbling mozzarella and fresh basil leaves on a stone board" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRcH4BxZiKNpxDt2FNg3E7vSoadtL5GJ5nn0UDnva7W0Gk8rcQCrsaeyo4sh1qtatpuHJA8LaccjIZG1B0-EOdYManDGRFXn5Lxg6FQQ12_YhExp1sFiH7xF91kmfJsCmy4vFgQa4BViV0OJWSeBPeZrqOWw9rQEeoY-T1No6CQ_msD8GVRhaxt_DUdMrh-Jzi5gXO1-yZMR_0hlMvnFXAEGbjfQhcYh8qLoVAbCrdMa4kRfL1s5JrDQw8tKA2RGHlFf-yd6X1evk8"/>
+</div>
+<div>
+<p class="font-label-md text-label-md text-text-primary">Pizza Margherita Artesanal</p>
+<p class="font-body-sm text-body-sm text-warm-gray-medium">Atualizado ontem</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="bg-orange-50 text-orange-700 px-3 py-1 rounded-full font-label-sm text-label-sm">Italiana</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-slate-200 overflow-hidden">
+<img alt="Author" class="w-full h-full object-cover" data-alt="Young male chef in professional kitchen attire" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuuS7dvi5bCUxBw2vP80Xkv5UVF_8KMRzjTxGy6CHV_u5mm-w-mjGB4tfstrl-EwF7Bo49c7A73HsgutnGn7jnMeAoQJLJxqpL2wSOiut4gTKPn5413X4iip3lrjk4TOI2BJc7ilf2vO0jt1MicjpMiwXn3PfocP452HlXi5cD6KzORfunD5by01yd32EoJTsCGjfBigX7RD3Q0wPBsqoaTpAU8-hXZeDVdPDCRgRKj8IfmxaYVLJIPe1TenO7jTWJR72uUl3xNan-"/>
+</div>
+<span class="font-body-sm text-body-sm text-text-primary">Roberto Lima</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1.5 text-warning-amber">
+<span class="w-2 h-2 rounded-full bg-warning-amber"></span>
+<span class="font-label-sm text-label-sm">Rascunho</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-warm-gray-medium hover:text-fresh-green transition-colors p-1">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="text-warm-gray-medium hover:text-error-red transition-colors p-1 ml-2">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-off-white transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-lg bg-surface-variant overflow-hidden flex-shrink-0">
+<img alt="Glazed Donut" class="w-full h-full object-cover" data-alt="Delicious close-up of artisan donuts with glossy chocolate glaze and colourful sprinkles" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUK7ClPzCbkXIWbnWSbtGqcaaW9xDTDx4uKzb-pNnbFPIe__344lgFXzOxT2oFgsFho1A_jWx-uDn23LsSrp5LaMO-BRguKxcWghvMxKYSJF3nhtESWdW8HSfMCOaOcyd1uQBPYjtiOiYvE_jKOeC9l0-B9zKpaXa9aHe5hY100dJtLtmjOLdRakduQ6a1oVOoPHo2UAsUTIbU8_jMsfxbuC2MLUxof2lFJTAjuHzbz75oL68P8rE9Gl1zfiAq6_-rPWYpOqK3RTpB"/>
+</div>
+<div>
+<p class="font-label-md text-label-md text-text-primary">Donuts Gourmet</p>
+<p class="font-body-sm text-body-sm text-warm-gray-medium">Criada há 1 semana</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="bg-pink-50 text-pink-700 px-3 py-1 rounded-full font-label-sm text-label-sm">Sobremesa</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-slate-200 overflow-hidden">
+<img alt="Author" class="w-full h-full object-cover" data-alt="Cheerful female pastry chef with light skin and dark hair" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuul7OG8JdpfAtQZBphBUJywozQc9_UtqNJJ_7d0Kj_GTZ32vl2al7RVdT-Zym3_Q83JIVNBLvVAKJi0-LqV9_5yjEw-ob_TUXpcG_6aS4fsEJ7z5E4i4QB_kqDj8M70H1tcmI4fDFjAlqcl6IHR_t6vZXSRu4udM4Ozs_7qkGdGboqphIU-2psaFPhlV8iZCUvxgS5HLYXP4su-SIk3xgqFwowdv5iDuOfCdRlsYRjgJBm9P73eSLxVdNUvqLJhO2JhEAJ6h7eHrr"/>
+</div>
+<span class="font-body-sm text-body-sm text-text-primary">Carla Mendes</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1.5 text-success-green">
+<span class="w-2 h-2 rounded-full bg-success-green"></span>
+<span class="font-label-sm text-label-sm">Publicado</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-warm-gray-medium hover:text-fresh-green transition-colors p-1">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="text-warm-gray-medium hover:text-error-red transition-colors p-1 ml-2">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-off-white transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-lg bg-surface-variant overflow-hidden flex-shrink-0">
+<img alt="Mushroom Soup" class="w-full h-full object-cover" data-alt="Creamy mushroom soup in a ceramic bowl garnished with fresh herbs and olive oil" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDz559OsBadSIdWXQOg_2TtQRMTm33as2a7joC5Y9cvx8R32sLzwFtyiSTTYvReZRBXx_BvRQAODfWprNSaUPAFoXXpUV2LSLQ1qDIZv1OVbSQalQfi4dUHufaL_a3LdWOV21SVh6zfX9_-HdxqnIDj7KWUVnaGlRp1qAcHPxMVA4wIqfCkT6pI3XFAHt4AzwZpqgMJYCPNTj9_L-fXxbsFR4kZHR0qnEYLjwp1OsznbrNl12UAwxqflFz7z6lsvN42Z9_Z0fecgp8A"/>
+</div>
+<div>
+<p class="font-label-md text-label-md text-text-primary">Creme de Cogumelos</p>
+<p class="font-body-sm text-body-sm text-warm-gray-medium">Criada hoje</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-label-sm text-label-sm">Sopas</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-slate-200 overflow-hidden">
+<img alt="Author" class="w-full h-full object-cover" data-alt="Profile photo of the lead admin chef" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdBKa_W_kd7OxMhDLU7A6lbxyt_lqzi3y-R_0UOM2Q-xbanwXNf3MVquZZ_9HYnNrnSvBdVMtRxAGuvf_OVx7K2zQm4ZxuPF12UQI_7oGy31RrLpMYqR3Vz4qI-J4uJi82SxFD7bAIhJi77SMPNN5WccPtJrrQn5yCgrouHOAD41cDDPqhkCAQ00yDT6F_N2Y7mP93gfcRDr-P7QKBSovfvkouJ_6QHsEDpQOoEulzEYslA9SYRYyzKguk9son-9HFEnJYt1EkgTBU"/>
+</div>
+<span class="font-body-sm text-body-sm text-text-primary">Admin Root</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1.5 text-warning-amber">
+<span class="w-2 h-2 rounded-full bg-warning-amber"></span>
+<span class="font-label-sm text-label-sm">Rascunho</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-warm-gray-medium hover:text-fresh-green transition-colors p-1">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="text-warm-gray-medium hover:text-error-red transition-colors p-1 ml-2">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="px-6 py-4 flex items-center justify-between bg-surface-container-low/50">
+<p class="font-body-sm text-body-sm text-warm-gray-medium">Mostrando 4 de 1,284 receitas</p>
+<div class="flex gap-2">
+<button class="p-2 border border-warm-gray-light rounded-lg bg-white text-warm-gray-medium hover:bg-off-white transition-all disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="p-2 border border-warm-gray-light rounded-lg bg-white text-warm-gray-medium hover:bg-off-white transition-all">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-white border-t border-[#F2F2F0] shadow-[0_-4px_12px_rgba(0,0,0,0.03)] flex justify-around items-center px-4 h-20 pb-safe rounded-t-lg">
+<div class="flex flex-col items-center justify-center text-slate-400 px-3 py-1 hover:text-green-500 transition-colors">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Plan</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 px-3 py-1 hover:text-green-500 transition-colors">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Collections</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 px-3 py-1 hover:text-green-500 transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Updates</span>
+</div>
+<!-- Active Tab: Admin -->
+<div class="flex flex-col items-center justify-center text-green-600 bg-green-50/50 rounded-xl px-3 py-1 active:scale-90 duration-200 ease-out">
+<span class="material-symbols-outlined" data-icon="settings_suggest" style="font-variation-settings: 'FILL' 1;">settings_suggest</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Admin</span>
+</div>
+</nav>
+</body></html>

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Profile &amp; Preferences - Cardappio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #F9F9F7;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-variant": "#dee4d9",
+                      "info-blue": "#4FC3F7",
+                      "primary-fixed-dim": "#78dc77",
+                      "text-primary": "#2D2D2D",
+                      "warm-gray-light": "#F2F2F0",
+                      "off-white": "#F9F9F7",
+                      "outline": "#6f7a6b",
+                      "on-tertiary-fixed-variant": "#861948",
+                      "on-error": "#ffffff",
+                      "warm-gray-medium": "#9E9E9E",
+                      "primary-container": "#4caf50",
+                      "warning-amber": "#FFB300",
+                      "surface-container-high": "#e4eade",
+                      "secondary": "#9f4122",
+                      "tertiary-fixed": "#ffd9e2",
+                      "secondary-fixed": "#ffdbd0",
+                      "inverse-surface": "#2c322a",
+                      "surface-container-lowest": "#ffffff",
+                      "secondary-container": "#fd8863",
+                      "surface-container-highest": "#dee4d9",
+                      "surface-container": "#eaf0e4",
+                      "background": "#f5fbef",
+                      "inverse-primary": "#78dc77",
+                      "tertiary": "#a63360",
+                      "on-tertiary-fixed": "#3e001c",
+                      "on-error-container": "#93000a",
+                      "surface": "#f5fbef",
+                      "inverse-on-surface": "#edf3e7",
+                      "primary": "#006e1c",
+                      "on-secondary-fixed-variant": "#7f2a0d",
+                      "surface-tint": "#006e1c",
+                      "error-container": "#ffdad6",
+                      "on-secondary-container": "#722104",
+                      "on-background": "#171d16",
+                      "error": "#ba1a1a",
+                      "warm-terracotta": "#FF8A65",
+                      "text-secondary": "#757575",
+                      "on-surface": "#171d16",
+                      "outline-variant": "#becab9",
+                      "error-red": "#E53935",
+                      "on-primary-fixed-variant": "#005313",
+                      "on-primary": "#ffffff",
+                      "secondary-fixed-dim": "#ffb59e",
+                      "tertiary-fixed-dim": "#ffb1c7",
+                      "surface-dim": "#d6dcd0",
+                      "surface-bright": "#f5fbef",
+                      "surface-container-low": "#f0f6ea",
+                      "on-surface-variant": "#3f4a3c",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary": "#ffffff",
+                      "fresh-green": "#4CAF50",
+                      "on-primary-fixed": "#002204",
+                      "tertiary-container": "#f26f9d",
+                      "on-primary-container": "#003c0b",
+                      "primary-fixed": "#94f990",
+                      "on-tertiary-container": "#690034",
+                      "success-green": "#43A047",
+                      "on-secondary-fixed": "#3a0b00"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "unit": "8px",
+                      "gutter": "16px",
+                      "stack-sm": "8px",
+                      "stack-lg": "24px",
+                      "section-gap": "40px",
+                      "container-padding": "20px",
+                      "stack-md": "16px"
+              },
+              "fontFamily": {
+                      "h2": ["Plus Jakarta Sans"],
+                      "body-sm": ["Work Sans"],
+                      "label-sm": ["Work Sans"],
+                      "label-md": ["Work Sans"],
+                      "body-md": ["Work Sans"],
+                      "body-lg": ["Work Sans"],
+                      "h3": ["Plus Jakarta Sans"],
+                      "h1": ["Plus Jakarta Sans"]
+              },
+              "fontSize": {
+                      "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                      "body-sm": ["14px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "1", "fontWeight": "500"}],
+                      "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "h3": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "h1": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-on-background">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-5 h-16 bg-[#F9F9F7] dark:bg-gray-950 border-b border-[#F2F2F0] dark:border-gray-800">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-variant">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="Close-up portrait of a smiling woman with warm lighting and a natural soft focus background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSFHkFMcAujJgLXEpGr1sGvOZRUZa2BTUE2dhyVtKcerBFsQU-xh2YTeXKDySlovNJRkuQi6mfclBvvUhcHH4HNok_OLlQODOKSx2Cd6MtbbgqBDP4dOH2ThZe3n_ZTTO-6-I93QJwSYN4tHjz3Xrmusngx0tD2zC2O3I3TCo9fGbyEPNzu7ifAPpABwiMDzxv86GmffHerVMUsSSoPs9rBriyoxHn2bqJNXH7rGw1r_VgPc8DJ-KFoc1UFDNp6jYR-qgukY0LaC6S"/>
+</div>
+<h1 class="font-['Plus_Jakarta_Sans'] text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">Cardappio</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 active:scale-[0.98] transition-transform duration-200 text-gray-500 dark:text-gray-400">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</header>
+<main class="pt-24 pb-32 px-5 max-w-2xl mx-auto space-y-section-gap">
+<!-- Account Info Section -->
+<section class="space-y-stack-md">
+<div class="flex items-center justify-between">
+<h2 class="font-h2 text-h2 text-text-primary">Profile</h2>
+<button class="text-primary font-label-md hover:underline">Edit</button>
+</div>
+<div class="bg-white rounded-xl p-stack-md border border-warm-gray-light shadow-[0_4px_12px_rgba(0,0,0,0.02)] flex items-center gap-4">
+<div class="relative w-20 h-20">
+<img alt="User profile" class="w-full h-full rounded-full object-cover" data-alt="Professional headshot of a young woman with a friendly expression in a modern bright setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpw7co-ju44BdFfznjWyVQBZneZtqnryo1TgT6qN4REmH3PpdqOWZMpH6xKyDRbfOW4kAoFk5OoElofRdpFCKiR4ULUY61T-PO3FasXBOFXWjP1CJQe0ExAtGcbhhlDJkoAQTF4ou_4XzoXFsYB6TO1H4fZDTS7cXbY6oVkcCK66Thzlw7l7icBwidRMbi3YcYzzKt1ra2nekiQ7FPJTzaVIewDX689TXY3Nklqil3MFCDlu2z3D01TxIDwaAwEsvxyRZlBPmjFdSO"/>
+<button class="absolute bottom-0 right-0 bg-fresh-green text-white w-7 h-7 rounded-full flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[16px]" data-icon="edit">edit</span>
+</button>
+</div>
+<div>
+<p class="font-h3 text-h3">Elena Rodriguez</p>
+<p class="font-body-sm text-text-secondary">elena.rodriguez@example.com</p>
+</div>
+</div>
+</section>
+<!-- Household Section -->
+<section class="space-y-stack-md">
+<h3 class="font-h3 text-h3 text-text-primary">Household Size</h3>
+<div class="bg-white rounded-xl p-stack-md border border-warm-gray-light">
+<p class="font-body-sm text-text-secondary mb-4">How many people are we cooking for?</p>
+<div class="flex items-center justify-between p-4 bg-off-white rounded-lg">
+<button class="w-10 h-10 rounded-full border border-warm-gray-light flex items-center justify-center hover:bg-white active:scale-95 transition-all">
+<span class="material-symbols-outlined text-text-primary" data-icon="remove">remove</span>
+</button>
+<div class="text-center">
+<span class="font-h1 text-h1 text-text-primary">2</span>
+<span class="block font-label-sm text-warm-gray-medium uppercase tracking-widest">People</span>
+</div>
+<button class="w-10 h-10 rounded-full border border-warm-gray-light bg-fresh-green flex items-center justify-center text-white hover:bg-success-green active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Preferences Section -->
+<section class="space-y-stack-md">
+<h3 class="font-h3 text-h3 text-text-primary">Meal Preferences</h3>
+<div class="bg-white rounded-xl p-stack-md border border-warm-gray-light">
+<div class="flex flex-wrap gap-2">
+<!-- Chips -->
+<button class="px-4 py-2 rounded-full border-2 border-fresh-green bg-primary-fixed-dim/20 text-on-primary-container font-label-md flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]" data-icon="check" style="font-variation-settings: 'FILL' 1;">check</span>
+                        Vegetarian
+                    </button>
+<button class="px-4 py-2 rounded-full border border-warm-gray-light hover:border-warm-gray-medium text-text-secondary font-label-md transition-colors">
+                        Vegan
+                    </button>
+<button class="px-4 py-2 rounded-full border border-warm-gray-light hover:border-warm-gray-medium text-text-secondary font-label-md transition-colors">
+                        Pescatarian
+                    </button>
+<button class="px-4 py-2 rounded-full border border-warm-gray-light hover:border-warm-gray-medium text-text-secondary font-label-md transition-colors">
+                        Paleo
+                    </button>
+<button class="px-4 py-2 rounded-full border border-warm-gray-light hover:border-warm-gray-medium text-text-secondary font-label-md transition-colors">
+                        Keto
+                    </button>
+</div>
+</div>
+</section>
+<!-- Restrictions Section -->
+<section class="space-y-stack-md">
+<h3 class="font-h3 text-h3 text-text-primary">Food Restrictions</h3>
+<div class="bg-white rounded-xl divide-y divide-warm-gray-light border border-warm-gray-light overflow-hidden">
+<div class="p-stack-md flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-warm-terracotta/10 flex items-center justify-center text-warm-terracotta">
+<span class="material-symbols-outlined" data-icon="info">info</span>
+</div>
+<div>
+<p class="font-label-md text-text-primary">Gluten-Free</p>
+<p class="font-body-sm text-text-secondary">Avoid wheat and related grains</p>
+</div>
+</div>
+<!-- Toggle Switch -->
+<button class="w-12 h-6 rounded-full bg-fresh-green relative transition-colors duration-200">
+<span class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></span>
+</button>
+</div>
+<div class="p-stack-md flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-info-blue/10 flex items-center justify-center text-info-blue">
+<span class="material-symbols-outlined" data-icon="opacity">opacity</span>
+</div>
+<div>
+<p class="font-label-md text-text-primary">Dairy-Free</p>
+<p class="font-body-sm text-text-secondary">Exclude milk, cheese, and butter</p>
+</div>
+</div>
+<!-- Toggle Switch Off -->
+<button class="w-12 h-6 rounded-full bg-warm-gray-light relative transition-colors duration-200">
+<span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></span>
+</button>
+</div>
+<div class="p-stack-md flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-warning-amber/10 flex items-center justify-center text-warning-amber">
+<span class="material-symbols-outlined" data-icon="egg">egg</span>
+</div>
+<div>
+<p class="font-label-md text-text-primary">Nut-Free</p>
+<p class="font-body-sm text-text-secondary">Peanuts and tree nuts restriction</p>
+</div>
+</div>
+<!-- Toggle Switch -->
+<button class="w-12 h-6 rounded-full bg-fresh-green relative transition-colors duration-200">
+<span class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></span>
+</button>
+</div>
+</div>
+<!-- Custom Field -->
+<div class="mt-4">
+<label class="block font-label-sm text-text-secondary mb-2 uppercase">Other Restrictions</label>
+<div class="relative">
+<input class="w-full bg-white border border-warm-gray-light rounded-xl px-4 py-3 focus:ring-2 focus:ring-fresh-green focus:border-transparent outline-none transition-all placeholder:text-warm-gray-medium" placeholder="e.g., Shellfish, Cilantro..." type="text"/>
+<span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-warm-gray-medium" data-icon="add_circle">add_circle</span>
+</div>
+</div>
+</section>
+<!-- Save Button -->
+<button class="w-full py-4 bg-fresh-green text-white font-h3 text-h3 rounded-xl shadow-lg hover:bg-success-green active:scale-[0.98] transition-all">
+            Save Preferences
+        </button>
+<!-- Log Out -->
+<button class="w-full text-error font-label-md py-4 hover:bg-error/5 rounded-xl transition-colors">
+            Log out
+        </button>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center pt-3 pb-6 px-4 bg-white dark:bg-gray-900 border-t border-[#F2F2F0] dark:border-gray-800 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 hover:text-green-500 dark:hover:text-green-300 active:scale-90 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Plan</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 hover:text-green-500 dark:hover:text-green-300 active:scale-90 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Favorites</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 hover:text-green-500 dark:hover:text-green-300 active:scale-90 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">History</span>
+</a>
+<a class="flex flex-col items-center justify-center text-green-600 dark:text-green-400 font-bold active:scale-90 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-medium">Profile</span>
+</a>
+</nav>
+</body></html>

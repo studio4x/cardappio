@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#f5fbef",
+                    "inverse-on-surface": "#edf3e7",
+                    "primary": "#006e1c",
+                    "on-secondary-fixed-variant": "#7f2a0d",
+                    "inverse-primary": "#78dc77",
+                    "tertiary": "#a63360",
+                    "on-tertiary-fixed": "#3e001c",
+                    "on-error-container": "#93000a",
+                    "surface-tint": "#006e1c",
+                    "error-container": "#ffdad6",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-container": "#fd8863",
+                    "surface-container-highest": "#dee4d9",
+                    "surface-container": "#eaf0e4",
+                    "background": "#f5fbef",
+                    "primary-container": "#4caf50",
+                    "warm-gray-medium": "#9E9E9E",
+                    "tertiary-fixed": "#ffd9e2",
+                    "secondary-fixed": "#ffdbd0",
+                    "inverse-surface": "#2c322a",
+                    "warning-amber": "#FFB300",
+                    "surface-container-high": "#e4eade",
+                    "secondary": "#9f4122",
+                    "text-primary": "#2D2D2D",
+                    "warm-gray-light": "#F2F2F0",
+                    "surface-variant": "#dee4d9",
+                    "info-blue": "#4FC3F7",
+                    "primary-fixed-dim": "#78dc77",
+                    "outline": "#6f7a6b",
+                    "on-tertiary-fixed-variant": "#861948",
+                    "on-error": "#ffffff",
+                    "off-white": "#F9F9F7",
+                    "on-tertiary-container": "#690034",
+                    "success-green": "#43A047",
+                    "primary-fixed": "#94f990",
+                    "on-secondary-fixed": "#3a0b00",
+                    "on-primary-fixed": "#002204",
+                    "tertiary-container": "#f26f9d",
+                    "on-secondary": "#ffffff",
+                    "fresh-green": "#4CAF50",
+                    "on-primary-container": "#003c0b",
+                    "tertiary-fixed-dim": "#ffb1c7",
+                    "surface-dim": "#d6dcd0",
+                    "error-red": "#E53935",
+                    "on-primary-fixed-variant": "#005313",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed-dim": "#ffb59e",
+                    "surface-container-low": "#f0f6ea",
+                    "on-surface-variant": "#3f4a3c",
+                    "on-tertiary": "#ffffff",
+                    "surface-bright": "#f5fbef",
+                    "on-secondary-container": "#722104",
+                    "on-background": "#171d16",
+                    "error": "#ba1a1a",
+                    "warm-terracotta": "#FF8A65",
+                    "text-secondary": "#757575",
+                    "on-surface": "#171d16",
+                    "outline-variant": "#becab9"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-md": "16px",
+                    "section-gap": "40px",
+                    "container-padding": "20px",
+                    "stack-lg": "24px",
+                    "stack-sm": "8px",
+                    "unit": "8px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "h2": ["Plus Jakarta Sans"],
+                    "body-sm": ["Work Sans"],
+                    "label-sm": ["Work Sans"],
+                    "label-md": ["Work Sans"],
+                    "body-md": ["Work Sans"],
+                    "body-lg": ["Work Sans"],
+                    "h3": ["Plus Jakarta Sans"],
+                    "h1": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1", "fontWeight": "500"}],
+                    "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "h3": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "h1": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-chip {
+            background-color: #4CAF50;
+            color: #ffffff;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body-md text-on-surface min-h-screen flex flex-col">
+<!-- TopAppBar from JSON Authority -->
+<header class="fixed top-0 left-0 w-full flex justify-between items-center px-4 h-16 bg-neutral-50/80 backdrop-blur-md z-50 border-b border-neutral-200/50 shadow-sm">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 duration-200 ease-in-out hover:bg-neutral-100 transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined text-green-600" data-icon="menu">menu</span>
+</button>
+<span class="text-xl font-extrabold text-green-600 tracking-tighter font-['Plus_Jakarta_Sans']">Cardappio</span>
+</div>
+<div class="h-10 w-10 rounded-full bg-surface-container overflow-hidden border border-neutral-200">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="close-up portrait of a friendly woman with a warm smile in soft natural daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoHbG5yrOPILGc6Ss-Uk2SJEgz9eTJA3tHFt30JwmZvahcujazPnkIKfxmEH3tNzgtQ4rdPhiQBWKQoH63QohgrPPpt-w5al3wkGfccrBClcezJYWPQy9vOIwKu1M2yMErV9Vtik2vXh9p9yC_OPf57Yb2WJEYJUyMsmyZzfbPSYwCyD9p53_3c5Tqu3J8WSvmQ1P08N3xCAxV87cf-_6AnolW0G6JRnK0YC6Vwz893GOuGvOMTlUtQu92TowZjpKdctmbX_2xcAr8"/>
+</div>
+</header>
+<!-- Progress Indicator -->
+<div class="mt-16 w-full h-1 bg-surface-container-low">
+<div class="h-full bg-fresh-green transition-all duration-500 ease-in-out" style="width: 50%;"></div>
+</div>
+<main class="flex-grow container mx-auto px-container-padding pt-stack-lg pb-32 max-w-2xl">
+<!-- Onboarding Step Content -->
+<section class="space-y-section-gap">
+<div class="space-y-stack-sm text-center">
+<h1 class="font-h1 text-h1 text-on-surface">Vamos planejar sua semana</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Conte-nos um pouco sobre sua rotina doméstica para personalizarmos suas receitas.</p>
+</div>
+<!-- Question 1: Household Size -->
+<div class="space-y-stack-md">
+<h2 class="font-h2 text-h2 text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-fresh-green" data-icon="groups">groups</span>
+                    Para quantas pessoas você cozinha?
+                </h2>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-gutter">
+<!-- Selection Card -->
+<button class="group p-stack-md bg-surface-container-lowest border border-surface-container-highest rounded-xl text-center active:scale-95 transition-all duration-200 shadow-sm hover:border-fresh-green">
+<span class="block text-h1 font-h1 text-fresh-green mb-1">1</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Apenas eu</span>
+</button>
+<!-- Selection Card Active -->
+<button class="group p-stack-md bg-white border-2 border-fresh-green rounded-xl text-center active:scale-95 transition-all duration-200 shadow-sm">
+<span class="block text-h1 font-h1 text-fresh-green mb-1">2</span>
+<span class="font-label-md text-label-md text-fresh-green">Casal</span>
+</button>
+<button class="group p-stack-md bg-surface-container-lowest border border-surface-container-highest rounded-xl text-center active:scale-95 transition-all duration-200 shadow-sm hover:border-fresh-green">
+<span class="block text-h1 font-h1 text-fresh-green mb-1">3-4</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Pequena Família</span>
+</button>
+<button class="group p-stack-md bg-surface-container-lowest border border-surface-container-highest rounded-xl text-center active:scale-95 transition-all duration-200 shadow-sm hover:border-fresh-green">
+<span class="block text-h1 font-h1 text-fresh-green mb-1">5+</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Casa Cheia</span>
+</button>
+</div>
+</div>
+<!-- Question 2: Dietary Preferences -->
+<div class="space-y-stack-md pt-stack-lg">
+<h2 class="font-h2 text-h2 text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-fresh-green" data-icon="restaurant">restaurant</span>
+                    Alguma preferência alimentar?
+                </h2>
+<div class="flex flex-wrap gap-stack-sm">
+<!-- Dietary Chip Item -->
+<button class="px-stack-md py-stack-sm rounded-full border border-surface-container-highest bg-surface-container-lowest font-label-md text-label-md text-on-surface-variant hover:border-fresh-green active:scale-95 transition-all">Vegetariano</button>
+<button class="px-stack-md py-stack-sm rounded-full border-2 border-fresh-green bg-green-50 font-label-md text-label-md text-fresh-green active:scale-95 transition-all">Vegano</button>
+<button class="px-stack-md py-stack-sm rounded-full border border-surface-container-highest bg-surface-container-lowest font-label-md text-label-md text-on-surface-variant hover:border-fresh-green active:scale-95 transition-all">Sem Glúten</button>
+<button class="px-stack-md py-stack-sm rounded-full border border-surface-container-highest bg-surface-container-lowest font-label-md text-label-md text-on-surface-variant hover:border-fresh-green active:scale-95 transition-all">Low Carb</button>
+<button class="px-stack-md py-stack-sm rounded-full border border-surface-container-highest bg-surface-container-lowest font-label-md text-label-md text-on-surface-variant hover:border-fresh-green active:scale-95 transition-all">Sem Lactose</button>
+<button class="px-stack-md py-stack-sm rounded-full border border-surface-container-highest bg-surface-container-lowest font-label-md text-label-md text-on-surface-variant hover:border-fresh-green active:scale-95 transition-all">Fitness</button>
+<button class="px-stack-md py-stack-sm rounded-full border border-surface-container-highest bg-surface-container-lowest font-label-md text-label-md text-on-surface-variant hover:border-fresh-green active:scale-95 transition-all">Rápido (até 30min)</button>
+</div>
+</div>
+<!-- Contextual Card -->
+<div class="p-stack-lg bg-primary-container/10 border border-primary-container/20 rounded-2xl flex items-start gap-4">
+<span class="material-symbols-outlined text-fresh-green mt-1" data-icon="info">info</span>
+<div>
+<h3 class="font-h3 text-h3 text-on-primary-container mb-1">Por que perguntamos isso?</h3>
+<p class="font-body-sm text-body-sm text-on-primary-container/80">Ajustamos automaticamente as quantidades dos ingredientes na sua lista de compras e sugerimos receitas que se adaptam ao seu estilo de vida.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Navigation Footer -->
+<footer class="fixed bottom-0 left-0 w-full bg-white border-t border-neutral-100 px-container-padding py-6 z-50">
+<div class="max-w-2xl mx-auto flex items-center justify-between">
+<button class="flex items-center gap-2 px-stack-lg py-3 text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="arrow_back">arrow_back</span>
+                Anterior
+            </button>
+<button class="bg-fresh-green text-white px-12 py-3 rounded-xl font-label-md text-label-md shadow-md shadow-fresh-green/20 hover:bg-primary transition-all active:scale-95 flex items-center gap-2">
+                Próximo
+                <span class="material-symbols-outlined text-[20px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</footer>
+<!-- BottomNavBar Suppressed for Transactional Flow as per Brand Mandate -->
+</body></html>
