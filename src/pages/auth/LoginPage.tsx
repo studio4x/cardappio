@@ -18,10 +18,17 @@ export function LoginPage() {
     setError(null)
 
     try {
-      const { error: authError } = await supabase.auth.signInWithPassword({
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('TIMEOUT')), 6000)
+      );
+
+      const authPromise = supabase.auth.signInWithPassword({
         email,
         password,
-      })
+      });
+
+      // @ts-ignore - The types of Promise.race can be tricky
+      const { data, error: authError } = await Promise.race([authPromise, timeoutPromise]);
 
       if (authError) {
         setError(authError.message === 'Invalid login credentials' ? 'E-mail ou senha inválidos.' : authError.message)
@@ -29,8 +36,12 @@ export function LoginPage() {
       }
 
       navigate('/app', { replace: true })
-    } catch {
-      setError('Erro inesperado. Tente novamente.')
+    } catch (err: any) {
+      if (err.message === 'TIMEOUT') {
+        setError('Conexão bloqueada pelo navegador. Desative bloqueadores ou antivírus (ex: Kaspersky).')
+      } else {
+        setError('Erro inesperado. Tente novamente.')
+      }
     } finally {
       setIsLoading(false)
     }

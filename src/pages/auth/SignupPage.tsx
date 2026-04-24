@@ -18,7 +18,11 @@ export function SignupPage() {
     setError(null)
 
     try {
-      const { error: authError } = await supabase.auth.signUp({
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('TIMEOUT')), 6000)
+      );
+
+      const authPromise = supabase.auth.signUp({
         email,
         password,
         options: {
@@ -27,7 +31,10 @@ export function SignupPage() {
           },
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
-      })
+      });
+
+      // @ts-ignore
+      const { data, error: authError } = await Promise.race([authPromise, timeoutPromise]);
 
       if (authError) {
         setError(authError.message.includes('already registered') ? 'Este e-mail já está cadastrado.' : authError.message)
@@ -38,8 +45,12 @@ export function SignupPage() {
       setTimeout(() => {
         navigate('/app/onboarding', { replace: true })
       }, 500)
-    } catch {
-      setError('Erro inesperado. Tente novamente.')
+    } catch (err: any) {
+      if (err.message === 'TIMEOUT') {
+        setError('Conexão bloqueada pelo navegador. Desative bloqueadores ou antivírus (ex: Kaspersky).')
+      } else {
+        setError('Erro inesperado. Tente novamente.')
+      }
     } finally {
       setIsLoading(false)
     }
