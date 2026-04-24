@@ -1,78 +1,73 @@
 import { Link } from 'react-router-dom'
-import { ChefHat, Menu, X } from 'lucide-react'
-import { useState } from 'react'
+import { Utensils, Menu, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { config } from '@/config'
 
 const navLinks = [
-  { label: 'Como funciona', href: '/como-funciona' },
-  { label: 'Planos', href: '/planos' },
-  { label: 'FAQ', href: '/faq' },
+  { label: 'Como funciona', href: '#como-funciona' },
+  { label: 'Benefícios', href: '#beneficios' },
 ]
 
 export function PublicHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   return (
     <header
-      className="sticky top-0 z-50 border-b backdrop-blur-md"
-      style={{
-        backgroundColor: 'color-mix(in srgb, var(--color-surface-container-lowest) 90%, transparent)',
-        borderColor: 'var(--color-outline-variant)',
-      }}
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        isScrolled ? 'bg-white/80 backdrop-blur-xl h-20 border-b border-neutral-100 shadow-sm' : 'bg-transparent h-24'
+      }`}
     >
-      <div className="container-app flex h-16 items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 no-underline">
-          <div
-            className="flex h-9 w-9 items-center justify-center rounded-xl"
-            style={{ backgroundColor: 'var(--color-primary)' }}
-          >
-            <ChefHat className="h-5 w-5 text-white" />
+        <Link to="/" className="flex items-center gap-2 no-underline group active:scale-95 transition-transform">
+          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:rotate-6 transition-transform">
+            <Utensils className="text-white h-6 w-6" />
           </div>
-          <span
-            className="text-xl font-bold"
-            style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-on-surface)' }}
-          >
+          <span className="text-2xl font-black tracking-tighter text-on-surface">
             {config.app.name}
           </span>
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center gap-10 md:flex">
           {navLinks.map((link) => (
-            <Link
+            <a
               key={link.href}
-              to={link.href}
-              className="text-sm font-medium transition-colors hover:opacity-70"
-              style={{ color: 'var(--color-on-surface-variant)' }}
+              href={link.href}
+              className="text-sm font-bold text-on-surface/70 hover:text-primary transition-colors no-underline"
             >
               {link.label}
-            </Link>
+            </a>
           ))}
-          <div className="flex items-center gap-3 ml-4">
+          <div className="flex items-center gap-6 ml-4">
             <Link
               to="/auth/login"
-              className="text-sm font-medium transition-colors"
-              style={{ color: 'var(--color-primary)' }}
+              className="text-sm font-bold text-on-surface/70 hover:text-primary transition-colors no-underline"
             >
               Entrar
             </Link>
             <Link
               to="/auth/cadastro"
-              className="rounded-lg px-4 py-2 text-sm font-semibold text-white transition-all hover:opacity-90"
-              style={{ backgroundColor: 'var(--color-primary)' }}
+              className="bg-primary text-white px-6 py-3 rounded-full font-bold text-sm shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all no-underline"
             >
-              Criar conta
+              Criar conta grátis
             </Link>
           </div>
         </nav>
 
         {/* Mobile toggle */}
         <button
-          className="md:hidden p-2 rounded-lg cursor-pointer"
+          className="md:hidden p-2 rounded-xl bg-neutral-100/50 cursor-pointer"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Menu"
-          style={{ color: 'var(--color-on-surface)' }}
         >
           {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
@@ -80,42 +75,34 @@ export function PublicHeader() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div
-          className="border-t px-5 pb-5 pt-3 md:hidden"
-          style={{
-            backgroundColor: 'var(--color-surface-container-lowest)',
-            borderColor: 'var(--color-outline-variant)',
-          }}
-        >
-          <nav className="flex flex-col gap-3">
+        <div className="absolute top-full left-0 w-full bg-white border-b border-neutral-100 p-6 md:hidden animate-in fade-in slide-in-from-top-4 duration-300">
+          <nav className="flex flex-col gap-6">
             {navLinks.map((link) => (
-              <Link
+              <a
                 key={link.href}
-                to={link.href}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
-                style={{ color: 'var(--color-on-surface-variant)' }}
+                href={link.href}
+                className="text-lg font-bold text-on-surface/70 no-underline"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {link.label}
-              </Link>
+              </a>
             ))}
-            <hr style={{ borderColor: 'var(--color-outline-variant)' }} />
-            <Link
-              to="/auth/login"
-              className="rounded-lg px-3 py-2.5 text-sm font-medium"
-              style={{ color: 'var(--color-primary)' }}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Entrar
-            </Link>
-            <Link
-              to="/auth/cadastro"
-              className="rounded-lg px-4 py-2.5 text-center text-sm font-semibold text-white"
-              style={{ backgroundColor: 'var(--color-primary)' }}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Criar conta grátis
-            </Link>
+            <div className="pt-6 border-t border-neutral-50 flex flex-col gap-4">
+              <Link
+                to="/auth/login"
+                className="text-lg font-bold text-on-surface/70 no-underline"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Entrar
+              </Link>
+              <Link
+                to="/auth/cadastro"
+                className="bg-primary text-white px-6 py-4 rounded-2xl text-center font-bold text-lg shadow-xl shadow-primary/20 no-underline"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Criar conta grátis
+              </Link>
+            </div>
           </nav>
         </div>
       )}
