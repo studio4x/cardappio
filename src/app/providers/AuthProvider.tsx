@@ -135,6 +135,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe()
   }, [fetchProfile, fetchPreferences])
 
+  // Safety fallback: if Supabase hangs indefinitely due to browser extensions 
+  // (e.g. Kaspersky) intercepting requests and swallowing promises, force load finish.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (isLoading) {
+        console.warn('Auth loading timeout exceeded. Forcing load to finish.')
+        setIsLoading(false)
+      }
+    }, 4000)
+    return () => clearTimeout(timer)
+  }, [isLoading])
+
   const isAuthenticated = !!session && !!profile
   const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin'
   const hasCompletedOnboarding = !!profile?.onboarding_completed_at
