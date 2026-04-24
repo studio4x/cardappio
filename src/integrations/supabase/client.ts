@@ -16,9 +16,11 @@ export const supabase = createClient(
       persistSession: true,
       detectSessionInUrl: true,
       // Bypass fallback for broken navigator.locks in Kaspersky/Brave
-      // Executes the auth task immediately without waiting for the blocked Web Locks API
-      lock: async (name: string, acquire: () => Promise<any> | any) => {
-        return await acquire()
+      // Executes the auth task immediately without waiting for the Web Locks API
+      // @ts-ignore
+      lock: async (...args: any[]) => {
+        const acquire = args.find(arg => typeof arg === 'function');
+        return await acquire();
       }
     },
   }
