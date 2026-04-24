@@ -83,7 +83,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error getting session:', error)
+        setIsLoading(false)
+        return
+      }
+      
       setSession(session)
       setSupabaseUser(session?.user ?? null)
 
@@ -91,10 +97,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         Promise.all([
           fetchProfile(session.user.id),
           fetchPreferences(session.user.id),
-        ]).finally(() => setIsLoading(false))
+        ])
+          .catch(err => console.error('Error fetching user data:', err))
+          .finally(() => setIsLoading(false))
       } else {
         setIsLoading(false)
       }
+    }).catch(err => {
+      console.error('Unexpected error in getSession:', err)
+      setIsLoading(false)
     })
 
     // Listen for auth changes
@@ -103,17 +114,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session)
         setSupabaseUser(session?.user ?? null)
 
-        if (session?.user) {
-          await Promise.all([
-            fetchProfile(session.user.id),
-            fetchPreferences(session.user.id),
-          ])
-        } else {
-          setProfile(null)
-          setPreferences(null)
+        try {
+          if (session?.user) {
+            await Promise.all([
+              fetchProfile(session.user.id),
+              fetchPreferences(session.user.id),
+            ])
+          } else {
+            setProfile(null)
+            setPreferences(null)
+          }
+        } catch (err) {
+          console.error('Error in auth state change:', err)
+        } finally {
+          setIsLoading(false)
         }
-
-        setIsLoading(false)
       }
     )
 
