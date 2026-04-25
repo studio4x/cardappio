@@ -35,6 +35,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single()
 
       if (error) {
+        if (error.code === 'PGRST116') {
+          console.warn('Perfil órfão detectado (PGRST116). Destruindo sessão fantasma preventivamente.')
+          await supabase.auth.signOut()
+          setSession(null)
+          setSupabaseUser(null)
+          setProfile(null)
+          return
+        }
         console.error('Error fetching profile:', error)
         return
       }

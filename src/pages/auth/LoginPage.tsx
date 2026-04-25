@@ -35,6 +35,23 @@ export function LoginPage() {
         return
       }
 
+      if (data?.user) {
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', data.user.id)
+            .single()
+
+          if (profile?.role === 'admin' || profile?.role === 'super_admin') {
+            navigate('/admin', { replace: true })
+            return
+          }
+        } catch (e) {
+          console.error("Failed to query role after login", e)
+        }
+      }
+
       navigate('/app', { replace: true })
     } catch (err: any) {
       if (err.message === 'TIMEOUT') {

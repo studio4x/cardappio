@@ -14,6 +14,9 @@ export function PublicOnlyGuard() {
   }
 
   if (isAuthenticated) {
+    if (isAdmin) {
+      return <Navigate to="/admin" replace />
+    }
     return <Navigate to="/app" replace />
   }
 

@@ -42,8 +42,26 @@ export function SignupPage() {
       }
 
       setSuccess(true)
+
+      let targetRoute = '/app/onboarding'
+      if (data?.user) {
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', data.user.id)
+            .single()
+
+          if (profile?.role === 'admin' || profile?.role === 'super_admin') {
+            targetRoute = '/admin'
+          }
+        } catch (e) {
+          console.error("Failed to query role after signup", e)
+        }
+      }
+
       setTimeout(() => {
-        navigate('/app/onboarding', { replace: true })
+        navigate(targetRoute, { replace: true })
       }, 500)
     } catch (err: any) {
       if (err.message === 'TIMEOUT') {
