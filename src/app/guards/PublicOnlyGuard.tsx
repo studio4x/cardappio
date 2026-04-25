@@ -7,7 +7,7 @@ import { LoadingState } from '@/components/shared/LoadingState'
  * like login and signup. If logged in, go to /app.
  */
 export function PublicOnlyGuard() {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isAdmin, isLoading } = useAuth()
 
   if (isLoading) {
     return <LoadingState fullScreen message="Carregando..." />
