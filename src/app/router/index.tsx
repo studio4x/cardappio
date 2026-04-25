@@ -51,6 +51,11 @@ import { AdminCategoriesPage } from '@/pages/admin/AdminCategoriesPage'
 import { AdminTagsPage } from '@/pages/admin/AdminTagsPage'
 import { AdminCollectionsPage } from '@/pages/admin/AdminCollectionsPage'
 import { AdminNoticesPage } from '@/pages/admin/AdminNoticesPage'
+import { AdminNotificationsPage } from '@/pages/admin/AdminNotificationsPage'
+import { AdminSubscriptionsPage } from '@/pages/admin/AdminSubscriptionsPage'
+import { AdminSettingsPage } from '@/pages/admin/AdminSettingsPage'
+import { AdminReportsPage } from '@/pages/admin/AdminReportsPage'
+import { AdminLogsPage } from '@/pages/admin/AdminLogsPage'
 
 export const router = createBrowserRouter([
   // ==========================================
@@ -164,10 +169,12 @@ export const router = createBrowserRouter([
               { path: '/admin/dicas-alertas', element: <AdminNoticesPage /> },
               { path: '/admin/usuarios', element: <AdminUsersPage /> },
               { path: '/admin/planos', element: <AdminPlansPage /> },
-              // { path: '/admin/assinaturas', element: <AdminSubscriptionsPage /> },
-              // { path: '/admin/configuracoes', element: <AdminSettingsPage /> },
-              // { path: '/admin/relatorios', element: <AdminReportsPage /> },
-              // { path: '/admin/logs', element: <AdminLogsPage /> },
+              // Fase 8 - Monetização, Sistema e Relatórios
+              { path: '/admin/notificacoes', element: <AdminNotificationsPage /> },
+              { path: '/admin/assinaturas', element: <AdminSubscriptionsPage /> },
+              { path: '/admin/configuracoes', element: <AdminSettingsPage /> },
+              { path: '/admin/relatorios', element: <AdminReportsPage /> },
+              { path: '/admin/logs', element: <AdminLogsPage /> },
             ],
           },
         ],
