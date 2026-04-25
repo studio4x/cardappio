@@ -151,7 +151,7 @@ export function AdminLayout() {
 
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 md:p-8 lg:p-12 w-full max-w-[1600px] mx-auto">
           <Outlet />
         </main>
       </div>
