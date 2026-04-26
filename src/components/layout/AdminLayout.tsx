@@ -90,7 +90,7 @@ export function AdminLayout() {
       {/* Mobile Backdrop */}
       {isMobileOpen && (
         <div 
-          className="fixed inset-0 z-50 bg-black/50 lg:hidden backdrop-blur-sm"
+          className="fixed inset-0 z-[60] bg-black/60 lg:hidden backdrop-blur-sm"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
@@ -98,7 +98,7 @@ export function AdminLayout() {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 transform flex-col border-r transition-transform duration-300 lg:static lg:flex lg:translate-x-0 overflow-y-auto shadow-2xl lg:shadow-none",
+          "fixed inset-y-0 left-0 z-[70] w-64 transform flex-col border-r transition-transform duration-300 lg:static lg:flex lg:translate-x-0 overflow-y-auto shadow-2xl lg:shadow-none",
           isMobileOpen ? "translate-x-0 flex" : "-translate-x-full"
         )}
         style={{
