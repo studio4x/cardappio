@@ -104,14 +104,8 @@ export function OnboardingPage() {
   })
 
   const canProceed = () => {
-    switch (currentStep) {
-      case 1: return data.household_size > 0
-      case 2: return data.default_meal_modes.length > 0
-      case 3: return data.default_plan_days >= 1
-      case 4: return true // restrictions are optional
-      case 5: return data.primary_goal !== ''
-      default: return false
-    }
+    // Todas as etapas são opcionais agora, permitindo avançar com valores padrão
+    return true
   }
 
   const handleNext = () => {
