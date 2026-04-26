@@ -19,7 +19,7 @@ export function LoginPage() {
 
     try {
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('TIMEOUT')), 6000)
+        setTimeout(() => reject(new Error('TIMEOUT')), 15000)
       );
 
       const authPromise = supabase.auth.signInWithPassword({
