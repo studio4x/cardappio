@@ -65,7 +65,7 @@ export function useRecipe(slug: string | undefined) {
           ingredients:recipe_ingredients(*),
           steps:recipe_steps(*),
           tags:recipe_tag_links(tag:recipe_tags(*)),
-          variations:recipe_variations(*)
+          variations:recipe_variations!parent_recipe_id(*)
         `)
         .eq('slug', slug)
         .eq('status', 'published')
