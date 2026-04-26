@@ -13,9 +13,9 @@ const navItems = [
 export function MobileBottomNav() {
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 border-t md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-40 border-t md:hidden shadow-[0_-8px_30px_rgb(0,0,0,0.04)]"
       style={{
-        backgroundColor: 'var(--color-surface-container-lowest)',
+        backgroundColor: 'var(--color-surface)',
         borderColor: 'var(--color-outline-variant)',
       }}
     >
