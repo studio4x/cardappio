@@ -19,12 +19,14 @@ export function useRecipes(filters?: {
         .select(`
           *,
           category:recipe_categories(*),
-          ingredients:recipe_ingredients(*, order:sort_order),
-          steps:recipe_steps(*, order:step_number),
+          ingredients:recipe_ingredients(*),
+          steps:recipe_steps(*),
           tags:recipe_tag_links(tag:recipe_tags(*))
         `)
         .eq('status', 'published')
         .order('title')
+        .order('sort_order', { foreignTable: 'recipe_ingredients' })
+        .order('step_number', { foreignTable: 'recipe_steps' })
 
       if (filters?.categoryId) {
         query = query.eq('category_id', filters.categoryId)
@@ -60,13 +62,15 @@ export function useRecipe(slug: string | undefined) {
         .select(`
           *,
           category:recipe_categories(*),
-          ingredients:recipe_ingredients(*, order:sort_order),
-          steps:recipe_steps(*, order:step_number),
+          ingredients:recipe_ingredients(*),
+          steps:recipe_steps(*),
           tags:recipe_tag_links(tag:recipe_tags(*)),
           variations:recipe_variations(*)
         `)
         .eq('slug', slug)
         .eq('status', 'published')
+        .order('sort_order', { foreignTable: 'recipe_ingredients' })
+        .order('step_number', { foreignTable: 'recipe_steps' })
         .single()
 
       if (error) throw error
