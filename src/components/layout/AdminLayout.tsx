@@ -98,11 +98,11 @@ export function AdminLayout() {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 transform bg-surface flex-col border-r transition-transform duration-300 lg:static lg:flex lg:translate-x-0 overflow-y-auto",
+          "fixed inset-y-0 left-0 z-50 w-64 transform flex-col border-r transition-transform duration-300 lg:static lg:flex lg:translate-x-0 overflow-y-auto shadow-2xl lg:shadow-none",
           isMobileOpen ? "translate-x-0 flex" : "-translate-x-full"
         )}
         style={{
-          backgroundColor: 'var(--color-surface-container-lowest)',
+          backgroundColor: 'var(--color-surface)',
           borderColor: 'var(--color-outline-variant)',
         }}
       >
