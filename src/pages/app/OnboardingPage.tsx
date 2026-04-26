@@ -162,6 +162,8 @@ export function OnboardingPage() {
           dietary_preferences: [],
           primary_goal: data.primary_goal,
           preferred_recipe_contexts: [],
+        }, { 
+          onConflict: 'user_id' 
         })
 
       if (prefError) {
