@@ -84,7 +84,7 @@ export function UserLayout() {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 pb-20 md:pb-6">
+      <main className="flex-1 pb-28 md:pb-12">
         <div className="container-app py-6">
           <Outlet />
         </div>
