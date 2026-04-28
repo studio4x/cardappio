@@ -19,7 +19,7 @@ export function LoginPage() {
 
     try {
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('TIMEOUT')), 15000)
+        setTimeout(() => reject(new Error('TIMEOUT')), 30000)
       );
 
       const authPromise = supabase.auth.signInWithPassword({
@@ -27,7 +27,7 @@ export function LoginPage() {
         password,
       });
 
-      // @ts-ignore - The types of Promise.race can be tricky
+      // @ts-ignore
       const { data, error: authError } = await Promise.race([authPromise, timeoutPromise]);
 
       if (authError) {
@@ -55,7 +55,14 @@ export function LoginPage() {
       navigate('/app', { replace: true })
     } catch (err: any) {
       if (err.message === 'TIMEOUT') {
-        setError('Conexão bloqueada pelo navegador. Desative bloqueadores ou antivírus (ex: Kaspersky).')
+        // Double check if session was actually created in background despite timeout
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          toast.success('Login recuperado com sucesso!')
+          navigate('/admin', { replace: true })
+          return
+        }
+        setError('Conexão muito lenta ou bloqueada pelo antivírus (ex: Kaspersky). Tente recarregar a página.')
       } else {
         setError('Erro inesperado. Tente novamente.')
       }

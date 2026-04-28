@@ -151,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.warn('Auth loading timeout exceeded. Forcing load to finish.')
         setIsLoading(false)
       }
-    }, 4000)
+    }, 10000)
     return () => clearTimeout(timer)
   }, [isLoading])
 

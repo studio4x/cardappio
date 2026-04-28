@@ -19,7 +19,7 @@ export function SignupPage() {
 
     try {
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('TIMEOUT')), 6000)
+        setTimeout(() => reject(new Error('TIMEOUT')), 30000)
       );
 
       const authPromise = supabase.auth.signUp({
@@ -65,7 +65,7 @@ export function SignupPage() {
       }, 500)
     } catch (err: any) {
       if (err.message === 'TIMEOUT') {
-        setError('Conexão bloqueada pelo navegador. Desative bloqueadores ou antivírus (ex: Kaspersky).')
+        setError('Conexão muito lenta ou bloqueada pelo antivírus (ex: Kaspersky). Tente novamente.')
       } else {
         setError('Erro inesperado. Tente novamente.')
       }
