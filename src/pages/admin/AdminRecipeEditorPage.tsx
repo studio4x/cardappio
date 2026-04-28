@@ -58,14 +58,45 @@ export function AdminRecipeEditorPage() {
     try {
       const { ingredients, steps, ...cleanData } = recipeData
       
-      const { data, error } = isNew 
+      // 1. Save Basic Recipe Info
+      const { data: savedRecipe, error: recipeError } = isNew 
         ? await supabase.from('recipes').insert(cleanData).select().single()
         : await supabase.from('recipes').update(cleanData).eq('id', id).select().single()
 
-      if (error) throw error
+      if (recipeError) throw recipeError
+      const recipeId = savedRecipe.id
+
+      // 2. Sync Ingredients
+      // Delete existing
+      await supabase.from('recipe_ingredients').delete().eq('recipe_id', recipeId)
+      // Insert new
+      if (ingredients && ingredients.length > 0) {
+        const ingredientsToInsert = ingredients.map((ing: any, idx: number) => ({
+          recipe_id: recipeId,
+          name: ing.name,
+          quantity_label: ing.quantity_label,
+          sort_order: idx
+        }))
+        const { error: ingError } = await supabase.from('recipe_ingredients').insert(ingredientsToInsert)
+        if (ingError) throw ingError
+      }
+
+      // 3. Sync Steps
+      // Delete existing
+      await supabase.from('recipe_steps').delete().eq('recipe_id', recipeId)
+      // Insert new
+      if (steps && steps.length > 0) {
+        const stepsToInsert = steps.map((s: any, idx: number) => ({
+          recipe_id: recipeId,
+          content: s.content,
+          step_number: idx + 1
+        }))
+        const { error: stepError } = await supabase.from('recipe_steps').insert(stepsToInsert)
+        if (stepError) throw stepError
+      }
 
       toast.success('Receita salva com sucesso!')
-      if (isNew) navigate(`/admin/receitas/${data.id}`)
+      if (isNew) navigate(`/admin/receitas/${recipeId}`)
     } catch (err) {
       console.error(err)
       toast.error('Erro ao salvar receita')
@@ -175,9 +206,122 @@ export function AdminRecipeEditorPage() {
         </div>
       </div>
 
-      {/* Note Placeholder for Ingredients/Steps */}
-      <div className="p-12 rounded-2xl border-2 border-dashed border-slate-100 flex items-center justify-center text-slate-400 italic">
-        Gestão avançada de ingredientes e etapas em desenvolvimento...
+      {/* Ingredients Management */}
+      <div className="space-y-6 rounded-2xl border bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between border-b pb-2 mb-4">
+          <h3 className="font-bold">Ingredientes</h3>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setRecipeData({
+              ...recipeData, 
+              ingredients: [...(recipeData.ingredients || []), { name: '', quantity_label: '', sort_order: (recipeData.ingredients?.length || 0) }]
+            })}
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Adicionar
+          </Button>
+        </div>
+        
+        <div className="space-y-3">
+          {recipeData.ingredients?.map((ing: any, index: number) => (
+            <div key={index} className="flex gap-3 items-start">
+              <div className="flex-1">
+                <input
+                  placeholder="Nome do ingrediente"
+                  value={ing.name}
+                  onChange={(e) => {
+                    const newIngs = [...recipeData.ingredients]
+                    newIngs[index].name = e.target.value
+                    setRecipeData({...recipeData, ingredients: newIngs})
+                  }}
+                  className="w-full rounded-lg border p-2 text-sm outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+              <div className="w-32">
+                <input
+                  placeholder="Qtd (Ex: 200g)"
+                  value={ing.quantity_label}
+                  onChange={(e) => {
+                    const newIngs = [...recipeData.ingredients]
+                    newIngs[index].quantity_label = e.target.value
+                    setRecipeData({...recipeData, ingredients: newIngs})
+                  }}
+                  className="w-full rounded-lg border p-2 text-sm outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+              <button 
+                onClick={() => {
+                  const newIngs = recipeData.ingredients.filter((_: any, i: number) => i !== index)
+                  setRecipeData({...recipeData, ingredients: newIngs})
+                }}
+                className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+          {(!recipeData.ingredients || recipeData.ingredients.length === 0) && (
+            <p className="text-center py-4 text-slate-400 text-sm italic">Nenhum ingrediente adicionado.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Steps Management */}
+      <div className="space-y-6 rounded-2xl border bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between border-b pb-2 mb-4">
+          <h3 className="font-bold">Modo de Preparo</h3>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setRecipeData({
+              ...recipeData, 
+              steps: [...(recipeData.steps || []), { content: '', step_number: (recipeData.steps?.length || 0) + 1 }]
+            })}
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Adicionar Passo
+          </Button>
+        </div>
+        
+        <div className="space-y-4">
+          {recipeData.steps?.sort((a: any, b: any) => a.step_number - b.step_number).map((step: any, index: number) => (
+            <div key={index} className="flex gap-4 items-start">
+              <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 mt-1">
+                {index + 1}
+              </div>
+              <div className="flex-1">
+                <textarea
+                  placeholder="Descreva este passo..."
+                  value={step.content}
+                  onChange={(e) => {
+                    const newSteps = [...recipeData.steps]
+                    newSteps[index].content = e.target.value
+                    setRecipeData({...recipeData, steps: newSteps})
+                  }}
+                  rows={2}
+                  className="w-full rounded-lg border p-2 text-sm outline-none focus:ring-1 focus:ring-primary resize-none"
+                />
+              </div>
+              <button 
+                onClick={() => {
+                  const newSteps = recipeData.steps.filter((_: any, i: number) => i !== index)
+                  // Recalculate step numbers
+                  const renumbered = newSteps.map((s: any, i: number) => ({...s, step_number: i + 1}))
+                  setRecipeData({...recipeData, steps: renumbered})
+                }}
+                className="p-2 text-slate-400 hover:text-red-500 transition-colors mt-1"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+          {(!recipeData.steps || recipeData.steps.length === 0) && (
+            <p className="text-center py-4 text-slate-400 text-sm italic">Nenhum passo adicionado.</p>
+          )}
+        </div>
       </div>
     </div>
   )

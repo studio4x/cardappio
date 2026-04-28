@@ -10,6 +10,7 @@ export function useRecipes(filters?: {
   categoryId?: string
   difficulty?: string
   search?: string
+  status?: 'published' | 'draft' | 'archived'
 }) {
   return useQuery({
     queryKey: ['recipes', filters],
@@ -23,10 +24,17 @@ export function useRecipes(filters?: {
           steps:recipe_steps(*),
           tags:recipe_tag_links(tag:recipe_tags(*))
         `)
-        .eq('status', 'published')
         .order('title')
         .order('sort_order', { foreignTable: 'recipe_ingredients' })
         .order('step_number', { foreignTable: 'recipe_steps' })
+
+      if (filters?.status && filters.status !== 'all') {
+        query = query.eq('status', filters.status)
+      } else if (!filters?.status) {
+        // Default behavior for app is published
+        query = query.eq('status', 'published')
+      }
+      // If filters.status === 'all', it will not add any status filter
 
       if (filters?.categoryId) {
         query = query.eq('category_id', filters.categoryId)
