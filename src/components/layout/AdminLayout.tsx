@@ -186,6 +186,15 @@ export function AdminLayout() {
             <LogOut className="h-4 w-4" />
             Sair
           </button>
+          
+          <div className="mt-4 px-2.5 flex flex-col gap-0.5">
+            <span className="text-[10px] font-bold uppercase tracking-widest opacity-30" style={{ color: 'var(--color-on-surface)' }}>
+              Versão {__BUILD_VERSION__}
+            </span>
+            <span className="text-[10px] font-mono opacity-20" style={{ color: 'var(--color-on-surface)' }}>
+              #{__COMMIT_HASH__}
+            </span>
+          </div>
         </div>
       </aside>
 

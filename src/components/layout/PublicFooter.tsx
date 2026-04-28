@@ -41,7 +41,13 @@ export function PublicFooter() {
         </div>
         
         <div className="flex flex-col md:flex-row justify-between items-center pt-10 border-t border-neutral-50 gap-6">
-          <p className="text-xs text-text-secondary font-medium">© {new Date().getFullYear()} {config.app.name}. Todos os direitos reservados.</p>
+          <div className="flex flex-col gap-1 items-center md:items-start">
+            <p className="text-xs text-text-secondary font-medium">© {new Date().getFullYear()} {config.app.name}. Todos os direitos reservados.</p>
+            <div className="flex gap-2 opacity-30">
+              <span className="text-[10px] font-bold uppercase tracking-tighter">v{__BUILD_VERSION__}</span>
+              <span className="text-[10px] font-mono">#{__COMMIT_HASH__}</span>
+            </div>
+          </div>
           <div className="flex gap-8">
              <p className="text-xs text-text-secondary font-medium hover:text-on-surface cursor-pointer">Instagram</p>
              <p className="text-xs text-text-secondary font-medium hover:text-on-surface cursor-pointer">Twitter</p>

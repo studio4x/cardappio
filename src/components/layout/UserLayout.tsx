@@ -87,6 +87,15 @@ export function UserLayout() {
       <main className="flex-1 pb-28 md:pb-12">
         <div className="container-app py-6">
           <Outlet />
+          
+          <div className="mt-12 mb-4 flex flex-col items-center gap-1 opacity-20">
+            <span className="text-[10px] font-bold uppercase tracking-widest">
+              Cardappio v{__BUILD_VERSION__}
+            </span>
+            <span className="text-[10px] font-mono">
+              build #{__COMMIT_HASH__}
+            </span>
+          </div>
         </div>
       </main>
 
