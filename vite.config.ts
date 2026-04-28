@@ -6,7 +6,12 @@ import path from 'path'
 
 import { execSync } from 'child_process'
 
-const commitHash = execSync('git rev-parse --short HEAD').toString().trim()
+let commitHash = 'unknown'
+try {
+  commitHash = (process.env.VERCEL_GIT_COMMIT_SHA || execSync('git rev-parse --short HEAD').toString().trim()).slice(0, 7)
+} catch (e) {
+  // Fallback for environments without git
+}
 
 // https://vite.dev/config/
 export default defineConfig({
