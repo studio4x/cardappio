@@ -217,9 +217,9 @@ export function AdminRecipesPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
-                      <ImageIcon className={cn("h-4 w-4", recipe.cover_image_url ? "text-primary" : "text-slate-200")} title="Foto" />
-                      <Utensils className={cn("h-4 w-4", (recipe.ingredients?.length || 0) > 0 ? "text-primary" : "text-slate-200")} title="Ingredientes" />
-                      <ListChecks className={cn("h-4 w-4", (recipe.steps?.length || 0) > 0 ? "text-primary" : "text-slate-200")} title="Passos" />
+                      <span title="Foto"><ImageIcon className={cn("h-4 w-4", recipe.cover_image_url ? "text-primary" : "text-slate-200")} /></span>
+                      <span title="Ingredientes"><Utensils className={cn("h-4 w-4", (recipe.ingredients?.length || 0) > 0 ? "text-primary" : "text-slate-200")} /></span>
+                      <span title="Passos"><ListChecks className={cn("h-4 w-4", (recipe.steps?.length || 0) > 0 ? "text-primary" : "text-slate-200")} /></span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">

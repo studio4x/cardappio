@@ -10,7 +10,7 @@ export function useRecipes(filters?: {
   categoryId?: string
   difficulty?: string
   search?: string
-  status?: 'published' | 'draft' | 'archived'
+  status?: 'published' | 'draft' | 'archived' | 'all'
 }) {
   return useQuery({
     queryKey: ['recipes', filters],
