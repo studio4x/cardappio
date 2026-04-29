@@ -204,6 +204,34 @@ Ao publicar:
 
 Não salvar tokens, senhas ou credenciais no repositório.
 
+### Deploy Vercel via CLI
+
+O auto-deploy via webhook GitHub→Vercel pode não estar ativo.
+Nesse caso, o deploy deve ser feito manualmente via CLI:
+
+```bash
+npx vercel deploy --prod --token $VERCEL_TOKEN --scope $VERCEL_TEAM_ID --yes
+```
+
+As credenciais estão em `.env.local` (não versionado):
+- `VERCEL_TOKEN`
+- `VERCEL_PROJECT_ID`
+
+### Validação de deploy obrigatória
+
+Após deploy, confirmar via API:
+
+1. O `readyState` do deploy de produção é `READY`;
+2. O SHA do deploy corresponde ao `HEAD` local;
+3. O domínio canônico (`cardappio-mauve.vercel.app`) responde corretamente.
+
+Se houver divergência entre o deploy publicado e o HEAD, tratar como falha e corrigir antes de encerrar.
+
+### Dependências (.npmrc)
+
+O arquivo `.npmrc` com `legacy-peer-deps=true` DEVE estar versionado.
+Sem ele, o `npm install` na Vercel falha com ERESOLVE (conflito de peer deps entre `vite@8` e `vite-plugin-pwa`).
+
 ---
 
 ## Validação
@@ -212,3 +240,4 @@ Quando aplicável, executar:
 
 ```bash
 npm run build
+```
