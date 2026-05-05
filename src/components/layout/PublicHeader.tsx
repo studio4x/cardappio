@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Logo } from '@/components/shared/Logo'
 import { Utensils, Menu, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { config } from '@/config'
@@ -28,14 +29,7 @@ export function PublicHeader() {
     >
       <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 no-underline group active:scale-95 transition-transform">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:rotate-6 transition-transform">
-            <Utensils className="text-white h-6 w-6" />
-          </div>
-          <span className="text-2xl font-black tracking-tighter text-on-surface">
-            {config.app.name}
-          </span>
-        </Link>
+        <Logo variant="dark" />
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-10 md:flex">

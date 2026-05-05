@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { cn } from '@/lib/utils'
+import { Logo } from '@/components/shared/Logo'
 import { config } from '@/config'
 
 const adminNavGroups = [
@@ -77,9 +78,7 @@ export function AdminLayout() {
       {/* Mobile Top Bar */}
       <div className="flex h-16 items-center justify-between border-b px-4 lg:hidden w-full fixed bg-surface z-40" style={{ borderColor: 'var(--color-outline-variant)' }}>
         <div className="flex items-center gap-2">
-           <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ backgroundColor: 'var(--color-primary)' }}>
-             <ChefHat className="h-4 w-4 text-white" />
-           </div>
+           <Logo variant="dark" to="/admin" showText={false} className="scale-75 origin-left" />
            <span className="text-base font-bold text-on-surface">{config.app.name} Admin</span>
         </div>
         <button onClick={() => setIsMobileOpen(true)} className="p-2 border rounded-md" style={{ borderColor: 'var(--color-outline-variant)' }}>
@@ -110,13 +109,8 @@ export function AdminLayout() {
         <div className="flex h-14 items-center justify-between border-b px-5"
           style={{ borderColor: 'var(--color-outline-variant)' }}
         >
-          <Link to="/admin" className="flex items-center gap-2 no-underline">
-            <div
-              className="flex h-8 w-8 items-center justify-center rounded-lg"
-              style={{ backgroundColor: 'var(--color-primary)' }}
-            >
-              <ChefHat className="h-4 w-4 text-white" />
-            </div>
+          <div className="flex items-center gap-2">
+            <Logo variant="dark" to="/admin" showText={false} className="scale-90 origin-left" />
             <span
               className="text-base font-bold"
               style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-on-surface)' }}
@@ -132,7 +126,7 @@ export function AdminLayout() {
             >
               Admin
             </span>
-          </Link>
+          </div>
           <button 
             className="lg:hidden p-1 rounded-md text-on-surface hover:bg-neutral-100"
             onClick={() => setIsMobileOpen(false)}

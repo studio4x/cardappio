@@ -1,13 +1,10 @@
 import { Outlet, Link } from 'react-router-dom'
-import { ChefHat, Bell, LogOut, Utensils } from 'lucide-react'
+import { Bell, LogOut } from 'lucide-react'
 import { useAuth } from '@/app/providers/AuthProvider'
+import { Logo } from '@/components/shared/Logo'
 import { MobileBottomNav } from './MobileBottomNav'
 import { config } from '@/config'
 
-/**
- * Layout for authenticated user area (/app/*).
- * Mobile-first with bottom nav, contextual header, optional desktop sidebar.
- */
 export function UserLayout() {
   const { user, signOut } = useAuth()
 
@@ -26,15 +23,7 @@ export function UserLayout() {
         }}
       >
         <div className="container-app flex h-16 items-center justify-between">
-          <Link to="/app" className="flex items-center gap-2 no-underline group active:scale-95 transition-transform duration-200">
-            <Utensils className="h-6 w-6" style={{ color: 'var(--color-primary)' }} />
-            <span
-              className="text-xl font-extrabold tracking-tighter"
-              style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-primary)' }}
-            >
-              Cardappio
-            </span>
-          </Link>
+          <Logo variant="dark" to="/app" />
 
           <div className="flex items-center gap-2">
             <div className="hidden md:flex gap-6 mr-6">
