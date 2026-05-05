@@ -2,15 +2,29 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mail, Lock, User, Loader2, ArrowRight } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
+import { useAuth } from '@/app/providers/AuthProvider'
+import { useEffect } from 'react'
 
 export function SignupPage() {
   const navigate = useNavigate()
+  const { isAuthenticated, isAdmin } = useAuth()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !isLoading && !success) {
+      if (isAdmin) {
+        navigate('/admin', { replace: true })
+      } else {
+        navigate('/app', { replace: true })
+      }
+    }
+  }, [isAuthenticated, isAdmin, navigate, isLoading, success])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -19,7 +33,7 @@ export function SignupPage() {
 
     try {
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('TIMEOUT')), 30000)
+        setTimeout(() => reject(new Error('TIMEOUT')), 15000)
       );
 
       const authPromise = supabase.auth.signUp({
@@ -46,11 +60,19 @@ export function SignupPage() {
       let targetRoute = '/app/onboarding'
       if (data?.user) {
         try {
-          const { data: profile } = await supabase
+          const profilePromise = supabase
             .from('profiles')
             .select('role')
             .eq('id', data.user.id)
             .single()
+            
+          const fetchTimeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('FETCH_TIMEOUT')), 5000)
+          );
+
+          // @ts-ignore
+          const profileResult = await Promise.race([profilePromise, fetchTimeoutPromise]) as any;
+          const profile = profileResult?.data;
 
           if (profile?.role === 'admin' || profile?.role === 'super_admin') {
             targetRoute = '/admin'
@@ -65,7 +87,7 @@ export function SignupPage() {
       }, 500)
     } catch (err: any) {
       if (err.message === 'TIMEOUT') {
-        setError('Conexão muito lenta ou bloqueada pelo antivírus (ex: Kaspersky). Tente novamente.')
+        setError('Conexão bloqueada pelo navegador. Desative bloqueadores ou antivírus (ex: Kaspersky) ou tente novamente.')
       } else {
         setError('Erro inesperado. Tente novamente.')
       }

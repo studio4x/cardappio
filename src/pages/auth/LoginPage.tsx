@@ -3,14 +3,29 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Mail, Lock, Loader2, ArrowRight, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
+import { useAuth } from '@/app/providers/AuthProvider'
+import { useEffect } from 'react'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const { isAuthenticated, isAdmin } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Double safety: if we become authenticated in the background (e.g. via AuthProvider
+  // catching the session after a delay), redirect immediately.
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (isAdmin) {
+        navigate('/admin', { replace: true })
+      } else {
+        navigate('/app', { replace: true })
+      }
+    }
+  }, [isAuthenticated, isAdmin, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -18,8 +33,9 @@ export function LoginPage() {
     setError(null)
 
     try {
+      // Shortened timeout (15s) for better UX and quicker recovery
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('TIMEOUT')), 30000)
+        setTimeout(() => reject(new Error('TIMEOUT')), 15000)
       );
 
       const authPromise = supabase.auth.signInWithPassword({
@@ -55,14 +71,29 @@ export function LoginPage() {
       navigate('/app', { replace: true })
     } catch (err: any) {
       if (err.message === 'TIMEOUT') {
-        // Double check if session was actually created in background despite timeout
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          toast.success('Login recuperado com sucesso!')
-          navigate('/admin', { replace: true })
-          return
+        console.warn('Login timeout detected. Attempting recovery...')
+        
+        try {
+          // Check if session was created despite timeout, with its own safety timeout
+          const sessionPromise = supabase.auth.getSession();
+          const recoveryTimeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('RECOVERY_TIMEOUT')), 3000)
+          );
+
+          // @ts-ignore
+          const recoveryResult = await Promise.race([sessionPromise, recoveryTimeoutPromise]) as any;
+          const session = recoveryResult?.data?.session;
+
+          if (session) {
+            toast.success('Login recuperado com sucesso!')
+            // Redirect will be handled by the useEffect watching isAuthenticated
+            return
+          }
+        } catch (recoveryErr) {
+          console.error('Login recovery check failed', recoveryErr)
         }
-        setError('Conexão muito lenta ou bloqueada pelo antivírus (ex: Kaspersky). Tente recarregar a página.')
+        
+        setError('Conexão bloqueada pelo navegador. Desative bloqueadores ou antivírus (ex: Kaspersky) ou tente recarregar a página.')
       } else {
         setError('Erro inesperado. Tente novamente.')
       }

@@ -28,11 +28,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchProfile = useCallback(async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      // Timeout for profile fetch to avoid hanging the entire app if Supabase is blocked
+      const profilePromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single()
+
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('PROFILE_FETCH_TIMEOUT')), 5000)
+      )
+
+      // @ts-ignore
+      const { data, error } = await Promise.race([profilePromise, timeoutPromise])
 
       if (error) {
         if (error.code === 'PGRST116') {
@@ -48,18 +56,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       setProfile(data as Profile)
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching profile:', err)
+      if (err.message === 'PROFILE_FETCH_TIMEOUT') {
+        console.warn('Profile fetch timed out, probably due to network/antivirus interference.')
+      }
     }
   }, [])
 
   const fetchPreferences = useCallback(async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      const preferencesPromise = supabase
         .from('user_preferences')
         .select('*')
         .eq('user_id', userId)
         .single()
+
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('PREFS_FETCH_TIMEOUT')), 5000)
+      )
+
+      // @ts-ignore
+      const { data, error } = await Promise.race([preferencesPromise, timeoutPromise])
 
       if (error && error.code !== 'PGRST116') {
         // PGRST116 = no rows found (expected for new users)
@@ -68,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       setPreferences(data as UserPreferences | null)
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching preferences:', err)
     }
   }, [])
