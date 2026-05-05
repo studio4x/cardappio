@@ -30,11 +30,12 @@ export function RecipePickerPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>('')
   const [difficultyFilter, setDifficultyFilter] = useState<string>('')
 
-  const { data: recipes, isLoading, error, refetch } = useRecipes({
+  const { data, isLoading, error, refetch } = useRecipes({
     search: search || undefined,
     categoryId: categoryFilter || undefined,
     difficulty: difficultyFilter || undefined,
   })
+  const recipes = data?.recipes || []
 
   const { data: categories } = useRecipeCategories()
   const assignRecipe = useAssignRecipe()

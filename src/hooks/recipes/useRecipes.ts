@@ -11,10 +11,17 @@ export function useRecipes(filters?: {
   difficulty?: string
   search?: string
   status?: 'published' | 'draft' | 'archived' | 'all'
+  page?: number
+  pageSize?: number
 }) {
   return useQuery({
     queryKey: ['recipes', filters],
     queryFn: async () => {
+      const page = filters?.page || 1
+      const pageSize = filters?.pageSize || 10
+      const from = (page - 1) * pageSize
+      const to = from + pageSize - 1
+
       let query = supabase
         .from('recipes')
         .select(`
@@ -23,18 +30,16 @@ export function useRecipes(filters?: {
           ingredients:recipe_ingredients(*),
           steps:recipe_steps(*),
           tags:recipe_tag_links(tag:recipe_tags(*))
-        `)
-        .order('title')
+        `, { count: 'exact' })
+        .order('created_at', { ascending: false }) // Novas primeiro
         .order('sort_order', { foreignTable: 'recipe_ingredients' })
         .order('step_number', { foreignTable: 'recipe_steps' })
 
       if (filters?.status && filters.status !== 'all') {
         query = query.eq('status', filters.status)
       } else if (!filters?.status) {
-        // Default behavior for app is published
         query = query.eq('status', 'published')
       }
-      // If filters.status === 'all', it will not add any status filter
 
       if (filters?.categoryId) {
         query = query.eq('category_id', filters.categoryId)
@@ -48,10 +53,18 @@ export function useRecipes(filters?: {
         query = query.ilike('title', `%${filters.search}%`)
       }
 
-      const { data, error } = await query
+      // Pagination
+      if (filters?.pageSize) {
+        query = query.range(from, to)
+      }
+
+      const { data, error, count } = await query
 
       if (error) throw error
-      return (data ?? []) as Recipe[]
+      return {
+        recipes: (data ?? []) as Recipe[],
+        count: count || 0
+      }
     },
   })
 }
