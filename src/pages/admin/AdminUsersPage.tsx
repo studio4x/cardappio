@@ -1,8 +1,26 @@
+import { useState } from 'react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
-import { useAdminUsers, useUpdateUserRole } from '@/hooks/admin/useAdminUsers'
-import { MoreHorizontal, UserCheck, Shield, ShieldAlert, UserX } from 'lucide-react'
+import { 
+  useAdminUsers, 
+  useUpdateUserRole, 
+  useCreateUser, 
+  useResetUserPassword 
+} from '@/hooks/admin/useAdminUsers'
+import { 
+  MoreHorizontal, 
+  UserCheck, 
+  Shield, 
+  ShieldAlert, 
+  UserX, 
+  Plus, 
+  Key,
+  Mail,
+  User as UserIcon,
+  Eye,
+  EyeOff
+} from 'lucide-react'
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -10,12 +28,46 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter,
+  DialogDescription
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select'
 import { toast } from 'sonner'
 
 export function AdminUsersPage() {
   const { data: users, isLoading, error, refetch } = useAdminUsers()
   const updateRole = useUpdateUserRole()
+  const createUser = useCreateUser()
+  const resetPassword = useResetUserPassword()
+
+  // State for Create User Dialog
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [newUserData, setNewUserData] = useState({
+    email: '',
+    password: '',
+    fullName: '',
+    role: 'user'
+  })
+
+  // State for Reset Password Dialog
+  const [isResetOpen, setIsResetOpen] = useState(false)
+  const [resetTarget, setResetTarget] = useState<{id: string, email: string} | null>(null)
+  const [newPassword, setNewPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleRoleUpdate = async (userId: string, role: any) => {
     try {
@@ -26,15 +78,47 @@ export function AdminUsersPage() {
     }
   }
 
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      await createUser.mutateAsync(newUserData)
+      toast.success('Usuário criado com sucesso')
+      setIsCreateOpen(false)
+      setNewUserData({ email: '', password: '', fullName: '', role: 'user' })
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao criar usuário')
+    }
+  }
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!resetTarget) return
+    try {
+      await resetPassword.mutateAsync({ userId: resetTarget.id, newPassword })
+      toast.success('Senha redefinida com sucesso')
+      setIsResetOpen(false)
+      setNewPassword('')
+      setResetTarget(null)
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao redefinir senha')
+    }
+  }
+
   if (isLoading) return <LoadingState message="Carregando usuários..." />
   if (error) return <ErrorState onRetry={() => refetch()} />
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-        title="Gestão de Usuários" 
-        subtitle={`Total: ${users?.length || 0} usuários cadastrados.`}
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <PageHeader 
+          title="Gestão de Usuários" 
+          subtitle={`Total: ${users?.length || 0} usuários cadastrados.`}
+        />
+        <Button onClick={() => setIsCreateOpen(true)} className="gap-2 px-6">
+          <Plus className="h-4 w-4" />
+          Novo Usuário
+        </Button>
+      </div>
 
       <div className="rounded-2xl border bg-white overflow-hidden shadow-sm">
         <table className="w-full text-left">
@@ -86,16 +170,21 @@ export function AdminUsersPage() {
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="rounded-xl border shadow-lg">
+                    <DropdownMenuContent align="end" className="w-48 rounded-xl border shadow-lg">
                       <div className="px-2 py-1.5 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                        Alterar Role
+                        Ações
                       </div>
-                      <DropdownMenuItem onClick={() => handleRoleUpdate(user.id, 'user')}>
-                        Tornar Usuário
+                      <DropdownMenuItem onClick={() => handleRoleUpdate(user.id, user.role === 'admin' ? 'user' : 'admin')}>
+                        {user.role === 'admin' ? 'Rebaixar para Usuário' : 'Promover para Admin'}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleRoleUpdate(user.id, 'admin')}>
-                        Tornar Admin
+                      <DropdownMenuItem onClick={() => {
+                        setResetTarget({id: user.id, email: user.email})
+                        setIsResetOpen(true)
+                      }}>
+                        <Key className="h-4 w-4 mr-2" />
+                        Redefinir Senha
                       </DropdownMenuItem>
+                      <div className="h-px bg-slate-100 my-1" />
                       <DropdownMenuItem className="text-rose-600">
                         <UserX className="h-4 w-4 mr-2" />
                         Suspender Acesso
@@ -108,6 +197,139 @@ export function AdminUsersPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Create User Dialog */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="sm:max-w-md">
+          <form onSubmit={handleCreateUser}>
+            <DialogHeader>
+              <DialogTitle>Novo Usuário</DialogTitle>
+              <DialogDescription>
+                Cadastre um novo usuário manualmente no sistema.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome Completo</Label>
+                <div className="relative">
+                  <UserIcon className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input 
+                    id="name" 
+                    placeholder="João Silva" 
+                    className="pl-9"
+                    value={newUserData.fullName}
+                    onChange={(e) => setNewUserData({...newUserData, fullName: e.target.value})}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">E-mail</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="email@exemplo.com" 
+                    className="pl-9"
+                    value={newUserData.email}
+                    onChange={(e) => setNewUserData({...newUserData, email: e.target.value})}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha Inicial</Label>
+                <div className="relative">
+                  <Key className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    placeholder="••••••••" 
+                    className="pl-9"
+                    value={newUserData.password}
+                    onChange={(e) => setNewUserData({...newUserData, password: e.target.value})}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="role">Nível de Acesso</Label>
+                <Select 
+                  value={newUserData.role} 
+                  onValueChange={(val) => setNewUserData({...newUserData, role: val})}
+                >
+                  <SelectTrigger id="role" className="w-full">
+                    <SelectValue placeholder="Selecione a permissão" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">Usuário Comum</SelectItem>
+                    <SelectItem value="admin">Administrador</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={createUser.isPending}>
+                {createUser.isPending ? 'Criando...' : 'Criar Usuário'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={isResetOpen} onOpenChange={setIsResetOpen}>
+        <DialogContent className="sm:max-w-md">
+          <form onSubmit={handleResetPassword}>
+            <DialogHeader>
+              <DialogTitle>Redefinir Senha</DialogTitle>
+              <DialogDescription>
+                Alterar a senha de <strong>{resetTarget?.email}</strong>.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-password">Nova Senha</Label>
+                <div className="relative">
+                  <Key className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Input 
+                    id="new-password" 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="Mínimo 6 caracteres" 
+                    className="pl-9 pr-10"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    minLength={6}
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+              <p className="text-xs text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-100">
+                Atenção: A alteração é imediata e o usuário não será notificado automaticamente por e-mail neste fluxo administrativo.
+              </p>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsResetOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" variant="destructive" disabled={resetPassword.isPending}>
+                {resetPassword.isPending ? 'Alterando...' : 'Confirmar Alteração'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
