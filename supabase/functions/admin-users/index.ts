@@ -49,6 +49,21 @@ serve(async (req) => {
       return successResponse({ user: authUser.user }, 'Usuário criado com sucesso.')
     }
 
+    if (action === 'update_role') {
+      if (!userId || !role) {
+        return errorResponse('ID do usuário e role são obrigatórios.', 400)
+      }
+
+      const { error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .update({ role })
+        .eq('id', userId)
+
+      if (profileError) throw profileError
+
+      return successResponse(null, 'Permissão atualizada com sucesso.')
+    }
+
     if (action === 'reset_password') {
       if (!userId || !newPassword) {
         return errorResponse('ID do usuário e nova senha são obrigatórios.', 400)

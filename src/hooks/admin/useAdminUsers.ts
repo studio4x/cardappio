@@ -31,12 +31,13 @@ export function useUpdateUserRole() {
 
   return useMutation({
     mutationFn: async ({ userId, role }: { userId: string, role: AdminUser['role'] }) => {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role })
-        .eq('id', userId)
+      const { data, error } = await supabase.functions.invoke('admin-users', {
+        body: { action: 'update_role', userId, role }
+      })
       
       if (error) throw error
+      if (data?.status === 'error') throw new Error(data.message)
+      return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] })
