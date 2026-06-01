@@ -7,8 +7,10 @@ import path from 'path'
 import { execSync } from 'child_process'
 
 let commitHash = 'unknown'
+let commitCount = '0'
 try {
   commitHash = (process.env.VERCEL_GIT_COMMIT_SHA || execSync('git rev-parse --short HEAD').toString().trim()).slice(0, 7)
+  commitCount = execSync('git rev-list --count HEAD').toString().trim()
 } catch (e) {
   // Fallback for environments without git
 }
@@ -16,7 +18,7 @@ try {
 // https://vite.dev/config/
 export default defineConfig({
   define: {
-    __BUILD_VERSION__: JSON.stringify(process.env.npm_package_version || '0.0.0'),
+    __BUILD_VERSION__: JSON.stringify(`1.0.${commitCount}`),
     __COMMIT_HASH__: JSON.stringify(commitHash),
   },
   plugins: [
