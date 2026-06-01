@@ -2,15 +2,26 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { getServiceClient } from "../_shared/auth.ts"
 import { corsHeaders } from "../_shared/cors.ts"
 import { createResponse } from "../_shared/response.ts"
+import webpush from "npm:web-push"
+
+// VAPID credentials
+// Fallback keys for sandbox testing (generated via CLI)
+const DEFAULT_VAPID_PUBLIC_KEY = "BBB4XppXCi3mDOnORLXbX9ExXA4VM1epn32huhPA_mHgzRZVxjcnxoobw-rDGYwJKNg9Oie6tlg4ro02Hu3O94c"
+const DEFAULT_VAPID_PRIVATE_KEY = "GuBFZGK_BETRVtql7DMQgje1prmQAYj2OfLp58WKCyM"
+
+const VAPID_PUBLIC_KEY = Deno.env.get("VITE_VAPID_PUBLIC_KEY") || DEFAULT_VAPID_PUBLIC_KEY
+const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY") || DEFAULT_VAPID_PRIVATE_KEY
+const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") || "mailto:contato@studio4x.com.br"
+
+webpush.setVapidDetails(
+  VAPID_SUBJECT,
+  VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY
+)
 
 /**
  * dispatch-notifications
- * Per API_FUNCTIONS.md: Processes pending items in the notification_queue.
- * 
- * Logic:
- * 1. Fetch pending notifications with next_retry_at <= now.
- * 2. Attempt delivery (Mocking external providers for now).
- * 3. Update status (sent, failed) and attempt count.
+ * Processes pending items in the notification_queue.
  */
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -23,9 +34,9 @@ serve(async (req) => {
     // 1. Fetch pending notifications
     const { data: queue, error: queueError } = await supabase
       .from('notification_queue')
-      .select('*, notification:notifications(*)')
+      .select('*')
       .eq('status', 'pending')
-      .lte('next_retry_at', new Date().toISOString())
+      .lte('scheduled_for', new Date().toISOString())
       .limit(50)
 
     if (queueError) throw queueError
@@ -41,36 +52,101 @@ serve(async (req) => {
       results.processed++
       
       try {
-        // DELIVERY LOGIC (In a real scenario, this calls Firebase, Postmark, etc.)
-        // For now, we simulate success for in-app and mock others
-        const deliverySuccess = true 
+        // Mark as processing first to avoid double deliveries
+        await supabase
+          .from('notification_queue')
+          .update({ status: 'processing' })
+          .eq('id', item.id)
 
-        if (deliverySuccess) {
-          await supabase
-            .from('notification_queue')
-            .update({ 
-               status: 'sent', 
-               sent_at: new Date().toISOString(),
-               attempt_count: item.attempt_count + 1
+        // 1. Always create the in-app notification first
+        const { data: inAppNotif, error: inAppError } = await supabase
+          .from('notifications')
+          .insert({
+            user_id: item.user_id,
+            title: item.title,
+            body: item.body,
+            type: item.type === 'meal_reminder' || item.type === 'subscription' || item.type === 'promotion' || item.type === 'system' ? item.type : 'system',
+            action_url: item.payload_json?.action_url || null,
+            is_read: false
+          })
+          .select('id')
+          .single()
+
+        if (inAppError) throw inAppError
+
+        // Log in-app delivery
+        await supabase.from('notification_delivery_logs').insert({
+          notification_id: inAppNotif.id,
+          user_id: item.user_id,
+          channel: 'in_app',
+          status: 'success'
+        })
+
+        // 2. Attempt Web Push if enabled
+        const { data: pref, error: prefError } = await supabase
+          .from('notification_preferences')
+          .select('push_enabled, push_token')
+          .eq('user_id', item.user_id)
+          .maybeSingle()
+
+        if (pref && pref.push_enabled && pref.push_token) {
+          try {
+            const subscription = JSON.parse(pref.push_token)
+            
+            // Send the push notification
+            await webpush.sendNotification(
+              subscription,
+              JSON.stringify({
+                title: item.title,
+                body: item.body,
+                action_url: item.payload_json?.action_url || '/app/notificacoes'
+              })
+            )
+
+            // Log Web Push delivery log
+            await supabase.from('notification_delivery_logs').insert({
+              notification_id: inAppNotif.id,
+              user_id: item.user_id,
+              channel: 'push',
+              status: 'success'
             })
-            .eq('id', item.id)
-          
-          results.succeeded++
-        } else {
-          throw new Error('Provider delivery failure')
+          } catch (pushErr: any) {
+            console.error(`Web Push delivery failed for user ${item.user_id}:`, pushErr)
+            
+            // Log delivery failure
+            await supabase.from('notification_delivery_logs').insert({
+              notification_id: inAppNotif.id,
+              user_id: item.user_id,
+              channel: 'push',
+              status: 'failed',
+              error_message: pushErr.message
+            })
+          }
         }
 
+        // Mark as sent
+        await supabase
+          .from('notification_queue')
+          .update({ 
+             status: 'sent', 
+             attempts: item.attempts + 1
+          })
+          .eq('id', item.id)
+        
+        results.succeeded++
+
       } catch (deliveryError: any) {
+        console.error(`Failed to process queue item ${item.id}:`, deliveryError)
         results.failed++
-        const isLastAttempt = item.attempt_count >= 3
+        const isLastAttempt = item.attempts >= 2 // max 3 attempts (0, 1, 2)
         
         await supabase
           .from('notification_queue')
           .update({ 
             status: isLastAttempt ? 'failed' : 'pending',
-            attempt_count: item.attempt_count + 1,
+            attempts: item.attempts + 1,
             last_error: deliveryError.message,
-            next_retry_at: new Date(Date.now() + 1000 * 60 * 15).toISOString() // Retry in 15 mins
+            scheduled_for: new Date(Date.now() + 1000 * 60 * 15).toISOString() // Retry in 15 mins
           })
           .eq('id', item.id)
       }
@@ -87,6 +163,7 @@ serve(async (req) => {
     return createResponse(results)
 
   } catch (err: any) {
+    console.error('dispatch-notifications failed:', err)
     return createResponse(null, { code: 'INTERNAL_ERROR', message: err.message }, 500)
   }
 })

@@ -3,9 +3,11 @@ import { User, Settings, Bell, CreditCard, ChevronRight, LogOut, Check } from 'l
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { useProfile, useUpdateProfile, useUpdatePreferences } from '@/hooks/auth/useProfile'
+import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/hooks/notifications/useNotifications'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 /**
  * ProfilePreferencesPage (Screen 15)
@@ -13,21 +15,33 @@ import { cn } from '@/lib/utils'
  * Tabbed interface for:
  * - Profile basics (Name, Email)
  * - Meal Preferences (People count, days, types)
+ * - Notifications (In-app types & Web Push registration)
  * - Subscription info
  */
 export function ProfilePreferencesPage() {
   const { profile, preferences, isLoading } = useProfile()
+  const { data: notifPrefs, isLoading: isLoadingNotifs } = useNotificationPreferences()
+  
   const updateProfile = useUpdateProfile()
   const updatePreferences = useUpdatePreferences()
+  const updateNotifPrefs = useUpdateNotificationPreferences()
   const { signOut } = useAuth()
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'subscription'>('profile')
+  const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'notifications' | 'subscription'>('profile')
   
-  // Local state for forms
+  // Local state for profile and meal preferences
   const [fullName, setFullName] = useState('')
   const [householdSize, setHouseholdSize] = useState(2)
   const [planDays, setPlanDays] = useState(5)
   const [mealModes, setMealModes] = useState<string[]>([])
+
+  // Local state for notification preferences
+  const [mealReminders, setMealReminders] = useState(true)
+  const [dailySummary, setDailySummary] = useState(false)
+  const [marketingAlerts, setMarketingAlerts] = useState(true)
+  const [systemUpdates, setSystemUpdates] = useState(true)
+  const [pushEnabled, setPushEnabled] = useState(false)
+  const [isRegisteringPush, setIsRegisteringPush] = useState(false)
 
   useEffect(() => {
     if (profile) setFullName(profile.full_name || '')
@@ -38,7 +52,17 @@ export function ProfilePreferencesPage() {
     }
   }, [profile, preferences])
 
-  if (isLoading) return <LoadingState message="Carregando seu perfil..." />
+  useEffect(() => {
+    if (notifPrefs) {
+      setMealReminders(notifPrefs.meal_reminders)
+      setDailySummary(notifPrefs.daily_summary)
+      setMarketingAlerts(notifPrefs.marketing_alerts)
+      setSystemUpdates(notifPrefs.system_updates)
+      setPushEnabled(notifPrefs.push_enabled)
+    }
+  }, [notifPrefs])
+
+  if (isLoading || isLoadingNotifs) return <LoadingState message="Carregando seu perfil..." />
 
   const handleSaveProfile = () => {
     updateProfile.mutate({ full_name: fullName })
@@ -58,6 +82,89 @@ export function ProfilePreferencesPage() {
     )
   }
 
+  // Web Push registration logic
+  const subscribeUserToPush = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      throw new Error('As notificações push não são suportadas pelo seu navegador ou dispositivo.')
+    }
+
+    const permission = await Notification.requestPermission()
+    if (permission !== 'granted') {
+      throw new Error('A permissão para exibir notificações foi recusada.')
+    }
+
+    const registration = await navigator.serviceWorker.ready
+    
+    // Fallback key matching the one configured in our edge function VAPID
+    const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || "BBB4XppXCi3mDOnORLXbX9ExXA4VM1epn32huhPA_mHgzRZVxjcnxoobw-rDGYwJKNg9Oie6tlg4ro02Hu3O94c"
+    
+    const subscribeOptions = {
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicKey)
+    }
+
+    return await registration.pushManager.subscribe(subscribeOptions)
+  }
+
+  function urlBase64ToUint8Array(base64String: string) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4)
+    const base64 = (base64String + padding)
+      .replace(/\-/g, '+')
+      .replace(/_/g, '/')
+
+    const rawData = window.atob(base64)
+    const outputArray = new Uint8Array(rawData.length)
+
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i)
+    }
+    return outputArray
+  }
+
+  const handleSaveNotifPreferences = async () => {
+    setIsRegisteringPush(true)
+    try {
+      let pushToken = notifPrefs?.push_token || null
+      let isPushActive = pushEnabled
+
+      if (pushEnabled && !notifPrefs?.push_enabled) {
+        // Toggle push notifications ON
+        const subscription = await subscribeUserToPush()
+        pushToken = JSON.stringify(subscription)
+        isPushActive = true
+      } else if (!pushEnabled && notifPrefs?.push_enabled) {
+        // Toggle push notifications OFF
+        isPushActive = false
+        pushToken = null
+        try {
+          const registration = await navigator.serviceWorker.ready
+          const subscription = await registration.pushManager.getSubscription()
+          if (subscription) {
+            await subscription.unsubscribe()
+          }
+        } catch (e) {
+          console.warn('Erro ao cancelar a inscrição no pushManager:', e)
+        }
+      }
+
+      await updateNotifPrefs.mutateAsync({
+        meal_reminders: mealReminders,
+        daily_summary: dailySummary,
+        marketing_alerts: marketingAlerts,
+        system_updates: systemUpdates,
+        push_enabled: isPushActive,
+        push_token: pushToken
+      })
+    } catch (err: any) {
+      console.error(err)
+      toast.error(err.message || 'Erro ao salvar preferências de notificação.')
+      // Revert checkbox state
+      setPushEnabled(notifPrefs?.push_enabled || false)
+    } finally {
+      setIsRegisteringPush(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader 
@@ -70,6 +177,7 @@ export function ProfilePreferencesPage() {
         {[
           { id: 'profile', label: 'Dados Pessoais', icon: User },
           { id: 'preferences', label: 'Planejamento', icon: Settings },
+          { id: 'notifications', label: 'Notificações', icon: Bell },
           { id: 'subscription', label: 'Assinatura', icon: CreditCard },
         ].map(tab => (
           <button
@@ -103,7 +211,7 @@ export function ProfilePreferencesPage() {
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full rounded-xl border p-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-xl border p-3 focus:outline-none focus:ring-2 focus:ring-primary bg-white text-slate-900"
                   style={{ borderColor: 'var(--color-outline-variant)' }}
                 />
               </div>
@@ -113,7 +221,7 @@ export function ProfilePreferencesPage() {
                   type="email"
                   value={profile?.email}
                   disabled
-                  className="w-full rounded-xl border p-3 bg-slate-50 cursor-not-allowed"
+                  className="w-full rounded-xl border p-3 bg-slate-50 cursor-not-allowed text-slate-500"
                   style={{ borderColor: 'var(--color-outline-variant)' }}
                 />
                 <p className="text-[10px] text-muted-foreground italic">O e-mail não pode ser alterado diretamente.</p>
@@ -208,6 +316,94 @@ export function ProfilePreferencesPage() {
                 disabled={updatePreferences.isPending}
               >
                 {updatePreferences.isPending ? 'Salvando...' : 'Salvar Preferências'}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* NOTIFICATIONS TAB */}
+        {activeTab === 'notifications' && (
+          <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+            <div className="rounded-2xl border p-6 bg-white shadow-sm space-y-6">
+              <h3 className="font-bold flex items-center gap-2">Configurações de Notificações</h3>
+              
+              <div className="space-y-4">
+                {/* Web Push Subscription switch */}
+                <div className="flex items-center justify-between p-4 rounded-xl border bg-slate-50/50">
+                  <div>
+                    <h4 className="text-sm font-semibold">Notificações no Dispositivo (Push)</h4>
+                    <p className="text-xs text-muted-foreground">Receba avisos na tela do celular mesmo com o app fechado.</p>
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    checked={pushEnabled} 
+                    onChange={e => setPushEnabled(e.target.checked)}
+                    className="h-5 w-5 accent-primary cursor-pointer"
+                  />
+                </div>
+
+                {/* Other preference checkboxes */}
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center gap-3">
+                    <input 
+                      id="mealReminders" 
+                      type="checkbox" 
+                      checked={mealReminders} 
+                      onChange={e => setMealReminders(e.target.checked)} 
+                      className="h-4 w-4 accent-primary cursor-pointer"
+                    />
+                    <label htmlFor="mealReminders" className="text-sm font-medium cursor-pointer">
+                      Lembretes de Preparo Semanal (deixar de molho, descongelar)
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <input 
+                      id="dailySummary" 
+                      type="checkbox" 
+                      checked={dailySummary} 
+                      onChange={e => setDailySummary(e.target.checked)} 
+                      className="h-4 w-4 accent-primary cursor-pointer"
+                    />
+                    <label htmlFor="dailySummary" className="text-sm font-medium cursor-pointer">
+                      Resumo diário do menu planejado
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <input 
+                      id="systemUpdates" 
+                      type="checkbox" 
+                      checked={systemUpdates} 
+                      onChange={e => setSystemUpdates(e.target.checked)} 
+                      className="h-4 w-4 accent-primary cursor-pointer"
+                    />
+                    <label htmlFor="systemUpdates" className="text-sm font-medium cursor-pointer">
+                      Atualizações de sistema e segurança
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <input 
+                      id="marketingAlerts" 
+                      type="checkbox" 
+                      checked={marketingAlerts} 
+                      onChange={e => setMarketingAlerts(e.target.checked)} 
+                      className="h-4 w-4 accent-primary cursor-pointer"
+                    />
+                    <label htmlFor="marketingAlerts" className="text-sm font-medium cursor-pointer">
+                      Dicas de receitas e promoções
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleSaveNotifPreferences} 
+                className="w-full"
+                disabled={updateNotifPrefs.isPending || isRegisteringPush}
+              >
+                {updateNotifPrefs.isPending || isRegisteringPush ? 'Salvando...' : 'Salvar Configurações'}
               </Button>
             </div>
           </div>

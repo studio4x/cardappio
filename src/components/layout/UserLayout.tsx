@@ -4,9 +4,12 @@ import { useAuth } from '@/app/providers/AuthProvider'
 import { Logo } from '@/components/shared/Logo'
 import { MobileBottomNav } from './MobileBottomNav'
 import { config } from '@/config'
+import { useNotifications } from '@/hooks/notifications/useNotifications'
 
 export function UserLayout() {
   const { user, signOut } = useAuth()
+  const { data: notifications } = useNotifications()
+  const unreadCount = notifications?.filter(n => !n.is_read).length || 0
 
   return (
     <div
@@ -39,6 +42,11 @@ export function UserLayout() {
               aria-label="Notificações"
             >
               <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm">
+                  {unreadCount}
+                </span>
+              )}
             </Link>
 
             {user && (

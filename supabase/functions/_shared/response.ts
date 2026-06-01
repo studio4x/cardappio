@@ -29,3 +29,19 @@ export function forbiddenResponse(): Response {
 export function notFoundResponse(entity = 'Recurso'): Response {
   return errorResponse(`${entity} não encontrado.`, 404)
 }
+
+export function createResponse(data: unknown, error: { code: string; message: string } | null = null, status = 200): Response {
+  return new Response(
+    JSON.stringify({
+      data,
+      error,
+    }),
+    {
+      status,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json',
+      },
+    }
+  )
+}
