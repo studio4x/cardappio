@@ -220,7 +220,7 @@ export function AdminPlansPage() {
                 id="description" 
                 value={description} 
                 onChange={e => setDescription(e.target.value)} 
-                className="w-full min-h-[80px] rounded-xl border p-2.5 text-sm outline-none border-slate-200"
+                className="w-full min-h-[80px] rounded-xl border p-2.5 text-sm outline-none border-slate-200 bg-white text-slate-900"
               />
             </div>
 
