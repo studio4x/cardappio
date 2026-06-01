@@ -4,15 +4,28 @@ import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 
+import fs from 'fs'
 import { execSync } from 'child_process'
 
 let commitHash = 'unknown'
 let commitCount = '0'
+
 try {
+  // Try to query git locally
   commitHash = (process.env.VERCEL_GIT_COMMIT_SHA || execSync('git rev-parse --short HEAD').toString().trim()).slice(0, 7)
   commitCount = execSync('git rev-list --count HEAD').toString().trim()
+  
+  // Write version.json so it gets uploaded to Vercel
+  fs.writeFileSync(path.resolve(__dirname, 'version.json'), JSON.stringify({ commitHash, commitCount }))
 } catch (e) {
-  // Fallback for environments without git
+  // Fallback to reading the version.json uploaded from local machine
+  try {
+    const versionData = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'version.json'), 'utf-8'))
+    commitHash = versionData.commitHash
+    commitCount = versionData.commitCount
+  } catch (err) {
+    commitHash = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || 'unknown'
+  }
 }
 
 // https://vite.dev/config/
