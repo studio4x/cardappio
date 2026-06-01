@@ -32,6 +32,7 @@ import { AppHomePage } from '@/pages/app/AppHomePage'
 import { WeeklyPlannerPage } from '@/pages/app/WeeklyPlannerPage'
 import { RecipePickerPage } from '@/pages/app/RecipePickerPage'
 import { RecipeDetailPage } from '@/pages/app/RecipeDetailPage'
+import { UserRecipeEditorPage } from '@/pages/app/UserRecipeEditorPage'
 import { ShoppingListPage } from '@/pages/app/ShoppingListPage'
 import { FavoritesPage } from '@/pages/app/FavoritesPage'
 import { CollectionsPage } from '@/pages/app/CollectionsPage'
@@ -40,6 +41,7 @@ import { ProfilePreferencesPage } from '@/pages/app/ProfilePreferencesPage'
 import { NotificationsPage } from '@/pages/app/NotificationsPage'
 import { HistoryPage } from '@/pages/app/HistoryPage'
 import { SubscriptionPage } from '@/pages/app/SubscriptionPage'
+import { CozinheiraShowcasePage } from '@/pages/app/CozinheiraShowcasePage'
 
 // Admin pages
 import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage'
@@ -125,6 +127,8 @@ export const router = createBrowserRouter([
               { path: '/app/semana/nova', element: <WeeklyPlannerPage /> },
               { path: '/app/semana/:weekId', element: <WeeklyPlannerPage /> },
               { path: '/app/receitas', element: <RecipePickerPage /> },
+              { path: '/app/receitas/nova', element: <UserRecipeEditorPage /> },
+              { path: '/app/receitas/editar/:id', element: <UserRecipeEditorPage /> },
               { path: '/app/receitas/:recipeSlug', element: <RecipeDetailPage /> },
               { path: '/app/compras', element: <ShoppingListPage /> },
               { path: '/app/semana/:weekId/compras', element: <ShoppingListPage /> },
@@ -136,9 +140,10 @@ export const router = createBrowserRouter([
               { path: '/app/colecoes/:slug', element: <CollectionDetailPage /> },
 
               // Fase 5 - Perfil e monetização
-              { path: '/app/perfil', element: <ProfilePreferencesPage /> },
+               { path: '/app/perfil', element: <ProfilePreferencesPage /> },
               { path: '/app/assinatura', element: <SubscriptionPage /> },
               { path: '/app/notificacoes', element: <NotificationsPage /> },
+              { path: '/app/cozinheiras', element: <CozinheiraShowcasePage /> },
             ],
           },
         ],

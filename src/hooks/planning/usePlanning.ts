@@ -158,6 +158,7 @@ export function useCreateWeek() {
  */
 export function useAssignRecipe() {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
 
   return useMutation({
     mutationFn: async ({
@@ -167,12 +168,31 @@ export function useAssignRecipe() {
       slotId: string
       recipeId: string | null
     }) => {
-      const { error } = await supabase
+      // 1. Fetch slot day information
+      const { data: currentSlot, error: fetchSlotError } = await supabase
         .from('meal_plan_slots')
-        .update({ recipe_id: recipeId })
+        .select('day_id')
         .eq('id', slotId)
+        .single()
 
-      if (error) throw error
+      if (fetchSlotError) throw fetchSlotError
+
+      // 2. If on 7-meals plan, update all slots for that day (mandatory repetition)
+      if (user?.subscription_tier === 'plano-7-refeicoes') {
+        const { error: updateError } = await supabase
+          .from('meal_plan_slots')
+          .update({ recipe_id: recipeId })
+          .eq('day_id', currentSlot.day_id)
+
+        if (updateError) throw updateError
+      } else {
+        const { error: updateError } = await supabase
+          .from('meal_plan_slots')
+          .update({ recipe_id: recipeId })
+          .eq('id', slotId)
+
+        if (updateError) throw updateError
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['active-week'] })

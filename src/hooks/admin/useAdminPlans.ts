@@ -7,6 +7,7 @@ export interface AdminPlan {
   slug: string
   price_monthly: number
   price_yearly: number
+  description: string | null
   is_active: boolean
   features: string[]
   stripe_price_id_monthly: string | null
@@ -45,3 +46,39 @@ export function useUpdatePlan() {
     }
   })
 }
+
+export function useCreatePlan() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (plan: Omit<AdminPlan, 'id'>) => {
+      const { error } = await supabase
+        .from('subscription_plans')
+        .insert(plan)
+      
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-plans'] })
+    }
+  })
+}
+
+export function useDeletePlan() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (planId: string) => {
+      const { error } = await supabase
+        .from('subscription_plans')
+        .delete()
+        .eq('id', planId)
+      
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-plans'] })
+    }
+  })
+}
+

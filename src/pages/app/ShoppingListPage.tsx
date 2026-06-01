@@ -1,4 +1,4 @@
-import { ShoppingCart, RefreshCw, Loader2, Package, Share2, Search, Utensils, Plus, Apple, Leaf, Milk, Beef, SlidersVertical as TuneIcon } from 'lucide-react'
+import { ShoppingCart, RefreshCw, Loader2, Package, Share2, Search, Utensils, Plus, Apple, Leaf, Milk, Beef, SlidersVertical as TuneIcon, Printer } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
@@ -126,6 +126,12 @@ export function ShoppingListPage() {
                  <Share2 className="h-4 w-4" /> Compartilhar
                </button>
                <button 
+                  onClick={() => window.print()}
+                  className="flex-1 flex items-center justify-center gap-2 bg-neutral-100 hover:bg-neutral-200 py-2.5 rounded-xl text-xs font-bold transition-all"
+               >
+                 <Printer className="h-4 w-4" /> Imprimir
+               </button>
+               <button 
                   onClick={handleGenerate}
                   className="flex items-center justify-center gap-2 bg-neutral-100 hover:bg-neutral-200 p-2.5 rounded-xl text-xs font-bold transition-all"
                   title="Regenerar"
@@ -134,6 +140,29 @@ export function ShoppingListPage() {
                </button>
             </div>
           </div>
+
+          {/* Print styling */}
+          <style>{`
+            @media print {
+              body {
+                background: white !important;
+                color: black !important;
+              }
+              /* Hide navigation and buttons when printing */
+              nav, footer, button, .sticky, header .flex:last-child {
+                display: none !important;
+              }
+              .max-w-2xl {
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+              }
+              .bg-white {
+                border: none !important;
+                box-shadow: none !important;
+              }
+            }
+          `}</style>
         </header>
 
         {/* Sticky Search Bar */}

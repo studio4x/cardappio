@@ -7,6 +7,7 @@ import { useRecipe } from '@/hooks/recipes/useRecipes'
 import { FavoriteButton } from '@/components/recipes/FavoriteButton'
 import { RecipeIngredients } from '@/components/recipes/RecipeIngredients'
 import { RecipeSteps } from '@/components/recipes/RecipeSteps'
+import { AudioPlayerRecipe } from '@/components/recipes/AudioPlayerRecipe'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -15,10 +16,10 @@ export function RecipeDetailPage() {
   const { recipeSlug } = useParams()
   const navigate = useNavigate()
   const { data: recipe, isLoading, error, refetch } = useRecipe(recipeSlug)
-  const { preferences } = useAuth() 
+  const { user } = useAuth() 
   const [activeTab, setActiveTab] = useState<'ingredients' | 'instructions'>('ingredients')
   
-  const isPremiumUser = preferences?.primary_goal === 'premium' || false
+  const isPremiumUser = user?.subscription_tier && user.subscription_tier !== 'free'
   const isLocked = recipe?.is_premium && !isPremiumUser
 
   const difficultyLabels = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' }
@@ -77,6 +78,13 @@ export function RecipeDetailPage() {
             </div>
           </div>
         </section>
+
+        {/* Audio Player if not locked */}
+        {!isLocked && (
+          <section className="mt-6 px-5 max-w-2xl mx-auto">
+            <AudioPlayerRecipe title={recipe.title} steps={recipe.steps ?? []} />
+          </section>
+        )}
 
         {/* Toggle Controls */}
         <section className="mt-8 px-5">
