@@ -54,6 +54,7 @@ const adminNavGroups = [
     items: [
       { label: 'Relatórios', icon: BarChart3, href: '/admin/relatorios' },
       { label: 'Logs', icon: FileText, href: '/admin/logs' },
+      { label: 'Integração Stripe', icon: CreditCard, href: '/admin/stripe' },
       { label: 'Configurações', icon: Settings, href: '/admin/configuracoes' },
     ],
   },

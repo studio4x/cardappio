@@ -58,6 +58,7 @@ import { AdminSubscriptionsPage } from '@/pages/admin/AdminSubscriptionsPage'
 import { AdminSettingsPage } from '@/pages/admin/AdminSettingsPage'
 import { AdminReportsPage } from '@/pages/admin/AdminReportsPage'
 import { AdminLogsPage } from '@/pages/admin/AdminLogsPage'
+import { AdminStripePage } from '@/pages/admin/AdminStripePage'
 
 export const router = createBrowserRouter([
   // ==========================================
@@ -178,6 +179,7 @@ export const router = createBrowserRouter([
               { path: '/admin/notificacoes', element: <AdminNotificationsPage /> },
               { path: '/admin/assinaturas', element: <AdminSubscriptionsPage /> },
               { path: '/admin/configuracoes', element: <AdminSettingsPage /> },
+              { path: '/admin/stripe', element: <AdminStripePage /> },
               { path: '/admin/relatorios', element: <AdminReportsPage /> },
               { path: '/admin/logs', element: <AdminLogsPage /> },
             ],
