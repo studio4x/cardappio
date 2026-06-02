@@ -194,13 +194,16 @@ Não quebrar:
 
 Deploy deve ser considerado quando a mudança precisar refletir em ambiente remoto.
 
-Ao publicar:
+### Processo de Deploy e Versão de Build
 
-1. revisar `git status`;
-2. fazer commit claro;
-3. fazer push;
-4. aplicar Supabase quando houver migrations, policies ou storage;
-5. aplicar Vercel quando houver frontend.
+Para garantir que o número da versão (`v1.0.X`) e a hash do commit sejam atualizados na interface de usuário (Admin e Rodapé):
+
+1. Realize todos os ajustes de código necessários.
+2. Faça o commit preliminar das alterações de código (ex: `git commit -m "feat:..."`). Isso atualizará o `HEAD` e a contagem de commits no Git local.
+3. Execute obrigatoriamente `npm run build` localmente. A execução do build executará a configuração do Vite, a qual lerá o novo commit do Git e gerará/atualizará o arquivo `version.json` na raiz do projeto.
+4. Adicione e faça o commit do arquivo `version.json` atualizado.
+5. Faça o push final para o repositório remoto (`git push`).
+6. Execute o deploy da Vercel via CLI utilizando as credenciais corretas.
 
 Não salvar tokens, senhas ou credenciais no repositório.
 
