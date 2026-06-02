@@ -162,3 +162,38 @@ export function useDeleteShoppingList() {
   })
 }
 
+/**
+ * Add a custom item to the shopping list.
+ */
+export function useAddShoppingItem() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      listId,
+      label,
+      quantity,
+    }: {
+      listId: string
+      label: string
+      quantity?: string
+    }) => {
+      const { error } = await supabase
+        .from('shopping_list_items')
+        .insert({
+          shopping_list_id: listId,
+          ingredient_label: label,
+          quantity_label: quantity || null,
+          source_recipe_count: 1,
+          is_checked: false,
+        })
+
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shopping-list'] })
+    },
+  })
+}
+
+

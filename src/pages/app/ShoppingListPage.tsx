@@ -3,7 +3,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { useShoppingList, useGenerateShoppingList, useToggleShoppingItem, useShareResource, useDeleteShoppingItem, useDeleteShoppingList } from '@/hooks/shopping/useShopping'
+import { useShoppingList, useGenerateShoppingList, useToggleShoppingItem, useShareResource, useDeleteShoppingItem, useDeleteShoppingList, useAddShoppingItem } from '@/hooks/shopping/useShopping'
 import { useActiveWeek, useWeeks } from '@/hooks/planning/usePlanning'
 import { ShoppingChecklistItem } from '@/components/shopping/ShoppingChecklistItem'
 import { cn } from '@/lib/utils'
@@ -28,6 +28,11 @@ export function ShoppingListPage() {
   const shareResource = useShareResource()
   const deleteItem = useDeleteShoppingItem()
   const deleteList = useDeleteShoppingList()
+  const addCustomItem = useAddShoppingItem()
+
+  const [isAddingCustom, setIsAddingCustom] = useState(false)
+  const [customName, setCustomName] = useState('')
+  const [customQty, setCustomQty] = useState('')
 
 
   const items = useMemo(() => {
@@ -100,6 +105,25 @@ export function ShoppingListPage() {
       toast.success('Lista de compras excluída com sucesso!')
     } catch (err: any) {
       toast.error('Erro ao excluir lista: ' + (err.message || 'Erro desconhecido'))
+    }
+  }
+
+  const handleAddCustomItem = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!shoppingList || !customName.trim()) return
+
+    try {
+      await addCustomItem.mutateAsync({
+        listId: shoppingList.id,
+        label: customName.trim(),
+        quantity: customQty.trim() || undefined
+      })
+      toast.success('Item adicionado à lista!')
+      setIsAddingCustom(false)
+      setCustomName('')
+      setCustomQty('')
+    } catch (err: any) {
+      toast.error('Erro ao adicionar item: ' + (err.message || 'Erro desconhecido'))
     }
   }
 
@@ -296,13 +320,67 @@ export function ShoppingListPage() {
           )}
         </div>
 
-        {/* Add Item Button */}
-        <div className="mt-10">
-          <button className="w-full border-2 border-dashed rounded-2xl p-6 text-text-secondary hover:bg-white hover:border-fresh-green hover:text-fresh-green transition-all flex items-center justify-center gap-2" style={{ borderColor: 'var(--color-outline-variant)' }}>
-            <Plus className="h-5 w-5" />
-            <span className="font-bold text-sm">Adicionar item avulso</span>
-          </button>
-        </div>
+        {/* Add Item Button / Form */}
+        {isAddingCustom ? (
+          <div className="mt-10 bg-white rounded-3xl p-6 border shadow-sm" style={{ borderColor: 'var(--color-outline-variant)' }}>
+            <h4 className="text-sm font-bold text-on-surface mb-4">Novo Item Avulso</h4>
+            <form onSubmit={handleAddCustomItem} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-text-secondary mb-1.5">Nome do ingrediente</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: Pão integral, Sal de parrilla..."
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  className="w-full bg-neutral-100 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-fresh-green text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-text-secondary mb-1.5">Quantidade / Medida (Opcional)</label>
+                <input
+                  type="text"
+                  placeholder="Ex: 1 pacote, 500g..."
+                  value={customQty}
+                  onChange={(e) => setCustomQty(e.target.value)}
+                  className="w-full bg-neutral-100 border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-fresh-green text-sm"
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAddingCustom(false)
+                    setCustomName('')
+                    setCustomQty('')
+                  }}
+                  className="flex-1 bg-neutral-100 hover:bg-neutral-200 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={addCustomItem.isPending}
+                  className="flex-1 text-white hover:bg-opacity-90 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  style={{ backgroundColor: 'var(--color-highlight)' }}
+                >
+                  {addCustomItem.isPending ? 'Adicionando...' : 'Adicionar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        ) : (
+          <div className="mt-10">
+            <button 
+              onClick={() => setIsAddingCustom(true)}
+              className="w-full border-2 border-dashed rounded-2xl p-6 text-text-secondary hover:bg-white hover:border-fresh-green hover:text-fresh-green transition-all flex items-center justify-center gap-2 cursor-pointer" 
+              style={{ borderColor: 'var(--color-outline-variant)' }}
+            >
+              <Plus className="h-5 w-5" />
+              <span className="font-bold text-sm">Adicionar item avulso</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
