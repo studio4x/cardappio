@@ -46,6 +46,23 @@ export function WeeklyPlannerPage() {
     ALL_DAYS.slice(0, preferences?.default_plan_days ?? 5)
   )
 
+  const defaultMondayStr = useMemo(() => {
+    const today = new Date()
+    const dayOfWeek = today.getDay()
+    const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
+    const monday = new Date(today.setDate(diff))
+    return monday.toISOString().split('T')[0]
+  }, [])
+
+  const [customStartDate, setCustomStartDate] = useState(defaultMondayStr)
+  
+  const customEndDate = useMemo(() => {
+    if (!customStartDate) return ''
+    const start = new Date(customStartDate + 'T12:00:00')
+    const end = new Date(start.getTime() + 6 * 24 * 60 * 60 * 1000)
+    return end.toISOString().split('T')[0]
+  }, [customStartDate])
+
   const mealModes = useMemo(() => {
     if (!preferences?.default_meal_modes) return ['lunch', 'dinner']
     const modes = preferences.default_meal_modes
@@ -132,39 +149,61 @@ export function WeeklyPlannerPage() {
   if (!activeWeek) {
      return (
         <div className="max-w-2xl mx-auto px-5 pt-8 pb-32">
-          <PageHeader title="Montar Semana" subtitle="Selecione os dias que deseja planejar." />
+          <PageHeader title="Montar Semana" subtitle="Selecione os dias e a data de início que deseja planejar." />
           <div className="bg-white rounded-3xl border p-6 space-y-6">
-             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {ALL_DAYS.map((day) => (
-                  <button
-                    key={day}
-                    onClick={() => setSelectedDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day])}
-                    className={cn(
-                      "rounded-2xl border px-4 py-4 text-xs font-bold transition-all uppercase tracking-widest",
-                      selectedDays.includes(day) ? "bg-emerald-50 border-primary text-primary" : "bg-neutral-50 border-transparent text-neutral-400"
-                    )}
-                  >
-                    {DAY_LABELS[day].substring(0, 3)}
-                  </button>
-                ))}
+             
+             {/* Data de Início */}
+             <div className="space-y-2">
+               <label htmlFor="startDateInput" className="text-xs font-bold uppercase tracking-wider text-warm-gray-medium block">
+                 Data de Início
+               </label>
+               <input
+                 id="startDateInput"
+                 type="date"
+                 value={customStartDate}
+                 onChange={(e) => setCustomStartDate(e.target.value)}
+                 className="w-full px-4 py-3 rounded-2xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-neutral-50 text-sm text-on-surface font-semibold"
+               />
+               {customEndDate && (
+                 <p className="text-xs text-[#6d759c] font-semibold">
+                   Seu planejamento cobrirá de {formatDateToShort(customStartDate)} a {formatDateToShort(customEndDate)} (7 dias).
+                 </p>
+               )}
              </div>
+
+             {/* Seleção de Dias */}
+             <div className="space-y-2">
+               <label className="text-xs font-bold uppercase tracking-wider text-warm-gray-medium block">
+                 Dias para Planejar
+               </label>
+               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {ALL_DAYS.map((day) => (
+                    <button
+                      key={day}
+                      onClick={() => setSelectedDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day])}
+                      className={cn(
+                        "rounded-2xl border px-4 py-4 text-xs font-bold transition-all uppercase tracking-widest cursor-pointer",
+                        selectedDays.includes(day) ? "bg-emerald-50 border-primary text-primary" : "bg-neutral-50 border-transparent text-neutral-400"
+                      )}
+                    >
+                      {DAY_LABELS[day].substring(0, 3)}
+                    </button>
+                  ))}
+               </div>
+             </div>
+
              <Button 
                 onClick={async () => {
-                  const today = new Date()
-                  const dayOfWeek = today.getDay()
-                  const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
-                  const monday = new Date(today.setDate(diff))
-                  const sunday = new Date(monday.getTime() + 6 * 24 * 60 * 60 * 1000)
-                  
+                  if (!customStartDate || !customEndDate) return
                   const week = await createWeek.mutateAsync({ 
-                    startDate: monday.toISOString().split('T')[0], 
-                    endDate: sunday.toISOString().split('T')[0], 
+                    startDate: customStartDate, 
+                    endDate: customEndDate, 
                     selectedDays, 
                     mealModes 
                   })
                   if(week) navigate(`/app/semana/${week.id}`)
                 }} 
-                disabled={selectedDays.length === 0}
+                disabled={selectedDays.length === 0 || !customStartDate}
                 className="w-full py-6 rounded-2xl text-lg font-bold"
              >
                 Começar Planejamento
