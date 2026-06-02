@@ -9,15 +9,15 @@
   --color-tertiary: #a63360;
   
   /* UI Colors */
-  --color-background: #ff6464;
+  --color-background: #f8fafc;
   --color-foreground: #171d16;
   --color-card: #ffffff;
   --color-card-foreground: #171d16;
   --color-popover: #ffffff;
   --color-popover-foreground: #171d16;
-  --color-muted: #ffebeb;
+  --color-muted: #f1f5f9;
   --color-muted-foreground: #757575;
-  --color-accent: #ffebeb;
+  --color-accent: #f1f5f9;
   --color-accent-foreground: #f76f25;
   --color-border: #becab9;
   --color-input: #becab9;

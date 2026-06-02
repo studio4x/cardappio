@@ -305,7 +305,7 @@ export function AdminLayout() {
                               "w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold rounded-xl transition-all no-underline shadow-sm hover:translate-x-0.5",
                               itemActive
                                 ? "bg-[#f76f25] text-white shadow-[#f76f25]/10"
-                                : "bg-[#ffebeb] text-slate-700 hover:bg-slate-200/60 shadow-slate-100/50"
+                                : "bg-[#f1f5f9] text-slate-600 hover:bg-slate-200/60 shadow-slate-100/50"
                             )}
                           >
                             <item.icon className="h-4 w-4 shrink-0" />
