@@ -45,3 +45,8 @@ export function createResponse(data: unknown, error: { code: string; message: st
     }
   )
 }
+
+export function successResponse(data: unknown, message?: string, status = 200): Response {
+  return jsonResponse({ status: 'success', message, data }, status)
+}
+
