@@ -1,9 +1,9 @@
-import { ShoppingCart, RefreshCw, Loader2, Package, Share2, Search, Utensils, Plus, Apple, Leaf, Milk, Beef, SlidersVertical as TuneIcon, Printer } from 'lucide-react'
+import { ShoppingCart, RefreshCw, Loader2, Package, Share2, Search, Utensils, Plus, Apple, Leaf, Milk, Beef, SlidersVertical as TuneIcon, Printer, Trash2 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { useShoppingList, useGenerateShoppingList, useToggleShoppingItem, useShareResource } from '@/hooks/shopping/useShopping'
+import { useShoppingList, useGenerateShoppingList, useToggleShoppingItem, useShareResource, useDeleteShoppingItem, useDeleteShoppingList } from '@/hooks/shopping/useShopping'
 import { useActiveWeek } from '@/hooks/planning/usePlanning'
 import { ShoppingChecklistItem } from '@/components/shopping/ShoppingChecklistItem'
 import { cn } from '@/lib/utils'
@@ -23,6 +23,8 @@ export function ShoppingListPage() {
   const generateList = useGenerateShoppingList()
   const toggleItem = useToggleShoppingItem()
   const shareResource = useShareResource()
+  const deleteItem = useDeleteShoppingItem()
+  const deleteList = useDeleteShoppingList()
 
   const items = useMemo(() => {
     if (!shoppingList?.items) return []
@@ -74,6 +76,27 @@ export function ShoppingListPage() {
     try {
       await toggleItem.mutateAsync({ itemId, isChecked: !currentState })
     } catch (err) {}
+  }
+
+  const handleDeleteItem = async (itemId: string) => {
+    try {
+      await deleteItem.mutateAsync(itemId)
+      toast.success('Ingrediente removido!')
+    } catch (err: any) {
+      toast.error('Erro ao excluir ingrediente: ' + (err.message || 'Erro desconhecido'))
+    }
+  }
+
+  const handleDeleteList = async () => {
+    if (!shoppingList) return
+    const confirmed = window.confirm("Deseja realmente excluir todos os itens e apagar a lista de compras?")
+    if (!confirmed) return
+    try {
+      await deleteList.mutateAsync(shoppingList.id)
+      toast.success('Lista de compras excluída com sucesso!')
+    } catch (err: any) {
+      toast.error('Erro ao excluir lista: ' + (err.message || 'Erro desconhecido'))
+    }
   }
 
   if (isLoading) return <LoadingState message="Carregando lista..." />
@@ -141,6 +164,14 @@ export function ShoppingListPage() {
                >
                  <RefreshCw className={cn("h-4 w-4", generateList.isPending && "animate-spin")} />
                </button>
+               <button 
+                  onClick={handleDeleteList}
+                  disabled={deleteList.isPending}
+                  className="flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 p-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                  title="Excluir lista inteira"
+               >
+                 <Trash2 className={cn("h-4 w-4", deleteList.isPending && "animate-pulse")} />
+               </button>
             </div>
           </div>
 
@@ -206,6 +237,7 @@ export function ShoppingListPage() {
                       key={item.id}
                       item={item}
                       onToggle={handleToggle}
+                      onDelete={handleDeleteItem}
                     />
                   ))}
                 </div>

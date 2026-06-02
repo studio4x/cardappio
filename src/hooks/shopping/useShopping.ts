@@ -119,3 +119,46 @@ export function useShareResource() {
     }
   })
 }
+
+/**
+ * Delete a single shopping list item.
+ */
+export function useDeleteShoppingItem() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (itemId: string) => {
+      const { error } = await supabase
+        .from('shopping_list_items')
+        .delete()
+        .eq('id', itemId)
+
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shopping-list'] })
+    },
+  })
+}
+
+/**
+ * Delete the entire shopping list (items are cascade deleted).
+ */
+export function useDeleteShoppingList() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (listId: string) => {
+      const { error } = await supabase
+        .from('shopping_lists')
+        .delete()
+        .eq('id', listId)
+
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shopping-list'] })
+    },
+  })
+}
+

@@ -1,13 +1,14 @@
-import { Check } from 'lucide-react'
+import { Check, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ShoppingListItem } from '@/types/shopping'
 
 interface ShoppingChecklistItemProps {
   item: ShoppingListItem
   onToggle: (id: string, currentChecked: boolean) => void
+  onDelete: (id: string) => void
 }
 
-export function ShoppingChecklistItem({ item, onToggle }: ShoppingChecklistItemProps) {
+export function ShoppingChecklistItem({ item, onToggle, onDelete }: ShoppingChecklistItemProps) {
   return (
     <li 
       className={cn(
@@ -44,6 +45,17 @@ export function ShoppingChecklistItem({ item, onToggle }: ShoppingChecklistItemP
           {item.quantity_label}
         </span>
       )}
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          onDelete(item.id)
+        }}
+        className="text-neutral-400 hover:text-red-500 p-1 rounded-lg hover:bg-neutral-100 transition-colors cursor-pointer active:scale-95 ml-1"
+        title="Excluir ingrediente"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
     </li>
   )
 }
+
