@@ -49,7 +49,7 @@ export function useGenerateShoppingList() {
       })
 
       if (error) throw error
-      if (!data.success) throw new Error(data.error?.message || 'Failed to rebuild list')
+      if (data.error) throw new Error(data.error.message || 'Failed to rebuild list')
 
       return data.data
     },
@@ -113,7 +113,7 @@ export function useShareResource() {
       })
 
       if (error) throw error
-      if (!data.success) throw new Error(data.error?.message || 'Failed to generate link')
+      if (data.error) throw new Error(data.error.message || 'Failed to generate link')
 
       return data.data // { token, share_url, expires_at }
     }
