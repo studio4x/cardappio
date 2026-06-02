@@ -1,21 +1,45 @@
 import { useState, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Plus, ShoppingCart, Loader2, Save, SlidersVertical as Tune, ChevronRight } from 'lucide-react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Plus, ShoppingCart, Loader2, Save, SlidersVertical as Tune, ChevronRight, ChevronDown } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
-import { useActiveWeek, useCreateWeek } from '@/hooks/planning/usePlanning'
+import { useActiveWeek, useCreateWeek, useWeek, useWeeks, useRepeatWeek } from '@/hooks/planning/usePlanning'
 import { useProfile } from '@/hooks/auth'
 import { DayPlannerCard } from '@/components/planning/DayPlannerCard'
 import { DAY_LABELS, DAY_ORDER as ALL_DAYS, type DayOfWeek } from '@/lib/constants/calendar'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
 
 export function WeeklyPlannerPage() {
   const navigate = useNavigate()
-  const { data: activeWeek, isLoading, error, refetch } = useActiveWeek()
+  const { weekId: routeWeekId } = useParams()
   const { preferences } = useProfile()
+  
   const createWeek = useCreateWeek()
+  const repeatWeek = useRepeatWeek()
+  const { data: weeks } = useWeeks()
+  
+  const { data: activeWeekData, isLoading: isActiveLoading, error: activeError, refetch: refetchActive } = useActiveWeek()
+  
+  const isCreatingNew = routeWeekId === 'nova'
+  const shouldQuerySpecificWeek = !!routeWeekId && !isCreatingNew && routeWeekId !== activeWeekData?.id
+  
+  const { data: specificWeekData, isLoading: isSpecificLoading, error: specificError, refetch: refetchSpecific } = useWeek(
+    shouldQuerySpecificWeek ? routeWeekId : undefined
+  )
+  
+  const activeWeek = isCreatingNew ? null : (shouldQuerySpecificWeek ? specificWeekData : activeWeekData)
+  const isLoading = isActiveLoading || (shouldQuerySpecificWeek && isSpecificLoading)
+  const error = shouldQuerySpecificWeek ? specificError : activeError
+  const refetch = shouldQuerySpecificWeek ? refetchSpecific : refetchActive
 
   const [selectedDays, setSelectedDays] = useState<DayOfWeek[]>(
     ALL_DAYS.slice(0, preferences?.default_plan_days ?? 5)
@@ -27,11 +51,67 @@ export function WeeklyPlannerPage() {
     return Array.isArray(modes) ? modes : ['lunch', 'dinner']
   }, [preferences])
 
+  const todayFormatted = useMemo(() => {
+    const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long' }
+    const dateStr = new Date().toLocaleDateString('pt-BR', options)
+    return dateStr.charAt(0).toUpperCase() + dateStr.slice(1)
+  }, [])
+
+  const formatDateToShort = (dateStr: string) => {
+    if (!dateStr) return ''
+    const d = new Date(dateStr + 'T12:00:00')
+    return d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })
+  }
+
+  const handleCreateNextWeek = async () => {
+    if (!activeWeek) return
+    const currentEnd = new Date(activeWeek.week_end_date + 'T12:00:00')
+    const nextStart = new Date(currentEnd.getTime() + 24 * 60 * 60 * 1000)
+    const nextEnd = new Date(nextStart.getTime() + 6 * 24 * 60 * 60 * 1000)
+    
+    const startDateStr = nextStart.toISOString().split('T')[0]
+    const endDateStr = nextEnd.toISOString().split('T')[0]
+    
+    try {
+      const week = await createWeek.mutateAsync({ 
+        startDate: startDateStr, 
+        endDate: endDateStr, 
+        selectedDays, 
+        mealModes 
+      })
+      if (week) {
+        navigate(`/app/semana/${week.id}`)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const handleRepeatWeek = async (weekId: string) => {
+    try {
+      const week = await repeatWeek.mutateAsync(weekId)
+      if (week) {
+        navigate(`/app/semana/${week.id}`)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const getDayOfMonth = (startDateStr: string, sortOrder: number) => {
+    try {
+      const start = new Date(startDateStr + 'T12:00:00')
+      start.setDate(start.getDate() + sortOrder)
+      return start.getDate()
+    } catch {
+      return 12 + sortOrder
+    }
+  }
+
   if (isLoading) return <LoadingState message="Carregando planejador..." />
   if (error) return <ErrorState onRetry={() => refetch()} />
 
   if (!activeWeek) {
-     // ... creation flow remains similar but styled ...
      return (
         <div className="max-w-2xl mx-auto px-5 pt-8 pb-32">
           <PageHeader title="Montar Semana" subtitle="Selecione os dias que deseja planejar." />
@@ -52,9 +132,11 @@ export function WeeklyPlannerPage() {
              </div>
              <Button 
                 onClick={async () => {
+                  const today = new Date()
+                  const nextWeek = new Date(today.getTime() + 6 * 24 * 60 * 60 * 1000)
                   const week = await createWeek.mutateAsync({ 
-                    startDate: new Date().toISOString().split('T')[0], 
-                    endDate: new Date().toISOString().split('T')[0], 
+                    startDate: today.toISOString().split('T')[0], 
+                    endDate: nextWeek.toISOString().split('T')[0], 
                     selectedDays, 
                     mealModes 
                   })
@@ -76,16 +158,120 @@ export function WeeklyPlannerPage() {
     <div className="bg-surface min-h-screen pb-32">
       <main className="max-w-2xl mx-auto px-5 pt-8 space-y-10">
         
+        {/* Today's orientation banner */}
+        <div className="bg-primary/5 border border-primary/10 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-primary">Hoje é</p>
+              <p className="text-sm font-extrabold text-on-surface">{todayFormatted}</p>
+            </div>
+          </div>
+          <span className="text-[9px] font-black uppercase tracking-widest text-secondary bg-secondary/10 px-2.5 py-1 rounded-lg">
+            Guia do Dia
+          </span>
+        </div>
+        
         {/* Week Header */}
         <section className="flex flex-col gap-6">
           <div className="flex justify-between items-end">
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-warm-gray-medium mb-1 block">ESTA SEMANA</span>
-              <h2 className="text-3xl font-extrabold text-on-surface tracking-tight">Meu Planejamento</h2>
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-warm-gray-medium mb-1 block">
+                {activeWeek.status === 'active' ? 'SEMANA ATIVA' : 'SEMANA ARQUIVADA'}
+              </span>
+              
+              {/* Week Selector Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 text-3xl font-extrabold text-on-surface tracking-tight hover:opacity-80 transition-opacity text-left cursor-pointer">
+                    <span>Meu Planejamento</span>
+                    <ChevronDown className="h-6 w-6 text-primary shrink-0" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-64 rounded-2xl border border-neutral-100 shadow-lg bg-white p-2 z-50">
+                  <div className="px-2 py-1.5 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    Selecionar Semana
+                  </div>
+                  {weeks?.map((w) => {
+                    const isCurrent = w.id === activeWeek.id
+                    return (
+                      <DropdownMenuItem
+                        key={w.id}
+                        onClick={() => navigate(`/app/semana/${w.id}`)}
+                        className={cn(
+                          "rounded-xl px-3 py-2 text-sm cursor-pointer transition-colors focus:bg-neutral-50",
+                          isCurrent 
+                            ? "bg-primary/10 text-primary font-bold focus:bg-primary/15" 
+                            : "hover:bg-neutral-50 text-on-surface"
+                        )}
+                      >
+                        <div className="flex flex-col">
+                          <span>
+                            {formatDateToShort(w.week_start_date)} a {formatDateToShort(w.week_end_date)}
+                          </span>
+                          {w.status === 'active' && (
+                            <span className="text-[9px] uppercase tracking-wider text-primary font-bold mt-0.5">
+                              Ativa
+                            </span>
+                          )}
+                        </div>
+                      </DropdownMenuItem>
+                    )
+                  })}
+                  {(!weeks || weeks.length === 0) && (
+                    <div className="px-3 py-2 text-xs text-neutral-400">
+                      Nenhuma semana encontrada
+                    </div>
+                  )}
+                  <DropdownMenuSeparator className="my-1 bg-neutral-100" />
+                  <DropdownMenuItem
+                    onClick={() => navigate('/app/semana/nova')}
+                    className="rounded-xl px-3 py-2 text-sm text-primary font-bold cursor-pointer hover:bg-neutral-50 focus:bg-neutral-50"
+                  >
+                    + Nova Semana
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-            <button className="p-3 bg-neutral-100 hover:bg-neutral-200 rounded-2xl transition-colors">
-              <Tune className="h-5 w-5 text-on-surface-variant" />
-            </button>
+
+            {/* Options Dropdown Button */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-3 bg-neutral-100 hover:bg-neutral-200 rounded-2xl transition-colors cursor-pointer">
+                  <Tune className="h-5 w-5 text-on-surface-variant" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 rounded-2xl border border-neutral-100 shadow-lg bg-white p-2 z-50">
+                <div className="px-2 py-1.5 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                  Opções do Plano
+                </div>
+                
+                <DropdownMenuItem
+                  onClick={handleCreateNextWeek}
+                  className="rounded-xl px-3 py-2 text-sm cursor-pointer hover:bg-neutral-50 focus:bg-neutral-50 flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4 text-primary" />
+                  <span>Planejar Próxima Semana</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => handleRepeatWeek(activeWeek.id)}
+                  className="rounded-xl px-3 py-2 text-sm cursor-pointer hover:bg-neutral-50 focus:bg-neutral-50 flex items-center gap-2"
+                >
+                  <Save className="h-4 w-4 text-secondary" />
+                  <span>Repetir Esta Semana</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator className="my-1 bg-neutral-100" />
+
+                <DropdownMenuItem
+                  onClick={() => navigate('/app/historico')}
+                  className="rounded-xl px-3 py-2 text-sm cursor-pointer hover:bg-neutral-50 focus:bg-neutral-50 flex items-center gap-2"
+                >
+                  <span>Ver Histórico</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Horizontal Day Scroller */}
@@ -104,7 +290,7 @@ export function WeeklyPlannerPage() {
                   {DAY_LABELS[day.day_of_week as DayOfWeek].substring(0, 3)}
                 </span>
                 <span className="text-xl font-black mt-1">
-                  {idx + 12} {/* Dummy date for mockup feel */}
+                  {getDayOfMonth(activeWeek.week_start_date, day.sort_order)}
                 </span>
               </div>
             ))}
@@ -123,7 +309,7 @@ export function WeeklyPlannerPage() {
            <Save className="h-8 w-8" />
         </button>
 
-        {/* CTA to Shopping List (Desktop/Large Mobile) */}
+        {/* CTA to Shopping List */}
         <div className="pt-10">
            <Link 
             to={`/app/semana/${activeWeek.id}/compras`}
@@ -145,5 +331,3 @@ export function WeeklyPlannerPage() {
     </div>
   )
 }
-
-
