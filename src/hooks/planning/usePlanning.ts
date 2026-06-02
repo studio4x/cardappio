@@ -291,3 +291,28 @@ export function useRepeatWeek() {
     }
   })
 }
+
+/**
+ * Fetch all weeks for the current user.
+ */
+export function useWeeks() {
+  const { supabaseUser } = useAuth()
+
+  return useQuery({
+    queryKey: ['weeks', supabaseUser?.id],
+    queryFn: async () => {
+      if (!supabaseUser) return []
+
+      const { data, error } = await supabase
+        .from('meal_plan_weeks')
+        .select('*')
+        .eq('user_id', supabaseUser.id)
+        .order('week_start_date', { ascending: false })
+
+      if (error) throw error
+      return data as MealPlanWeek[]
+    },
+    enabled: !!supabaseUser,
+  })
+}
+

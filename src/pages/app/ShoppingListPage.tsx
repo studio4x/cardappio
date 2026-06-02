@@ -4,20 +4,23 @@ import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { useShoppingList, useGenerateShoppingList, useToggleShoppingItem, useShareResource, useDeleteShoppingItem, useDeleteShoppingList } from '@/hooks/shopping/useShopping'
-import { useActiveWeek } from '@/hooks/planning/usePlanning'
+import { useActiveWeek, useWeeks } from '@/hooks/planning/usePlanning'
 import { ShoppingChecklistItem } from '@/components/shopping/ShoppingChecklistItem'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 
 export function ShoppingListPage() {
   const { weekId: routeWeekId } = useParams()
+  const navigate = useNavigate()
   const { data: activeWeek } = useActiveWeek()
+  const { data: weeks } = useWeeks()
   const [searchTerm, setSearchTerm] = useState('')
 
   const weekId = routeWeekId ?? activeWeek?.id
+  const selectedWeek = weeks?.find(w => w.id === weekId)
 
   const { data: shoppingList, isLoading, error, refetch } = useShoppingList(weekId)
   const generateList = useGenerateShoppingList()
@@ -25,6 +28,7 @@ export function ShoppingListPage() {
   const shareResource = useShareResource()
   const deleteItem = useDeleteShoppingItem()
   const deleteList = useDeleteShoppingList()
+
 
   const items = useMemo(() => {
     if (!shoppingList?.items) return []
@@ -105,7 +109,30 @@ export function ShoppingListPage() {
   if (!shoppingList) {
     return (
       <div className="max-w-2xl mx-auto px-5 pt-8">
-        <PageHeader title="Lista de Compras" />
+        <PageHeader 
+          title="Lista de Compras" 
+          actions={
+            weeks && weeks.length > 0 ? (
+              <select
+                value={weekId || ''}
+                onChange={(e) => {
+                  const val = e.target.value
+                  if (val) {
+                    navigate(`/app/semana/${val}/compras`)
+                  }
+                }}
+                className="bg-neutral-100 hover:bg-neutral-200 border-none rounded-xl py-1.5 px-3 text-xs font-bold text-text-secondary transition-all cursor-pointer focus:ring-2 focus:ring-fresh-green appearance-none pr-8 relative"
+                style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236d759c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`, backgroundPosition: 'right 8px center', backgroundSize: '16px', backgroundRepeat: 'no-repeat' }}
+              >
+                {weeks.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    Semana {w.week_start_date} {w.status === 'active' ? '(Ativa)' : ''}
+                  </option>
+                ))}
+              </select>
+            ) : undefined
+          }
+        />
         <EmptyState
           icon={<ShoppingCart className="h-12 w-12 text-neutral-300" />}
           title="Lista não gerada"
@@ -132,11 +159,34 @@ export function ShoppingListPage() {
         <header className="mb-10">
           <div className="bg-white rounded-3xl p-6 border shadow-sm" style={{ borderColor: 'var(--color-outline-variant)' }}>
             <div className="flex justify-between items-start mb-6">
-              <div>
+              <div className="min-w-0 flex-1 pr-4">
                 <h2 className="text-2xl font-bold text-on-surface">Minhas Compras</h2>
-                <p className="text-sm text-text-secondary">
-                  {activeWeek ? `Semana ${activeWeek.week_start_date}` : 'Semana Atual'} • {totalCount} Items
-                </p>
+                {weeks && weeks.length > 0 ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <select
+                      value={weekId || ''}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        if (val) {
+                          navigate(`/app/semana/${val}/compras`)
+                        }
+                      }}
+                      className="bg-neutral-100 hover:bg-neutral-200 border-none rounded-xl py-1.5 px-3 text-xs font-bold text-text-secondary transition-all cursor-pointer focus:ring-2 focus:ring-fresh-green appearance-none pr-8 relative"
+                      style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236d759c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`, backgroundPosition: 'right 8px center', backgroundSize: '16px', backgroundRepeat: 'no-repeat' }}
+                    >
+                      {weeks.map((w) => (
+                        <option key={w.id} value={w.id}>
+                          Semana {w.week_start_date} {w.status === 'active' ? '(Ativa)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="text-xs text-text-secondary">• {totalCount} Itens</span>
+                  </div>
+                ) : (
+                  <p className="text-sm text-text-secondary">
+                    {selectedWeek ? `Semana ${selectedWeek.week_start_date}` : 'Semana Atual'} • {totalCount} Itens
+                  </p>
+                )}
               </div>
               <div className="bg-primary-container text-white px-3 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: 'var(--color-fresh-green)' }}>
                 {checkedCount}/{totalCount}
