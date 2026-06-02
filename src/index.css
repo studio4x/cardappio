@@ -2,29 +2,29 @@
 
 @theme {
   /* Brand Colors */
-  --color-primary: #006e1c;
+  --color-primary: #f76f25;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #9f4122;
+  --color-secondary: #6d759c;
   --color-secondary-foreground: #ffffff;
   --color-tertiary: #a63360;
   
   /* UI Colors */
-  --color-background: #f5fbef;
+  --color-background: #ff6464;
   --color-foreground: #171d16;
   --color-card: #ffffff;
   --color-card-foreground: #171d16;
   --color-popover: #ffffff;
   --color-popover-foreground: #171d16;
-  --color-muted: #f0f6ea;
+  --color-muted: #ffebeb;
   --color-muted-foreground: #757575;
-  --color-accent: #eaf0e4;
-  --color-accent-foreground: #006e1c;
+  --color-accent: #ffebeb;
+  --color-accent-foreground: #f76f25;
   --color-border: #becab9;
   --color-input: #becab9;
-  --color-ring: #4caf50;
+  --color-ring: #f76f25;
   
   /* Brand Extras */
-  --color-fresh-green: #4caf50;
+  --color-fresh-green: #f76f25;
   --color-warm-terracotta: #ff8a65;
   --color-off-white: #f9f9f7;
   --color-on-surface: #171d16;

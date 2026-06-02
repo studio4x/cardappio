@@ -130,13 +130,13 @@ export function AdminLayout() {
   const userInitials = userEmail.charAt(0).toUpperCase()
 
   return (
-    <div className="min-h-screen bg-[#f0f4f8] p-4 lg:p-6 flex flex-col gap-6 font-sans">
+    <div className="min-h-screen bg-background p-4 lg:p-6 flex flex-col gap-6 font-sans">
       {/* Top Header Card */}
       <header className="bg-white rounded-[24px] border border-slate-100 px-6 py-4 flex items-center justify-between shadow-sm">
         {/* Brand Logo & Title */}
         <div className="flex items-center gap-2">
           <Logo variant="dark" to="/admin" showText={false} className="scale-90 origin-left" />
-          <span className="text-sm font-black tracking-widest text-[#006e1c] dark:text-emerald-500 uppercase ml-1 select-none">
+          <span className="text-sm font-black tracking-widest text-primary dark:text-orange-400 uppercase ml-1 select-none">
             {config.app.name}
           </span>
           <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase border-l pl-3 ml-3 border-slate-200 hidden sm:inline-block">
@@ -174,7 +174,7 @@ export function AdminLayout() {
           {/* Notification Button */}
           <Link to="/admin/notificacoes" className="relative p-2.5 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 transition-colors shadow-sm active:scale-95">
             <Bell className="h-4 w-4" />
-            <span className="absolute -top-1.5 -right-1.5 bg-[#025a70] text-white text-[9px] font-black rounded-full h-4 min-w-4 px-1 flex items-center justify-center border-2 border-white shadow-sm">
+            <span className="absolute -top-1.5 -right-1.5 bg-[#f76f25] text-white text-[9px] font-black rounded-full h-4 min-w-4 px-1 flex items-center justify-center border-2 border-white shadow-sm">
               9+
             </span>
           </Link>
@@ -263,14 +263,14 @@ export function AdminLayout() {
                       className={cn(
                         "w-full flex items-center justify-between text-left p-4 rounded-2xl border transition-all",
                         groupActive
-                          ? "border-[#025a70]/20 bg-[#025a70]/5"
+                          ? "border-[#f76f25]/20 bg-[#f76f25]/5"
                           : "border-slate-100 bg-white hover:bg-slate-50/50"
                       )}
                     >
                       <div className="pr-2 leading-none">
                         <span className={cn(
                           "text-[10px] font-black tracking-widest uppercase",
-                          groupActive ? "text-[#025a70]" : "text-slate-500"
+                          groupActive ? "text-[#f76f25]" : "text-slate-500"
                         )}>
                           {group.label}
                         </span>
@@ -279,9 +279,9 @@ export function AdminLayout() {
                         </span>
                       </div>
                       {isExpanded ? (
-                        <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", groupActive ? "text-[#025a70]" : "text-slate-400")} />
+                        <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", groupActive ? "text-[#f76f25]" : "text-slate-400")} />
                       ) : (
-                        <ChevronRight className={cn("h-4 w-4 shrink-0 transition-transform", groupActive ? "text-[#025a70]" : "text-slate-400")} />
+                        <ChevronRight className={cn("h-4 w-4 shrink-0 transition-transform", groupActive ? "text-[#f76f25]" : "text-slate-400")} />
                       )}
                     </button>
 
@@ -304,8 +304,8 @@ export function AdminLayout() {
                             className={cn(
                               "w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold rounded-xl transition-all no-underline shadow-sm hover:translate-x-0.5",
                               itemActive
-                                ? "bg-[#025a70] text-white shadow-[#025a70]/10"
-                                : "bg-[#f0f4f8] text-slate-600 hover:bg-slate-200/60 shadow-slate-100/50"
+                                ? "bg-[#f76f25] text-white shadow-[#f76f25]/10"
+                                : "bg-[#ffebeb] text-slate-700 hover:bg-slate-200/60 shadow-slate-100/50"
                             )}
                           >
                             <item.icon className="h-4 w-4 shrink-0" />
@@ -353,11 +353,11 @@ export function AdminLayout() {
           {/* Main Layout Footer */}
           <footer className="flex flex-col sm:flex-row gap-2 justify-between items-center text-[10px] font-black text-slate-400 tracking-widest uppercase px-4 pb-2 select-none">
             <div className="flex items-center gap-1.5">
-              <Link to="/app/politica" className="hover:text-[#025a70] no-underline transition-colors">PRIVACIDADE</Link>
+              <Link to="/app/politica" className="hover:text-[#f76f25] no-underline transition-colors">PRIVACIDADE</Link>
               <span>/</span>
-              <Link to="/app/termos" className="hover:text-[#025a70] no-underline transition-colors">COOKIES</Link>
+              <Link to="/app/termos" className="hover:text-[#f76f25] no-underline transition-colors">COOKIES</Link>
               <span>/</span>
-              <Link to="/app/termos" className="hover:text-[#025a70] no-underline transition-colors">TERMOS DE USO</Link>
+              <Link to="/app/termos" className="hover:text-[#f76f25] no-underline transition-colors">TERMOS DE USO</Link>
             </div>
             <div>
               Build v{__BUILD_VERSION__} - {__COMMIT_HASH__}
