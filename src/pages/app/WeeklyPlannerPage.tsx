@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom'
 import { Plus, ShoppingCart, Loader2, Save, SlidersVertical as Tune, ChevronRight, ChevronDown } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
@@ -21,6 +21,7 @@ import {
 export function WeeklyPlannerPage() {
   const navigate = useNavigate()
   const { weekId: routeWeekId } = useParams()
+  const { pathname } = useLocation()
   const { preferences } = useProfile()
   
   const createWeek = useCreateWeek()
@@ -29,7 +30,7 @@ export function WeeklyPlannerPage() {
   
   const { data: activeWeekData, isLoading: isActiveLoading, error: activeError, refetch: refetchActive } = useActiveWeek()
   
-  const isCreatingNew = routeWeekId === 'nova'
+  const isCreatingNew = pathname === '/app/semana/nova'
   const shouldQuerySpecificWeek = !!routeWeekId && !isCreatingNew && routeWeekId !== activeWeekData?.id
   
   const { data: specificWeekData, isLoading: isSpecificLoading, error: specificError, refetch: refetchSpecific } = useWeek(
@@ -64,10 +65,24 @@ export function WeeklyPlannerPage() {
   }
 
   const handleCreateNextWeek = async () => {
-    if (!activeWeek) return
-    const currentEnd = new Date(activeWeek.week_end_date + 'T12:00:00')
-    const nextStart = new Date(currentEnd.getTime() + 24 * 60 * 60 * 1000)
-    const nextEnd = new Date(nextStart.getTime() + 6 * 24 * 60 * 60 * 1000)
+    let baseDate = new Date()
+    
+    if (activeWeek) {
+      const currentEnd = new Date(activeWeek.week_end_date + 'T12:00:00')
+      const today = new Date()
+      if (currentEnd >= today) {
+        baseDate = currentEnd
+      }
+    }
+    
+    const dayOfWeek = baseDate.getDay()
+    const daysToNextMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek
+    
+    const nextStart = new Date(baseDate)
+    nextStart.setDate(baseDate.getDate() + daysToNextMonday)
+    
+    const nextEnd = new Date(nextStart)
+    nextEnd.setDate(nextStart.getDate() + 6)
     
     const startDateStr = nextStart.toISOString().split('T')[0]
     const endDateStr = nextEnd.toISOString().split('T')[0]
@@ -100,9 +115,12 @@ export function WeeklyPlannerPage() {
 
   const getDayOfMonth = (startDateStr: string, sortOrder: number) => {
     try {
-      const start = new Date(startDateStr + 'T12:00:00')
-      start.setDate(start.getDate() + sortOrder)
-      return start.getDate()
+      const baseDate = new Date(startDateStr + 'T12:00:00')
+      const dayOfWeek = baseDate.getDay()
+      const diff = baseDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
+      const monday = new Date(baseDate.setDate(diff))
+      monday.setDate(monday.getDate() + sortOrder)
+      return monday.getDate()
     } catch {
       return 12 + sortOrder
     }
@@ -117,26 +135,30 @@ export function WeeklyPlannerPage() {
           <PageHeader title="Montar Semana" subtitle="Selecione os dias que deseja planejar." />
           <div className="bg-white rounded-3xl border p-6 space-y-6">
              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-               {ALL_DAYS.map((day) => (
-                 <button
-                   key={day}
-                   onClick={() => setSelectedDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day])}
-                   className={cn(
-                     "rounded-2xl border px-4 py-4 text-xs font-bold transition-all uppercase tracking-widest",
-                     selectedDays.includes(day) ? "bg-emerald-50 border-primary text-primary" : "bg-neutral-50 border-transparent text-neutral-400"
-                   )}
-                 >
-                   {DAY_LABELS[day].substring(0, 3)}
-                 </button>
-               ))}
+                {ALL_DAYS.map((day) => (
+                  <button
+                    key={day}
+                    onClick={() => setSelectedDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day])}
+                    className={cn(
+                      "rounded-2xl border px-4 py-4 text-xs font-bold transition-all uppercase tracking-widest",
+                      selectedDays.includes(day) ? "bg-emerald-50 border-primary text-primary" : "bg-neutral-50 border-transparent text-neutral-400"
+                    )}
+                  >
+                    {DAY_LABELS[day].substring(0, 3)}
+                  </button>
+                ))}
              </div>
              <Button 
                 onClick={async () => {
                   const today = new Date()
-                  const nextWeek = new Date(today.getTime() + 6 * 24 * 60 * 60 * 1000)
+                  const dayOfWeek = today.getDay()
+                  const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
+                  const monday = new Date(today.setDate(diff))
+                  const sunday = new Date(monday.getTime() + 6 * 24 * 60 * 60 * 1000)
+                  
                   const week = await createWeek.mutateAsync({ 
-                    startDate: today.toISOString().split('T')[0], 
-                    endDate: nextWeek.toISOString().split('T')[0], 
+                    startDate: monday.toISOString().split('T')[0], 
+                    endDate: sunday.toISOString().split('T')[0], 
                     selectedDays, 
                     mealModes 
                   })
