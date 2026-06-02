@@ -181,20 +181,20 @@ export function AdminNotificationsPage() {
 
       {/* Tabs Control */}
       <Tabs defaultValue="send" className="w-full">
-        <TabsList className="bg-slate-100 p-1 rounded-xl mb-6">
-          <TabsTrigger value="send" className="rounded-lg gap-2">
+        <TabsList variant="pill" className="mb-6">
+          <TabsTrigger value="send">
             <Send className="h-4 w-4" />
             Enviar Notificação
           </TabsTrigger>
-          <TabsTrigger value="queue" className="rounded-lg gap-2">
+          <TabsTrigger value="queue">
             <History className="h-4 w-4" />
             Fila de Disparos
           </TabsTrigger>
-          <TabsTrigger value="logs" className="rounded-lg gap-2">
+          <TabsTrigger value="logs">
             <FileText className="h-4 w-4" />
             Logs de Entrega (Push)
           </TabsTrigger>
-          <TabsTrigger value="automation" className="rounded-lg gap-2">
+          <TabsTrigger value="automation">
             <Activity className="h-4 w-4" />
             Histórico de Cron/Automações
           </TabsTrigger>

@@ -47,12 +47,12 @@ export function AdminLogsPage() {
       </div>
 
       <Tabs defaultValue="audit" className="w-full">
-        <TabsList className="bg-slate-100 p-1 rounded-xl mb-6">
-          <TabsTrigger value="audit" className="rounded-lg gap-2">
+        <TabsList variant="pill" className="mb-6">
+          <TabsTrigger value="audit">
             <Shield className="h-4 w-4" />
             Trilha de Auditoria (Ações)
           </TabsTrigger>
-          <TabsTrigger value="cron" className="rounded-lg gap-2">
+          <TabsTrigger value="cron">
             <Terminal className="h-4 w-4" />
             Execuções Cron
           </TabsTrigger>
