@@ -64,7 +64,10 @@ export function ShoppingListPage() {
     if (!weekId) return
     try {
       await generateList.mutateAsync(weekId)
-    } catch (err) {}
+      toast.success('Lista de compras gerada com sucesso!')
+    } catch (err: any) {
+      toast.error('Erro ao gerar lista de compras: ' + (err.message || 'Erro desconhecido'))
+    }
   }
 
   const handleToggle = async (itemId: string, currentState: boolean) => {
