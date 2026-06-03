@@ -39,9 +39,11 @@ export function AuthCallbackPage() {
         const searchParams = new URLSearchParams(window.location.search)
         const isRecovery = hashParams.get('type') === 'recovery' || 
                            searchParams.get('type') === 'recovery' || 
-                           window.location.href.includes('type=recovery')
+                           window.location.href.includes('type=recovery') ||
+                           sessionStorage.getItem('isRecoveryFlow') === 'true'
 
         if (isRecovery) {
+          sessionStorage.removeItem('isRecoveryFlow')
           navigate('/auth/recuperar?reset=true', { replace: true })
           return
         }

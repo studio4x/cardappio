@@ -136,7 +136,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          sessionStorage.setItem('isRecoveryFlow', 'true')
+        }
         setSession(session)
         setSupabaseUser(session?.user ?? null)
 
