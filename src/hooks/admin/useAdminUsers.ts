@@ -15,13 +15,24 @@ export function useAdminUsers() {
   return useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false })
+      const { data, error } = await supabase.functions.invoke('admin-users', {
+        body: { action: 'list' }
+      })
       
-      if (error) throw error
-      return data as AdminUser[]
+      if (error) {
+        let errorMessage = error.message
+        try {
+          if ('context' in error && typeof (error as any).context.json === 'function') {
+            const body = await (error as any).context.json()
+            if (body && body.error) {
+              errorMessage = body.error
+            }
+          }
+        } catch (_) {}
+        throw new Error(errorMessage)
+      }
+      
+      return (data?.users || []) as AdminUser[]
     }
   })
 }
