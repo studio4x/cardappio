@@ -6,7 +6,8 @@ import {
   useAdminUsers, 
   useUpdateUserRole, 
   useCreateUser, 
-  useResetUserPassword 
+  useResetUserPassword,
+  useDeleteUser
 } from '@/hooks/admin/useAdminUsers'
 import { 
   MoreHorizontal, 
@@ -53,6 +54,7 @@ export function AdminUsersPage() {
   const updateRole = useUpdateUserRole()
   const createUser = useCreateUser()
   const resetPassword = useResetUserPassword()
+  const deleteUser = useDeleteUser()
 
   // State for Create User Dialog
   const [isCreateOpen, setIsCreateOpen] = useState(false)
@@ -68,6 +70,10 @@ export function AdminUsersPage() {
   const [resetTarget, setResetTarget] = useState<{id: string, email: string} | null>(null)
   const [newPassword, setNewPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+
+  // State for Delete User Dialog
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<{id: string, email: string} | null>(null)
 
   const handleRoleUpdate = async (userId: string, role: any) => {
     try {
@@ -101,6 +107,18 @@ export function AdminUsersPage() {
       setResetTarget(null)
     } catch (err: any) {
       toast.error(err.message || 'Erro ao redefinir senha')
+    }
+  }
+
+  const handleDeleteUser = async () => {
+    if (!deleteTarget) return
+    try {
+      await deleteUser.mutateAsync({ userId: deleteTarget.id })
+      toast.success('Usuário excluído com sucesso')
+      setIsDeleteOpen(false)
+      setDeleteTarget(null)
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao excluir usuário')
     }
   }
 
@@ -189,6 +207,21 @@ export function AdminUsersPage() {
                         <UserX className="h-4 w-4 mr-2" />
                         Suspender Acesso
                       </DropdownMenuItem>
+                      {user.role !== 'admin' && user.role !== 'super_admin' && (
+                        <>
+                          <div className="h-px bg-slate-100 my-1" />
+                          <DropdownMenuItem 
+                            className="text-rose-600 focus:bg-rose-50 focus:text-rose-700 cursor-pointer"
+                            onClick={() => {
+                              setDeleteTarget({ id: user.id, email: user.email })
+                              setIsDeleteOpen(true)
+                            }}
+                          >
+                            <UserX className="h-4 w-4 mr-2" />
+                            Excluir Usuário
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </td>
@@ -328,6 +361,38 @@ export function AdminUsersPage() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Dialog */}
+      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-rose-600 flex items-center gap-2">
+              <UserX className="h-5 w-5" />
+              Excluir Usuário
+            </DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir permanentemente o usuário <strong>{deleteTarget?.email}</strong>? 
+              Esta ação é irreversível e apagará todos os dados associados (planeamentos, receitas, assinaturas e preferências).
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button type="button" variant="outline" onClick={() => {
+              setIsDeleteOpen(false)
+              setDeleteTarget(null)
+            }}>
+              Cancelar
+            </Button>
+            <Button 
+              type="button" 
+              variant="destructive" 
+              onClick={handleDeleteUser}
+              disabled={deleteUser.isPending}
+            >
+              {deleteUser.isPending ? 'Excluindo...' : 'Confirmar Exclusão'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

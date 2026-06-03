@@ -77,3 +77,23 @@ export function useResetUserPassword() {
     }
   })
 }
+
+export function useDeleteUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ userId }: { userId: string }) => {
+      const { data, error } = await supabase.functions.invoke('admin-users', {
+        body: { action: 'delete', userId }
+      })
+
+      if (error) throw error
+      if (data?.status === 'error') throw new Error(data.message)
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+    }
+  })
+}
+

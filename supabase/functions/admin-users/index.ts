@@ -155,7 +155,39 @@ serve(async (req) => {
 
       if (resetError) throw resetError
 
-      return successResponse(null, 'Senha redefinida com sucesso.')
+    }
+
+    if (action === 'delete') {
+      if (!userId) {
+        return errorResponse('ID do usuário é obrigatório.', 400)
+      }
+
+      if (userId === user.id) {
+        return errorResponse('Não é possível excluir sua própria conta.', 400)
+      }
+
+      // Check the role of the user to be deleted
+      const { data: targetProfile, error: getProfileError } = await supabaseAdmin
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single()
+
+      if (getProfileError && getProfileError.code !== 'PGRST116') {
+        throw getProfileError
+      }
+
+      const targetRole = targetProfile?.role || 'user'
+
+      if (targetRole === 'admin' || targetRole === 'super_admin') {
+        return errorResponse('Acesso negado. Não é permitido excluir usuários administradores.', 400)
+      }
+
+      // Delete the user from Auth (will cascade delete profile and other table relations)
+      const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+      if (deleteError) throw deleteError
+
+      return successResponse(null, 'Usuário excluído com sucesso.')
     }
 
     return errorResponse('Ação inválida.', 400)
