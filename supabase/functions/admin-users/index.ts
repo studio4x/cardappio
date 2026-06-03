@@ -162,6 +162,6 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error('Admin Users Error:', error)
-    return errorResponse(error.message || 'Erro interno no servidor.', 500)
+    return errorResponse(error.message || 'Erro interno no servidor.', error.status || 500)
   }
 })
