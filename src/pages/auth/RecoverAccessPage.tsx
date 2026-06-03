@@ -3,6 +3,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { Mail, Loader2, ArrowLeft, Eye, EyeOff, Key } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
+import { translateAuthError } from '@/lib/auth-errors'
 
 export function RecoverAccessPage() {
   const [searchParams] = useSearchParams()
@@ -52,7 +53,7 @@ export function RecoverAccessPage() {
       })
 
       if (resetError) {
-        setError(resetError.message)
+        setError(translateAuthError(resetError.message))
         return
       }
 
@@ -84,17 +85,17 @@ export function RecoverAccessPage() {
       })
 
       if (updateError) {
-        setError(updateError.message)
+        setError(translateAuthError(updateError.message))
         return
       }
 
       // Sign out the user so they are forced to log in with their new credentials
       await supabase.auth.signOut()
 
-      toast.success('Senha redefinida com sucesso! Digite sua nova senha manualmente (evitando o preenchimento automático antigo).', {
+      toast.success('Senha redefinida com sucesso! Por favor, digite a sua nova senha.', {
         duration: 8000
       })
-      navigate('/auth/login', { replace: true })
+      navigate(`/auth/login?email=${encodeURIComponent(currentUserEmail || '')}`, { replace: true })
     } catch {
       setError('Erro inesperado ao atualizar a senha.')
     } finally {
@@ -142,11 +143,13 @@ export function RecoverAccessPage() {
               <Key className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: 'var(--color-outline)' }} />
               <input
                 id="new-password"
+                name="new-password"
                 type={showPassword ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Mínimo 6 caracteres"
                 required
+                autoComplete="new-password"
                 className="w-full rounded-lg border py-2.5 pl-10 pr-10 text-sm outline-none transition-colors"
                 style={{
                   borderColor: 'var(--color-outline-variant)',
@@ -172,11 +175,13 @@ export function RecoverAccessPage() {
               <Key className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: 'var(--color-outline)' }} />
               <input
                 id="confirm-password"
+                name="confirm-password"
                 type={showConfirmPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirme a nova senha"
                 required
+                autoComplete="new-password"
                 className="w-full rounded-lg border py-2.5 pl-10 pr-10 text-sm outline-none transition-colors"
                 style={{
                   borderColor: 'var(--color-outline-variant)',
