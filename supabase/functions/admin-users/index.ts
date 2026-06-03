@@ -18,8 +18,44 @@ serve(async (req) => {
       return errorResponse('Acesso negado. Apenas administradores podem realizar esta ação.', 403)
     }
 
-    const { action, email, password, fullName, role, userId, newPassword } = await req.json()
+    const body = await req.json().catch(() => ({}))
+    const { action, email, password, fullName, role, userId, newPassword } = body
     const supabaseAdmin = getServiceClient()
+
+    if (action === 'list') {
+      // 1. Fetch all users from Supabase Auth
+      const { data: { users: authUsers }, error: authError } = await supabaseAdmin.auth.admin.listUsers()
+      if (authError) throw authError
+
+      // 2. Fetch all profiles from public.profiles
+      const { data: profiles, error: profilesError } = await supabaseAdmin
+        .from('profiles')
+        .select('*')
+      if (profilesError) throw profilesError
+
+      // Create a map of profiles by user ID
+      const profilesMap = new Map((profiles || []).map(p => [p.id, p]))
+
+      // 3. Merge profiles and auth users, ensuring every auth user has a representation
+      const mergedUsers = authUsers.map(u => {
+        const profile = profilesMap.get(u.id)
+        return {
+          id: u.id,
+          email: u.email || '',
+          full_name: profile?.full_name || u.user_metadata?.full_name || null,
+          role: profile?.role || u.user_metadata?.role || 'user',
+          status: profile?.status || 'active',
+          onboarding_completed_at: profile?.onboarding_completed_at || null,
+          created_at: u.created_at,
+          updated_at: profile?.updated_at || u.updated_at || u.created_at
+        }
+      })
+
+      // Sort by created_at descending
+      mergedUsers.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
+      return successResponse({ users: mergedUsers })
+    }
 
     if (action === 'create') {
       if (!email || !password) {
