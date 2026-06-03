@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { LoadingState } from '@/components/shared/LoadingState'
 
@@ -8,12 +8,19 @@ import { LoadingState } from '@/components/shared/LoadingState'
  */
 export function PublicOnlyGuard() {
   const { isAuthenticated, isAdmin, isLoading } = useAuth()
+  const location = useLocation()
 
   if (isLoading) {
     return <LoadingState fullScreen message="Carregando..." />
   }
 
   if (isAuthenticated) {
+    // Permite que o usuário acesse a página de redefinição de senha mesmo estando autenticado
+    const searchParams = new URLSearchParams(location.search)
+    if (location.pathname === '/auth/recuperar' && searchParams.get('reset') === 'true') {
+      return <Outlet />
+    }
+
     if (isAdmin) {
       return <Navigate to="/admin" replace />
     }
