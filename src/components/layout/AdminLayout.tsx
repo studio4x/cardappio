@@ -21,7 +21,8 @@ import {
   Server,
   HardDrive,
   RotateCw,
-  ExternalLink
+  ExternalLink,
+  Mail
 } from 'lucide-react'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { cn } from '@/lib/utils'
@@ -79,6 +80,7 @@ const adminNavGroups: NavGroup[] = [
     items: [
       { label: 'Integração Stripe', icon: CreditCard, href: '/admin/stripe' },
       { label: 'Configurações', icon: Settings, href: '/admin/configuracoes' },
+      { label: 'E-mails Transacionais', icon: Mail, href: '/admin/emails' },
     ],
   },
 ]

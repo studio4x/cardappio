@@ -37,8 +37,25 @@ export async function sendEmail({ to, subject, html }: SendEmailParams) {
   const apiKey = emailConfig.resend_api_key
   const fromEmail = emailConfig.from_email || 'Cardappio <onboarding@resend.dev>'
 
+  const logEmail = async (status: 'sent' | 'failed', errorMessage: string | null = null) => {
+    try {
+      await supabase
+        .from('email_logs')
+        .insert({
+          to_email: to,
+          subject,
+          body_html: html,
+          status,
+          error_message: errorMessage
+        })
+    } catch (logErr) {
+      console.error('Falha ao gravar log de email no banco:', logErr)
+    }
+  }
+
   if (!apiKey) {
     console.warn('API Key do Resend não configurada. O e-mail não foi enviado.')
+    await logEmail('failed', 'API Key do Resend não configurada em app_settings.')
     return { success: false, error: 'API Key do Resend não configurada.' }
   }
 
@@ -60,14 +77,18 @@ export async function sendEmail({ to, subject, html }: SendEmailParams) {
     if (!response.ok) {
       const errorText = await response.text()
       console.error('Erro ao enviar e-mail via Resend:', errorText)
+      await logEmail('failed', errorText)
       return { success: false, error: errorText }
     }
 
     const result = await response.json()
+    await logEmail('sent')
     return { success: true, data: result }
   } catch (err: any) {
     console.error('Falha na requisição para o Resend:', err)
-    return { success: false, error: err.message || err }
+    const errorMsg = err.message || String(err)
+    await logEmail('failed', errorMsg)
+    return { success: false, error: errorMsg }
   }
 }
 
