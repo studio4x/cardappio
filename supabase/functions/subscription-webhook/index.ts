@@ -4,6 +4,7 @@ import { corsHeaders } from "../_shared/cors.ts"
 import { createResponse } from "../_shared/response.ts"
 import { updateUserSubscription, logSubscriptionEvent } from "../_shared/subscription.ts"
 import Stripe from "npm:stripe"
+import { sendEmail, getEmailTemplate } from "../_shared/email.ts"
 
 /**
  * subscription-webhook
@@ -94,6 +95,46 @@ serve(async (req) => {
           .eq('id', userId)
 
         await logSubscriptionEvent(userId, 'checkout_completed', eventId, event)
+
+        // Send confirmation email
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email, full_name')
+            .eq('id', userId)
+            .single()
+
+          if (profile && profile.email) {
+            const fullName = profile.full_name || 'Assinante'
+            const bodyHtml = `
+              <h2 style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 22px; font-weight: 600; color: #171d16; margin-top: 0; margin-bottom: 16px;">
+                Sua assinatura Premium está ativa, ${fullName}!
+              </h2>
+              <p style="margin-bottom: 16px; font-size: 16px;">
+                Obrigado por assinar o plano Premium do Cardappio! A partir de agora, você tem acesso ilimitado a todas as receitas, planejadores avançados e ferramentas exclusivas da nossa plataforma.
+              </p>
+              <p style="margin-bottom: 16px; font-size: 16px;">
+                Aproveite o melhor que preparamos para você clicando no botão abaixo para começar a planejar sua semana:
+              </p>
+              <div style="text-align: center; margin-top: 24px; margin-bottom: 24px;">
+                <a href="https://cardappio-mauve.vercel.app/app/semana" class="btn" style="display: inline-block; background-color: #f76f25; color: #ffffff !important; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+                  Acessar Planejamento
+                </a>
+              </div>
+              <p style="margin-top: 24px; font-size: 14px; color: #757575;">
+                Se tiver qualquer dúvida sobre sua assinatura ou pagamento, nossa equipe de suporte está à disposição.
+              </p>
+            `
+            const emailHtml = await getEmailTemplate(bodyHtml, 'Sua Assinatura Premium está Ativa!')
+            await sendEmail({
+              to: profile.email,
+              subject: 'Assinatura Premium Ativada! — Cardappio',
+              html: emailHtml
+            })
+          }
+        } catch (emailErr) {
+          console.error('Failed to send checkout confirmation email:', emailErr)
+        }
       }
     } 
     else if (eventType === 'customer.subscription.deleted') {
@@ -127,6 +168,46 @@ serve(async (req) => {
           .eq('id', userId)
 
         await logSubscriptionEvent(userId, 'subscription_canceled', eventId, event)
+
+        // Send cancellation email
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email, full_name')
+            .eq('id', userId)
+            .single()
+
+          if (profile && profile.email) {
+            const fullName = profile.full_name || 'Assinante'
+            const bodyHtml = `
+              <h2 style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 22px; font-weight: 600; color: #171d16; margin-top: 0; margin-bottom: 16px;">
+                Sua assinatura Premium foi cancelada, ${fullName}.
+              </h2>
+              <p style="margin-bottom: 16px; font-size: 16px;">
+                Esta é a confirmação de que a sua assinatura Premium do Cardappio foi cancelada. Seu acesso aos recursos Premium permanecerá ativo até o final do período de faturamento atual.
+              </p>
+              <p style="margin-bottom: 16px; font-size: 16px;">
+                Lamentamos ver você partir! Você pode reativar a sua assinatura a qualquer momento através da plataforma para voltar a ter acesso total aos planejadores e receitas.
+              </p>
+              <div style="text-align: center; margin-top: 24px; margin-bottom: 24px;">
+                <a href="https://cardappio-mauve.vercel.app/app/configuracoes" class="btn" style="display: inline-block; background-color: #f76f25; color: #ffffff !important; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+                  Gerenciar Conta
+                </a>
+              </div>
+              <p style="margin-top: 24px; font-size: 14px; color: #757575;">
+                Agradecemos pelo tempo em que esteve conosco como membro Premium!
+              </p>
+            `
+            const emailHtml = await getEmailTemplate(bodyHtml, 'Confirmação de Cancelamento de Assinatura')
+            await sendEmail({
+              to: profile.email,
+              subject: 'Confirmação de Cancelamento de Assinatura — Cardappio',
+              html: emailHtml
+            })
+          }
+        } catch (emailErr) {
+          console.error('Failed to send cancellation confirmation email:', emailErr)
+        }
       }
     }
     else if (eventType === 'customer.subscription.updated') {
