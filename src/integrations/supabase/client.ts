@@ -1,6 +1,19 @@
 import { createClient } from '@supabase/supabase-js'
 import { config } from '@/config'
 
+// Captura imediatamente o fluxo de recuperação antes que a biblioteca do Supabase consuma o hash da URL
+if (typeof window !== 'undefined' && window.sessionStorage) {
+  const hashParams = new URLSearchParams(window.location.hash.substring(1))
+  const searchParams = new URLSearchParams(window.location.search)
+  const isRecovery = hashParams.get('type') === 'recovery' || 
+                     searchParams.get('type') === 'recovery' || 
+                     window.location.href.includes('type=recovery')
+  
+  if (isRecovery) {
+    window.sessionStorage.setItem('isRecoveryFlow', 'true')
+  }
+}
+
 if (!config.supabase.url || !config.supabase.anonKey) {
   throw new Error(
     'Missing Supabase environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env.local file.'
