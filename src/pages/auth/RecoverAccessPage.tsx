@@ -67,25 +67,11 @@ export function RecoverAccessPage() {
         return
       }
 
-      toast.success('Senha atualizada com sucesso!')
-      
-      // Check if user has completed onboarding to redirect correctly
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('onboarding_completed_at')
-          .eq('id', user.id)
-          .single()
+      // Sign out the user so they are forced to log in with their new credentials
+      await supabase.auth.signOut()
 
-        if (profile?.onboarding_completed_at) {
-          navigate('/app', { replace: true })
-        } else {
-          navigate('/app/onboarding', { replace: true })
-        }
-      } else {
-        navigate('/auth/login', { replace: true })
-      }
+      toast.success('Senha redefinida com sucesso! Faça login com suas novas credenciais.')
+      navigate('/auth/login', { replace: true })
     } catch {
       setError('Erro inesperado ao atualizar a senha.')
     } finally {
