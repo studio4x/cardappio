@@ -20,7 +20,8 @@ import {
   Mail,
   User as UserIcon,
   Eye,
-  EyeOff
+  EyeOff,
+  Copy
 } from 'lucide-react'
 import { 
   DropdownMenu, 
@@ -64,6 +65,7 @@ export function AdminUsersPage() {
     fullName: '',
     role: 'user'
   })
+  const [showCreatePassword, setShowCreatePassword] = useState(false)
 
   // State for Reset Password Dialog
   const [isResetOpen, setIsResetOpen] = useState(false)
@@ -84,6 +86,15 @@ export function AdminUsersPage() {
     }
   }
 
+  const handleCopyCreatePassword = () => {
+    if (!newUserData.password) {
+      toast.error('Digite uma senha para copiar')
+      return
+    }
+    navigator.clipboard.writeText(newUserData.password)
+    toast.success('Senha copiada para a área de transferência')
+  }
+
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -91,6 +102,7 @@ export function AdminUsersPage() {
       toast.success('Usuário criado com sucesso')
       setIsCreateOpen(false)
       setNewUserData({ email: '', password: '', fullName: '', role: 'user' })
+      setShowCreatePassword(false)
     } catch (err: any) {
       toast.error(err.message || 'Erro ao criar usuário')
     }
@@ -277,13 +289,31 @@ export function AdminUsersPage() {
                   <Key className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                   <Input 
                     id="password" 
-                    type="password" 
+                    type={showCreatePassword ? "text" : "password"} 
                     placeholder="••••••••" 
-                    className="pl-9"
+                    className="pl-9 pr-20"
                     value={newUserData.password}
                     onChange={(e) => setNewUserData({...newUserData, password: e.target.value})}
                     required
                   />
+                  <div className="absolute right-3 top-3 flex items-center gap-2">
+                    <button 
+                      type="button"
+                      onClick={handleCopyCreatePassword}
+                      className="text-slate-400 hover:text-slate-600 focus:outline-none"
+                      title="Copiar senha"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setShowCreatePassword(!showCreatePassword)}
+                      className="text-slate-400 hover:text-slate-600 focus:outline-none"
+                      title={showCreatePassword ? "Ocultar senha" : "Mostrar senha"}
+                    >
+                      {showCreatePassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="space-y-2">
@@ -303,7 +333,10 @@ export function AdminUsersPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => {
+                setIsCreateOpen(false)
+                setShowCreatePassword(false)
+              }}>
                 Cancelar
               </Button>
               <Button type="submit" disabled={createUser.isPending}>

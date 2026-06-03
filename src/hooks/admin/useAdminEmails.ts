@@ -3,8 +3,12 @@ import { supabase } from '@/integrations/supabase/client'
 
 export interface EmailConfig {
   provider: string
-  resend_api_key: string
+  smtp_host?: string
+  smtp_port?: number
+  smtp_user?: string
+  smtp_pass?: string
   from_email: string
+  from_name?: string
 }
 
 export interface EmailLog {
@@ -32,7 +36,15 @@ export function useEmailConfig() {
 
       if (error) {
         if (error.code === 'PGRST116') {
-          return { provider: 'resend', resend_api_key: '', from_email: 'Cardappio <onboarding@resend.dev>' } as EmailConfig
+          return { 
+            provider: 'smtp', 
+            smtp_host: 'smtp-relay.brevo.com', 
+            smtp_port: 587, 
+            smtp_user: '', 
+            smtp_pass: '', 
+            from_email: 'contato@studio4x.com.br',
+            from_name: 'Cardappio'
+          } as EmailConfig
         }
         throw error
       }

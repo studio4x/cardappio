@@ -1,8 +1,9 @@
 /**
  * Email helpers for Edge Functions
- * Uses Resend API via fetch to send custom emails.
+ * Uses Nodemailer via SMTP to send custom emails.
  */
 import { getServiceClient } from './auth.ts'
+import nodemailer from 'npm:nodemailer@6.9.10'
 
 interface SendEmailParams {
   to: string
@@ -11,7 +12,7 @@ interface SendEmailParams {
 }
 
 /**
- * Sends an email using Resend API credentials fetched from app_settings
+ * Sends an email using SMTP credentials fetched from app_settings
  */
 export async function sendEmail({ to, subject, html }: SendEmailParams) {
   const supabase = getServiceClient()
@@ -30,12 +31,13 @@ export async function sendEmail({ to, subject, html }: SendEmailParams) {
 
   const emailConfig = (configData.value_json || {}) as {
     provider?: string
-    resend_api_key?: string
+    smtp_host?: string
+    smtp_port?: number
+    smtp_user?: string
+    smtp_pass?: string
     from_email?: string
+    from_name?: string
   }
-
-  const apiKey = emailConfig.resend_api_key
-  const fromEmail = emailConfig.from_email || 'Cardappio <onboarding@resend.dev>'
 
   const logEmail = async (status: 'sent' | 'failed', errorMessage: string | null = null) => {
     try {
@@ -53,39 +55,46 @@ export async function sendEmail({ to, subject, html }: SendEmailParams) {
     }
   }
 
-  if (!apiKey) {
-    console.warn('API Key do Resend não configurada. O e-mail não foi enviado.')
-    await logEmail('failed', 'API Key do Resend não configurada em app_settings.')
-    return { success: false, error: 'API Key do Resend não configurada.' }
+  const host = emailConfig.smtp_host
+  const port = Number(emailConfig.smtp_port || 587)
+  const user = emailConfig.smtp_user
+  const pass = emailConfig.smtp_pass
+  const fromEmail = emailConfig.from_email || 'contato@studio4x.com.br'
+  const fromName = emailConfig.from_name || 'Cardappio'
+
+  if (!host || !user || !pass) {
+    const errorDetail = 'Configurações de SMTP incompletas (Host, Usuário ou Senha ausentes).'
+    console.warn(errorDetail)
+    await logEmail('failed', errorDetail)
+    return { success: false, error: errorDetail }
   }
 
   try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+    const transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465, // true for port 465 (SSL), false for other ports (TLS/STARTTLS)
+      auth: {
+        user,
+        pass,
       },
-      body: JSON.stringify({
-        from: fromEmail,
-        to: [to],
-        subject: subject,
-        html: html,
-      }),
+      tls: {
+        // Do not fail on invalid certs
+        rejectUnauthorized: false
+      }
     })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Erro ao enviar e-mail via Resend:', errorText)
-      await logEmail('failed', errorText)
-      return { success: false, error: errorText }
-    }
+    const info = await transporter.sendMail({
+      from: `"${fromName}" <${fromEmail}>`,
+      to,
+      subject,
+      html,
+    })
 
-    const result = await response.json()
     await logEmail('sent')
-    return { success: true, data: result }
+    return { success: true, data: info }
   } catch (err: any) {
-    console.error('Falha na requisição para o Resend:', err)
+    console.error('Falha ao enviar e-mail via SMTP:', err)
     const errorMsg = err.message || String(err)
     await logEmail('failed', errorMsg)
     return { success: false, error: errorMsg }
