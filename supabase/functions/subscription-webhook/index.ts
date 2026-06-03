@@ -116,11 +116,15 @@ serve(async (req) => {
               <p style="margin-bottom: 16px; font-size: 16px;">
                 Aproveite o melhor que preparamos para você clicando no botão abaixo para começar a planejar sua semana:
               </p>
-              <div style="text-align: center; margin-top: 24px; margin-bottom: 24px;">
-                <a href="https://cardappio-mauve.vercel.app/app/semana" class="btn" style="display: inline-block; background-color: #f76f25; color: #ffffff !important; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
-                  Acessar Planejamento
-                </a>
-              </div>
+              <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 24px auto; border-collapse: collapse;">
+                <tr>
+                  <td align="center" bgcolor="#f76f25" style="border-radius: 8px; background-color: #f76f25;">
+                    <a href="https://cardappio-mauve.vercel.app/app/semana" target="_blank" style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; background-color: #f76f25; border-top: 12px solid #f76f25; border-bottom: 12px solid #f76f25; border-left: 24px solid #f76f25; border-right: 24px solid #f76f25; border-radius: 8px;">
+                      Acessar Planejamento
+                    </a>
+                  </td>
+                </tr>
+              </table>
               <p style="margin-top: 24px; font-size: 14px; color: #757575;">
                 Se tiver qualquer dúvida sobre sua assinatura ou pagamento, nossa equipe de suporte está à disposição.
               </p>
@@ -189,11 +193,15 @@ serve(async (req) => {
               <p style="margin-bottom: 16px; font-size: 16px;">
                 Lamentamos ver você partir! Você pode reativar a sua assinatura a qualquer momento através da plataforma para voltar a ter acesso total aos planejadores e receitas.
               </p>
-              <div style="text-align: center; margin-top: 24px; margin-bottom: 24px;">
-                <a href="https://cardappio-mauve.vercel.app/app/configuracoes" class="btn" style="display: inline-block; background-color: #f76f25; color: #ffffff !important; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
-                  Gerenciar Conta
-                </a>
-              </div>
+              <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 24px auto; border-collapse: collapse;">
+                <tr>
+                  <td align="center" bgcolor="#f76f25" style="border-radius: 8px; background-color: #f76f25;">
+                    <a href="https://cardappio-mauve.vercel.app/app/configuracoes" target="_blank" style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; background-color: #f76f25; border-top: 12px solid #f76f25; border-bottom: 12px solid #f76f25; border-left: 24px solid #f76f25; border-right: 24px solid #f76f25; border-radius: 8px;">
+                      Gerenciar Conta
+                    </a>
+                  </td>
+                </tr>
+              </table>
               <p style="margin-top: 24px; font-size: 14px; color: #757575;">
                 Agradecemos pelo tempo em que esteve conosco como membro Premium!
               </p>

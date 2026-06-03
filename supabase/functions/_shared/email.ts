@@ -119,11 +119,17 @@ export async function getEmailTemplate(bodyContent: string, previewText = 'Mensa
     logo_dark_url?: string
   }
 
-  const logoUrl = visualIdentity.logo_light_url || visualIdentity.logo_dark_url
+  const logoUrl = visualIdentity.logo_dark_url || visualIdentity.logo_light_url
 
   const logoHtml = logoUrl 
-    ? `<img src="${logoUrl}" alt="Cardappio" style="max-height: 48px; max-width: 200px; object-fit: contain; display: block; margin: 0 auto;" />`
-    : `<table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+    ? `<table align="center" border="0" cellpadding="0" cellspacing="0" width="180" style="width: 180px; margin: 0 auto; border-collapse: collapse;">
+        <tr>
+          <td align="center">
+            <img src="${logoUrl}" alt="Cardappio" width="180" border="0" class="logo-img" style="border: 0; outline: none; text-decoration: none; display: block; width: 180px; height: auto; max-width: 180px;" />
+          </td>
+        </tr>
+      </table>`
+    : `<table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto; border-collapse: collapse;">
         <tr>
           <td style="background-color: #f76f25; border-radius: 10px; width: 36px; height: 36px; text-align: center; vertical-align: middle; color: #ffffff; font-weight: bold; font-size: 20px; font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
             🍳
@@ -150,59 +156,52 @@ export async function getEmailTemplate(bodyContent: string, previewText = 'Mensa
           padding: 0;
           -webkit-font-smoothing: antialiased;
         }
-        .container {
-          max-width: 600px;
-          margin: 40px auto;
-          background-color: #ffffff;
-          border-radius: 16px;
-          overflow: hidden;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.025);
-          border: 1px solid #e2e8f0;
-        }
-        .header {
-          padding: 32px;
-          text-align: center;
-          border-bottom: 1px solid #f1f5f9;
-        }
-        .content {
-          padding: 40px 32px;
-          color: #171d16;
-          line-height: 1.6;
-        }
-        .footer {
-          padding: 32px;
-          text-align: center;
-          background-color: #f8fafc;
-          border-top: 1px solid #f1f5f9;
-          font-size: 12px;
-          color: #757575;
-        }
-        .btn {
-          display: inline-block;
-          background-color: #f76f25;
-          color: #ffffff !important;
-          padding: 12px 24px;
-          border-radius: 8px;
-          text-decoration: none;
-          font-weight: 600;
-          margin-top: 24px;
-          font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+        @media (prefers-color-scheme: dark) {
+          .logo-img {
+            filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.65)) !important;
+            -webkit-filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.65)) !important;
+          }
         }
       </style>
     </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          ${logoHtml}
-        </div>
-        <div class="content">
-          ${bodyContent}
-        </div>
-        <div class="footer">
-          <p style="margin: 0 0 8px 0;">Este é um e-mail automático enviado pela plataforma Cardappio.</p>
-          <p style="margin: 0;">© ${new Date().getFullYear()} Cardappio. Todos os direitos reservados.</p>
-        </div>
-      </div>
+    <body style="margin: 0; padding: 0; background-color: #f8fafc; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f8fafc" style="background-color: #f8fafc; margin: 0; padding: 0;">
+        <tr>
+          <td align="center" style="padding: 40px 16px;">
+            <!--[if (gte mso 9)|(IE)]>
+            <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
+            <tr>
+            <td>
+            <![endif]-->
+            <table align="center" border="0" cellspacing="0" cellpadding="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); overflow: hidden;">
+              <!-- Header -->
+              <tr>
+                <td align="center" valign="top" style="padding: 32px; border-bottom: 1px solid #f1f5f9;">
+                  ${logoHtml}
+                </td>
+              </tr>
+              <!-- Content -->
+              <tr>
+                <td align="left" valign="top" style="padding: 40px 32px; font-family: 'Work Sans', Arial, sans-serif; font-size: 16px; line-height: 1.6; color: #171d16;">
+                  ${bodyContent}
+                </td>
+              </tr>
+              <!-- Footer -->
+              <tr>
+                <td align="center" valign="top" style="padding: 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; font-family: 'Work Sans', Arial, sans-serif; font-size: 12px; color: #757575;">
+                  <p style="margin: 0 0 8px 0; color: #757575; font-size: 12px;">Este é um e-mail automático enviado pela plataforma Cardappio.</p>
+                  <p style="margin: 0; color: #757575; font-size: 12px;">© ${new Date().getFullYear()} Cardappio. Todos os direitos reservados.</p>
+                </td>
+              </tr>
+            </table>
+            <!--[if (gte mso 9)|(IE)]>
+            </td>
+            </tr>
+            </table>
+            <![endif]-->
+          </td>
+        </tr>
+      </table>
     </body>
     </html>
   `

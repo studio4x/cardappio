@@ -102,21 +102,29 @@ serve(async (req) => {
             <p style="margin-bottom: 16px; font-size: 16px;">
               Você foi cadastrado como <strong>Administrador</strong> na plataforma Cardappio. Abaixo estão suas credenciais de acesso temporárias:
             </p>
-            <div style="background-color: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid #e2e8f0; font-family: monospace; font-size: 15px; color: #171d16;">
-              <strong>E-mail:</strong> ${email}<br/>
-              <strong>Senha:</strong> ${password}
-            </div>
+            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+              <tr>
+                <td bgcolor="#f8fafc" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; font-family: monospace; font-size: 15px; color: #171d16;">
+                  <strong>E-mail:</strong> ${email}<br/>
+                  <strong>Senha:</strong> ${password}
+                </td>
+              </tr>
+            </table>
             <p style="margin-bottom: 16px; font-size: 16px;">
               Como administrador, você pode gerenciar usuários, visualizar receitas, coleções e controlar as configurações gerais do aplicativo através do painel de administração.
             </p>
             <p style="margin-bottom: 16px; font-size: 16px;">
               Acesse o painel de administração diretamente pelo botão abaixo:
             </p>
-            <div style="text-align: center; margin-top: 24px; margin-bottom: 24px;">
-              <a href="${origin}/admin" class="btn" style="display: inline-block; background-color: #f76f25; color: #ffffff !important; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
-                Acessar Painel Admin
-              </a>
-            </div>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 24px auto; border-collapse: collapse;">
+              <tr>
+                <td align="center" bgcolor="#f76f25" style="border-radius: 8px; background-color: #f76f25;">
+                  <a href="${origin}/admin" target="_blank" style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; background-color: #f76f25; border-top: 12px solid #f76f25; border-bottom: 12px solid #f76f25; border-left: 24px solid #f76f25; border-right: 24px solid #f76f25; border-radius: 8px;">
+                    Acessar Painel Admin
+                  </a>
+                </td>
+              </tr>
+            </table>
             <p style="margin-top: 24px; font-size: 14px; color: #757575;">
               Recomendamos alterar sua senha após o primeiro acesso para garantir a segurança da sua conta.
             </p>
@@ -129,18 +137,26 @@ serve(async (req) => {
             <p style="margin-bottom: 16px; font-size: 16px;">
               Sua conta foi criada no Cardappio. Estamos muito felizes em ter você conosco! Abaixo estão as suas credenciais para login:
             </p>
-            <div style="background-color: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid #e2e8f0; font-family: monospace; font-size: 15px; color: #171d16;">
-              <strong>E-mail:</strong> ${email}<br/>
-              <strong>Senha:</strong> ${password}
-            </div>
+            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+              <tr>
+                <td bgcolor="#f8fafc" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; font-family: monospace; font-size: 15px; color: #171d16;">
+                  <strong>E-mail:</strong> ${email}<br/>
+                  <strong>Senha:</strong> ${password}
+                </td>
+              </tr>
+            </table>
             <p style="margin-bottom: 16px; font-size: 16px;">
               Você já pode começar a planejar o cardápio da sua semana, criar listas de compras e gerenciar suas receitas.
             </p>
-            <div style="text-align: center; margin-top: 24px; margin-bottom: 24px;">
-              <a href="${origin}/login" class="btn" style="display: inline-block; background-color: #f76f25; color: #ffffff !important; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
-                Acessar Cardappio
-              </a>
-            </div>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 24px auto; border-collapse: collapse;">
+              <tr>
+                <td align="center" bgcolor="#f76f25" style="border-radius: 8px; background-color: #f76f25;">
+                  <a href="${origin}/login" target="_blank" style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; background-color: #f76f25; border-top: 12px solid #f76f25; border-bottom: 12px solid #f76f25; border-left: 24px solid #f76f25; border-right: 24px solid #f76f25; border-radius: 8px;">
+                    Acessar Cardappio
+                  </a>
+                </td>
+              </tr>
+            </table>
             <p style="margin-top: 24px; font-size: 14px; color: #757575;">
               Recomendamos alterar sua senha após o primeiro login para maior segurança.
             </p>
