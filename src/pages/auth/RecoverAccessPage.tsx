@@ -1,13 +1,24 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Mail, Loader2, ArrowLeft } from 'lucide-react'
+import { Link, useSearchParams, useNavigate } from 'react-router-dom'
+import { Mail, Loader2, ArrowLeft, Eye, EyeOff, Key } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
+import { toast } from 'sonner'
 
 export function RecoverAccessPage() {
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const isReset = searchParams.get('reset') === 'true'
+
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
+
+  // Password Reset State
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,6 +41,156 @@ export function RecoverAccessPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleResetSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newPassword !== confirmPassword) {
+      setError('As senhas não coincidem.')
+      return
+    }
+    if (newPassword.length < 6) {
+      setError('A senha deve ter pelo menos 6 caracteres.')
+      return
+    }
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword
+      })
+
+      if (updateError) {
+        setError(updateError.message)
+        return
+      }
+
+      toast.success('Senha atualizada com sucesso!')
+      
+      // Check if user has completed onboarding to redirect correctly
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed_at')
+          .eq('id', user.id)
+          .single()
+
+        if (profile?.onboarding_completed_at) {
+          navigate('/app', { replace: true })
+        } else {
+          navigate('/app/onboarding', { replace: true })
+        }
+      } else {
+        navigate('/auth/login', { replace: true })
+      }
+    } catch {
+      setError('Erro inesperado ao atualizar a senha.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (isReset) {
+    return (
+      <div>
+        <h2
+          className="mb-1 text-2xl font-bold"
+          style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-on-surface)' }}
+        >
+          Redefinir sua senha
+        </h2>
+        <p className="mb-6 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+          Crie uma nova senha de acesso para sua conta.
+        </p>
+
+        {error && (
+          <div
+            className="mb-4 rounded-lg px-4 py-3 text-sm"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--color-error) 10%, transparent)',
+              color: 'var(--color-error)',
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleResetSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="new-password" className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--color-on-surface)' }}>
+              Nova Senha
+            </label>
+            <div className="relative">
+              <Key className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: 'var(--color-outline)' }} />
+              <input
+                id="new-password"
+                type={showPassword ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                required
+                className="w-full rounded-lg border py-2.5 pl-10 pr-10 text-sm outline-none transition-colors"
+                style={{
+                  borderColor: 'var(--color-outline-variant)',
+                  backgroundColor: 'var(--color-surface-container-low)',
+                  color: 'var(--color-on-surface)',
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="confirm-password" className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--color-on-surface)' }}>
+              Confirmar Nova Senha
+            </label>
+            <div className="relative">
+              <Key className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: 'var(--color-outline)' }} />
+              <input
+                id="confirm-password"
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirme a nova senha"
+                required
+                className="w-full rounded-lg border py-2.5 pl-10 pr-10 text-sm outline-none transition-colors"
+                style={{
+                  borderColor: 'var(--color-outline-variant)',
+                  backgroundColor: 'var(--color-surface-container-low)',
+                  color: 'var(--color-on-surface)',
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50 cursor-pointer"
+            style={{ backgroundColor: 'var(--color-primary)' }}
+          >
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {isLoading ? 'Redefinindo...' : 'Salvar nova senha'}
+          </button>
+        </form>
+      </div>
+    )
   }
 
   if (sent) {

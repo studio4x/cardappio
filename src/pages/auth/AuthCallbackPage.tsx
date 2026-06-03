@@ -34,6 +34,18 @@ export function AuthCallbackPage() {
       }
 
       if (session) {
+        // Check if this is a password recovery flow
+        const hashParams = new URLSearchParams(window.location.hash.substring(1))
+        const searchParams = new URLSearchParams(window.location.search)
+        const isRecovery = hashParams.get('type') === 'recovery' || 
+                           searchParams.get('type') === 'recovery' || 
+                           window.location.href.includes('type=recovery')
+
+        if (isRecovery) {
+          navigate('/auth/recuperar?reset=true', { replace: true })
+          return
+        }
+
         // Check if user has completed onboarding
         const { data: profile } = await supabase
           .from('profiles')

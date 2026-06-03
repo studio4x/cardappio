@@ -7,7 +7,8 @@ import {
   useUpdateUserRole, 
   useCreateUser, 
   useResetUserPassword,
-  useDeleteUser
+  useDeleteUser,
+  useSendPasswordResetLink
 } from '@/hooks/admin/useAdminUsers'
 import { 
   MoreHorizontal, 
@@ -56,6 +57,7 @@ export function AdminUsersPage() {
   const createUser = useCreateUser()
   const resetPassword = useResetUserPassword()
   const deleteUser = useDeleteUser()
+  const sendResetLink = useSendPasswordResetLink()
 
   // State for Create User Dialog
   const [isCreateOpen, setIsCreateOpen] = useState(false)
@@ -131,6 +133,16 @@ export function AdminUsersPage() {
       setDeleteTarget(null)
     } catch (err: any) {
       toast.error(err.message || 'Erro ao excluir usuário')
+    }
+  }
+
+  const handleSendResetLink = async (email: string) => {
+    const toastId = toast.loading('Enviando e-mail de redefinição de senha...')
+    try {
+      await sendResetLink.mutateAsync({ email })
+      toast.success('E-mail de redefinição de senha enviado com sucesso!', { id: toastId })
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao enviar e-mail de redefinição', { id: toastId })
     }
   }
 
@@ -212,7 +224,11 @@ export function AdminUsersPage() {
                         setIsResetOpen(true)
                       }}>
                         <Key className="h-4 w-4 mr-2" />
-                        Redefinir Senha
+                        Definir Nova Senha
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleSendResetLink(user.email)}>
+                        <Mail className="h-4 w-4 mr-2" />
+                        Enviar Link de Redefinição
                       </DropdownMenuItem>
                       <div className="h-px bg-slate-100 my-1" />
                       <DropdownMenuItem className="text-rose-600">
