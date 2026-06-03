@@ -32,7 +32,7 @@ export function useAdminUsers() {
         throw new Error(errorMessage)
       }
       
-      return (data?.users || []) as AdminUser[]
+      return (data?.data?.users || []) as AdminUser[]
     }
   })
 }
