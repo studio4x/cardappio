@@ -35,7 +35,18 @@ export function useUpdateUserRole() {
         body: { action: 'update_role', userId, role }
       })
       
-      if (error) throw error
+      if (error) {
+        let errorMessage = error.message
+        try {
+          if ('context' in error && typeof (error as any).context.json === 'function') {
+            const body = await (error as any).context.json()
+            if (body && body.error) {
+              errorMessage = body.error
+            }
+          }
+        } catch (_) {}
+        throw new Error(errorMessage)
+      }
       if (data?.status === 'error') throw new Error(data.message)
       return data
     },
@@ -54,7 +65,18 @@ export function useCreateUser() {
         body: { action: 'create', ...userData }
       })
       
-      if (error) throw error
+      if (error) {
+        let errorMessage = error.message
+        try {
+          if ('context' in error && typeof (error as any).context.json === 'function') {
+            const body = await (error as any).context.json()
+            if (body && body.error) {
+              errorMessage = body.error
+            }
+          }
+        } catch (_) {}
+        throw new Error(errorMessage)
+      }
       if (data?.status === 'error') throw new Error(data.message)
       return data
     },
@@ -71,7 +93,18 @@ export function useResetUserPassword() {
         body: { action: 'reset_password', userId, newPassword }
       })
       
-      if (error) throw error
+      if (error) {
+        let errorMessage = error.message
+        try {
+          if ('context' in error && typeof (error as any).context.json === 'function') {
+            const body = await (error as any).context.json()
+            if (body && body.error) {
+              errorMessage = body.error
+            }
+          }
+        } catch (_) {}
+        throw new Error(errorMessage)
+      }
       if (data?.status === 'error') throw new Error(data.message)
       return data
     }
@@ -87,7 +120,18 @@ export function useDeleteUser() {
         body: { action: 'delete', userId }
       })
 
-      if (error) throw error
+      if (error) {
+        let errorMessage = error.message
+        try {
+          if ('context' in error && typeof (error as any).context.json === 'function') {
+            const body = await (error as any).context.json()
+            if (body && body.error) {
+              errorMessage = body.error
+            }
+          }
+        } catch (_) {}
+        throw new Error(errorMessage)
+      }
       if (data?.status === 'error') throw new Error(data.message)
       return data
     },
