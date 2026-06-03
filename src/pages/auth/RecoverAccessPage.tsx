@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { Mail, Loader2, ArrowLeft, Eye, EyeOff, Key } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
@@ -19,6 +19,27 @@ export function RecoverAccessPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (isReset) {
+      setIsLoading(true)
+      supabase.auth.getUser()
+        .then(({ data: { user } }) => {
+          if (user?.email) {
+            setCurrentUserEmail(user.email)
+          } else {
+            setError('Sessão de recuperação inválida ou expirada. Por favor, solicite um novo link.')
+          }
+        })
+        .catch(() => {
+          setError('Erro ao validar os dados da sessão de recuperação.')
+        })
+        .finally(() => {
+          setIsLoading(false)
+        })
+    }
+  }, [isReset])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -70,7 +91,9 @@ export function RecoverAccessPage() {
       // Sign out the user so they are forced to log in with their new credentials
       await supabase.auth.signOut()
 
-      toast.success('Senha redefinida com sucesso! Faça login com suas novas credenciais.')
+      toast.success('Senha redefinida com sucesso! Digite sua nova senha manualmente (evitando o preenchimento automático antigo).', {
+        duration: 8000
+      })
       navigate('/auth/login', { replace: true })
     } catch {
       setError('Erro inesperado ao atualizar a senha.')
@@ -88,13 +111,19 @@ export function RecoverAccessPage() {
         >
           Redefinir sua senha
         </h2>
-        <p className="mb-6 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-          Crie uma nova senha de acesso para sua conta.
+        <p className="mb-6 text-sm leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
+          {currentUserEmail ? (
+            <>
+              Defina uma nova senha para a conta: <strong style={{ color: 'var(--color-on-surface)' }}>{currentUserEmail}</strong>
+            </>
+          ) : (
+            'Crie uma nova senha de acesso para sua conta.'
+          )}
         </p>
 
         {error && (
           <div
-            className="mb-4 rounded-lg px-4 py-3 text-sm"
+            className="mb-4 rounded-lg px-4 py-3 text-sm font-semibold"
             style={{
               backgroundColor: 'color-mix(in srgb, var(--color-error) 10%, transparent)',
               color: 'var(--color-error)',
