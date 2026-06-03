@@ -36,14 +36,16 @@ serve(async (req) => {
 
       if (authError) throw authError
 
-      // 2. Update profile (the trigger might have already created it, but we ensure the role/full_name)
+      // 2. Upsert profile (ensure the profile exists with the correct role/full_name/email/status)
       const { error: profileError } = await supabaseAdmin
         .from('profiles')
-        .update({ 
+        .upsert({ 
+          id: authUser.user.id,
+          email,
           role: role || 'user',
-          full_name: fullName || ''
+          full_name: fullName || '',
+          status: 'active'
         })
-        .eq('id', authUser.user.id)
 
       if (profileError) throw profileError
 
