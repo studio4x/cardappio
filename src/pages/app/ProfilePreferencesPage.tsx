@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { User, Settings, Bell, CreditCard, ChevronRight, LogOut, Check } from 'lucide-react'
+import { User, Settings, Bell, CreditCard, ChevronRight, LogOut, Check, Eye, EyeOff, Key } from 'lucide-react'
+import { supabase } from '@/integrations/supabase/client'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { useProfile, useUpdateProfile, useUpdatePreferences } from '@/hooks/auth/useProfile'
@@ -43,6 +44,13 @@ export function ProfilePreferencesPage() {
   const [pushEnabled, setPushEnabled] = useState(false)
   const [isRegisteringPush, setIsRegisteringPush] = useState(false)
 
+  // Password change state
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
+
   useEffect(() => {
     if (profile) setFullName(profile.full_name || '')
     if (preferences) {
@@ -74,6 +82,34 @@ export function ProfilePreferencesPage() {
       default_plan_days: planDays,
       default_meal_modes: mealModes
     })
+  }
+
+  const handleUpdatePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      toast.error('As senhas não coincidem.')
+      return
+    }
+    if (newPassword.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres.')
+      return
+    }
+
+    setIsUpdatingPassword(true)
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) throw error
+
+      toast.success('Senha alterada com sucesso!')
+      setNewPassword('')
+      setConfirmPassword('')
+      setShowPassword(false)
+      setShowConfirmPassword(false)
+    } catch (err: any) {
+      console.error(err)
+      toast.error('Erro ao alterar a senha. Tente novamente.')
+    } finally {
+      setIsUpdatingPassword(false)
+    }
   }
 
   const toggleMealMode = (mode: string) => {
@@ -232,6 +268,62 @@ export function ProfilePreferencesPage() {
                 disabled={updateProfile.isPending}
               >
                 {updateProfile.isPending ? 'Salvando...' : 'Salvar Alterações'}
+              </Button>
+            </div>
+
+            <div className="space-y-4 rounded-2xl border p-6 bg-white shadow-sm mt-6">
+              <h3 className="font-bold flex items-center gap-2 mb-2">Segurança</h3>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-muted-foreground">Nova Senha</label>
+                <div className="relative">
+                  <Key className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    className="w-full rounded-xl border p-3 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-primary bg-white text-slate-900"
+                    style={{ borderColor: 'var(--color-outline-variant)' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-muted-foreground">Confirmar Nova Senha</label>
+                <div className="relative">
+                  <Key className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Repita a nova senha"
+                    className="w-full rounded-xl border p-3 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-primary bg-white text-slate-900"
+                    style={{ borderColor: 'var(--color-outline-variant)' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleUpdatePassword} 
+                className="w-full sm:w-auto mt-2"
+                disabled={isUpdatingPassword || !newPassword || !confirmPassword}
+              >
+                {isUpdatingPassword ? 'Alterando...' : 'Alterar Senha'}
               </Button>
             </div>
 
