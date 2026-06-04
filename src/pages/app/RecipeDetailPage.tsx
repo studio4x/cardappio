@@ -148,26 +148,26 @@ export function RecipeDetailPage() {
 
              {/* Quick Info Bento */}
             <section className="mt-4">
-              <div className="grid grid-cols-4 gap-0 bg-white rounded-2xl p-4 shadow-sm border overflow-hidden" style={{ borderColor: 'var(--color-outline-variant)' }}>
-                <div className="flex flex-col items-center justify-center p-2 border-r" style={{ borderColor: 'var(--color-outline-variant)' }}>
-                  <Clock className="h-5 w-5 text-fresh-green mb-1" />
-                  <span className="text-[10px] font-bold text-neutral-400 uppercase">Tempo</span>
-                  <span className="text-xs font-bold text-on-surface truncate max-w-full">{recipe.prep_time_minutes} min</span>
+              <div className="grid grid-cols-4 gap-0 bg-white rounded-2xl shadow-sm border overflow-hidden" style={{ borderColor: 'var(--color-outline-variant)' }}>
+                <div className="flex flex-col items-center justify-center py-3 px-1 border-r" style={{ borderColor: 'var(--color-outline-variant)' }}>
+                  <Clock className="h-5 w-5 text-fresh-green mb-1 shrink-0" />
+                  <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-wide text-center">Tempo</span>
+                  <span className="text-[11px] font-bold text-on-surface text-center leading-tight mt-0.5">{recipe.prep_time_minutes} min</span>
                 </div>
-                <div className="flex flex-col items-center justify-center p-2 border-r" style={{ borderColor: 'var(--color-outline-variant)' }}>
-                  <Users className="h-5 w-5 text-fresh-green mb-1" />
-                  <span className="text-[10px] font-bold text-neutral-400 uppercase">Porções</span>
-                  <span className="text-xs font-bold text-on-surface truncate max-w-full">{recipe.servings} pps</span>
+                <div className="flex flex-col items-center justify-center py-3 px-1 border-r" style={{ borderColor: 'var(--color-outline-variant)' }}>
+                  <Users className="h-5 w-5 text-fresh-green mb-1 shrink-0" />
+                  <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-wide text-center">Porções</span>
+                  <span className="text-[11px] font-bold text-on-surface text-center leading-tight mt-0.5">{recipe.servings} pps</span>
                 </div>
-                <div className="flex flex-col items-center justify-center p-2 border-r" style={{ borderColor: 'var(--color-outline-variant)' }}>
-                  <BarChart3 className="h-5 w-5 text-fresh-green mb-1" />
-                  <span className="text-[10px] font-bold text-neutral-400 uppercase">Nível</span>
-                  <span className="text-xs font-bold text-on-surface truncate max-w-full">{difficultyLabels[recipe.difficulty_level as keyof typeof difficultyLabels] || recipe.difficulty_level}</span>
+                <div className="flex flex-col items-center justify-center py-3 px-1 border-r" style={{ borderColor: 'var(--color-outline-variant)' }}>
+                  <BarChart3 className="h-5 w-5 text-fresh-green mb-1 shrink-0" />
+                  <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-wide text-center">Dific.</span>
+                  <span className="text-[11px] font-bold text-on-surface text-center leading-tight mt-0.5">{difficultyLabels[recipe.difficulty_level as keyof typeof difficultyLabels] || recipe.difficulty_level}</span>
                 </div>
-                <div className="flex flex-col items-center justify-center p-2">
-                  <PiggyBank className="h-5 w-5 text-fresh-green mb-1" />
-                  <span className="text-[10px] font-bold text-neutral-400 uppercase">Custo</span>
-                  <span className="text-xs font-bold text-on-surface truncate max-w-full">{costLabels[recipe.cost_level as keyof typeof costLabels] || 'Moderado'}</span>
+                <div className="flex flex-col items-center justify-center py-3 px-1">
+                  <PiggyBank className="h-5 w-5 text-fresh-green mb-1 shrink-0" />
+                  <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-wide text-center">Custo</span>
+                  <span className="text-[11px] font-bold text-on-surface text-center leading-tight mt-0.5">{costLabels[recipe?.cost_level as keyof typeof costLabels] ?? 'Moderado'}</span>
                 </div>
               </div>
             </section>
