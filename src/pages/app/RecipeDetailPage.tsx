@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Clock, Users, Sparkles, Lock, Utensils, ShoppingBasket, Plus, BarChart3, PillIcon } from 'lucide-react'
+import { ArrowLeft, Clock, Users, Sparkles, Lock, Utensils, ShoppingBasket, Plus, BarChart3, PillIcon, Calendar, CheckCircle2, ChevronRight, Loader2 } from 'lucide-react'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { useRecipe } from '@/hooks/recipes/useRecipes'
@@ -11,6 +11,17 @@ import { AudioPlayerRecipe } from '@/components/recipes/AudioPlayerRecipe'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useWeeks, useAssignRecipe } from '@/hooks/planning/usePlanning'
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription
+} from '@/components/ui/dialog'
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '@/integrations/supabase/client'
+import { toast } from 'sonner'
 
 export function RecipeDetailPage() {
   const { recipeSlug } = useParams()
@@ -19,33 +30,103 @@ export function RecipeDetailPage() {
   const { user } = useAuth() 
   const [activeTab, setActiveTab] = useState<'ingredients' | 'instructions'>('ingredients')
   
+  // States for adding to plan modal wizard
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [modalStep, setModalStep] = useState<'weeks' | 'days' | 'slots'>('weeks')
+  const [selectedWeekId, setSelectedWeekId] = useState<string | null>(null)
+  const [selectedWeekTitle, setSelectedWeekTitle] = useState<string>('')
+  const [selectedDayId, setSelectedDayId] = useState<string | null>(null)
+  const [selectedDayName, setSelectedDayName] = useState<string>('')
+
+  // Queries for planning
+  const { data: weeks, isLoading: isLoadingWeeks } = useWeeks()
+  const assignRecipe = useAssignRecipe()
+
+  const { data: days, isLoading: isLoadingDays } = useQuery({
+    queryKey: ['week-days', selectedWeekId],
+    queryFn: async () => {
+      if (!selectedWeekId) return []
+      const { data, error } = await supabase
+        .from('meal_plan_days')
+        .select('id, day_of_week')
+        .eq('week_id', selectedWeekId)
+        .order('sort_order')
+      if (error) throw error
+      return data
+    },
+    enabled: !!selectedWeekId
+  })
+
+  const { data: slots, isLoading: isLoadingSlots } = useQuery({
+    queryKey: ['day-slots', selectedDayId],
+    queryFn: async () => {
+      if (!selectedDayId) return []
+      const { data, error } = await supabase
+        .from('meal_plan_slots')
+        .select('id, meal_type, recipe_id')
+        .eq('day_id', selectedDayId)
+        .order('sort_order')
+      if (error) throw error
+      return data
+    },
+    enabled: !!selectedDayId
+  })
+
+  const handleAssignToSlot = async (slotId: string) => {
+    if (!recipe) return
+    try {
+      await assignRecipe.mutateAsync({
+        slotId,
+        recipeId: recipe.id
+      })
+      toast.success('Receita adicionada ao seu plano semanal!')
+      setIsAddModalOpen(false)
+    } catch (err) {
+      console.error(err)
+      toast.error('Erro ao adicionar receita ao plano.')
+    }
+  }
+
   const isPremiumUser = user?.subscription_tier && user.subscription_tier !== 'free'
   const isLocked = recipe?.is_premium && !isPremiumUser
 
   const difficultyLabels = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' }
+  const dayNames: Record<string, string> = {
+    monday: 'Segunda-feira',
+    tuesday: 'Terça-feira',
+    wednesday: 'Quarta-feira',
+    thursday: 'Quinta-feira',
+    friday: 'Sexta-feira',
+    saturday: 'Sábado',
+    sunday: 'Domingo'
+  }
+  const mealNames: Record<string, string> = {
+    breakfast: 'Café da Manhã',
+    lunch: 'Almoço',
+    dinner: 'Jantar',
+    snack: 'Lanche'
+  }
 
   if (isLoading) return <LoadingState message="Carregando receita..." />
   if (error || !recipe) return <ErrorState onRetry={() => refetch()} />
 
   return (
     <div className="bg-off-white min-h-screen pb-40">
-      {/* Top AppBar */}
-      <header className="bg-neutral-50/80 backdrop-blur-md border-b fixed top-0 left-0 w-full h-16 z-50 transition-all" style={{ borderColor: 'var(--color-outline-variant)' }}>
-        <div className="max-w-4xl mx-auto flex justify-between items-center h-full px-5">
-          <button 
-            onClick={() => navigate(-1)}
-            className="active:scale-95 transition-transform hover:bg-neutral-100 p-2 rounded-full cursor-pointer"
-          >
-            <ArrowLeft className="h-5 w-5 text-neutral-500" />
-          </button>
-          <span className="text-xl font-extrabold tracking-tighter" style={{ color: 'var(--color-primary)' }}>Cardappio</span>
-          <FavoriteButton recipeId={recipe.id} />
-        </div>
-      </header>
+      {/* Back navigation & favorite button row */}
+      <div className="max-w-4xl mx-auto flex items-center justify-between mb-6 px-4 sm:px-6">
+        <button 
+          onClick={() => navigate(-1)}
+          className="active:scale-95 transition-transform hover:bg-neutral-100 py-2 px-3 rounded-full cursor-pointer flex items-center gap-1.5 text-xs font-bold uppercase text-slate-500"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar
+        </button>
+        <FavoriteButton recipeId={recipe.id} />
+      </div>
 
       {/* Main Content */}
-      <main className="pt-16 max-w-4xl mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mt-6">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           
           {/* Left Column: Cover Image, Info Bento, Nutrition, Variations */}
           <div className="col-span-12 md:col-span-5 space-y-6">
@@ -210,11 +291,16 @@ export function RecipeDetailPage() {
         style={{ borderColor: 'var(--color-outline-variant)' }}
       >
         <button 
-          onClick={() => navigate('/app/semana/nova')}
-          className="flex-1 bg-fresh-green text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all cursor-pointer"
+          onClick={() => {
+            setModalStep('weeks')
+            setSelectedWeekId(null)
+            setSelectedDayId(null)
+            setIsAddModalOpen(true)
+          }}
+          className="flex-1 bg-fresh-green text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all cursor-pointer animate-in fade-in zoom-in-95 duration-200"
         >
           <Plus className="h-5 w-5" />
-          Adicionar ao Plano
+          Adicionar ao Plano Semanal
         </button>
         <button 
           onClick={() => navigate('/app/compras')}
@@ -224,6 +310,147 @@ export function RecipeDetailPage() {
           <ShoppingBasket className="h-6 w-6" />
         </button>
       </div>
+
+      {/* Dialog para Adicionar ao Plano Semanal */}
+      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+        <DialogContent className="max-w-md rounded-3xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-slate-900 text-left">
+              {modalStep === 'weeks' && 'Adicionar ao Plano Semanal'}
+              {modalStep === 'days' && 'Escolha o Dia da Semana'}
+              {modalStep === 'slots' && 'Escolha a Refeição'}
+            </DialogTitle>
+            <DialogDescription className="text-left">
+              {modalStep === 'weeks' && 'Selecione uma semana existente ou crie uma nova para planejar suas refeições.'}
+              {modalStep === 'days' && `Planejando para a semana: ${selectedWeekTitle}`}
+              {modalStep === 'slots' && `Adicionando em: ${selectedDayName}`}
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* PASSO 1: Selecionar Semana */}
+          {modalStep === 'weeks' && (
+            <div className="space-y-4 mt-2">
+              <Button
+                onClick={() => {
+                  setIsAddModalOpen(false)
+                  navigate('/app/semana/nova')
+                }}
+                className="w-full justify-start rounded-2xl py-6 border border-dashed border-primary/40 text-primary bg-primary/5 hover:bg-primary/10 gap-2.5 font-bold cursor-pointer"
+              >
+                <Plus className="h-5 w-5" />
+                Criar Novo Plano Semanal
+              </Button>
+
+              <div className="text-xs font-black uppercase text-slate-400 tracking-wider pt-2">Planos Existentes</div>
+
+              {isLoadingWeeks ? (
+                <div className="flex justify-center py-6"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+              ) : !weeks || weeks.length === 0 ? (
+                <p className="text-xs text-slate-400 italic text-center py-4">Nenhum plano semanal ativo.</p>
+              ) : (
+                <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                  {weeks.map(week => (
+                    <button
+                      key={week.id}
+                      onClick={() => {
+                        setSelectedWeekId(week.id)
+                        setSelectedWeekTitle(week.title || `Semana de ${new Date(week.week_start_date).toLocaleDateString()}`)
+                        setModalStep('days')
+                      }}
+                      className="w-full flex items-center justify-between p-3.5 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-slate-100/70 hover:border-slate-200 transition-all text-left cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-5 w-5 text-slate-400" />
+                        <div>
+                          <p className="text-sm font-bold text-slate-800 line-clamp-1">{week.title || 'Plano Semanal'}</p>
+                          <p className="text-[10px] text-slate-400">
+                            {new Date(week.week_start_date).toLocaleDateString()} - {new Date(week.week_end_date).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-slate-400" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* PASSO 2: Selecionar Dia */}
+          {modalStep === 'days' && (
+            <div className="space-y-4 mt-2">
+              <button
+                onClick={() => setModalStep('weeks')}
+                className="text-xs font-bold uppercase text-slate-500 hover:text-slate-700 flex items-center gap-1 cursor-pointer"
+              >
+                ← Voltar para as Semanas
+              </button>
+
+              {isLoadingDays ? (
+                <div className="flex justify-center py-6"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+              ) : !days || days.length === 0 ? (
+                <p className="text-xs text-slate-400 italic text-center py-4">Nenhum dia configurado nesta semana.</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1">
+                  {days.map(day => (
+                    <button
+                      key={day.id}
+                      onClick={() => {
+                        setSelectedDayId(day.id)
+                        setSelectedDayName(dayNames[day.day_of_week] || day.day_of_week)
+                        setModalStep('slots')
+                      }}
+                      className="p-4 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-slate-100 hover:border-slate-200 transition-all font-bold text-sm text-slate-700 uppercase tracking-wider text-center cursor-pointer"
+                    >
+                      {dayNames[day.day_of_week] || day.day_of_week}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* PASSO 3: Selecionar Refeição */}
+          {modalStep === 'slots' && (
+            <div className="space-y-4 mt-2">
+              <button
+                onClick={() => setModalStep('days')}
+                className="text-xs font-bold uppercase text-slate-500 hover:text-slate-700 flex items-center gap-1 cursor-pointer"
+              >
+                ← Voltar para os Dias
+              </button>
+
+              {isLoadingSlots ? (
+                <div className="flex justify-center py-6"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+              ) : !slots || slots.length === 0 ? (
+                <p className="text-xs text-slate-400 italic text-center py-4">Nenhuma refeição configurada neste dia.</p>
+              ) : (
+                <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                  {slots.map(slot => (
+                    <button
+                      key={slot.id}
+                      onClick={() => handleAssignToSlot(slot.id)}
+                      disabled={assignRecipe.isPending}
+                      className="w-full flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-slate-100/70 hover:border-slate-200 transition-all text-left cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className={cn("h-5 w-5", slot.recipe_id ? "text-primary fill-primary/10" : "text-slate-300")} />
+                        <div>
+                          <p className="text-sm font-bold text-slate-800">{mealNames[slot.meal_type] || slot.meal_type}</p>
+                          {slot.recipe_id && (
+                            <p className="text-[10px] text-slate-400">Substituirá a receita atual planejada</p>
+                          )}
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-slate-400" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
