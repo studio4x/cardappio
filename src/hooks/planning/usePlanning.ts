@@ -352,4 +352,28 @@ export function useUpdateWeek() {
   })
 }
 
+/**
+ * Delete a weekly meal plan by ID.
+ */
+export function useDeleteWeek() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (weekId: string) => {
+      const { error } = await supabase
+        .from('meal_plan_weeks')
+        .delete()
+        .eq('id', weekId)
+
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['active-week'] })
+      queryClient.invalidateQueries({ queryKey: ['weeks'] })
+      queryClient.invalidateQueries({ queryKey: ['meal-weeks-history'] })
+    },
+  })
+}
+
+
 

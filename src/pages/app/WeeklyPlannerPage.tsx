@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react'
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom'
-import { Plus, ShoppingCart, Loader2, Save, SlidersVertical as Tune, ChevronRight, ChevronDown, Pencil } from 'lucide-react'
+import { Plus, ShoppingCart, Loader2, Save, SlidersVertical as Tune, ChevronRight, ChevronDown, Pencil, X } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
-import { useActiveWeek, useCreateWeek, useWeek, useWeeks, useRepeatWeek, useUpdateWeek } from '@/hooks/planning/usePlanning'
+import { useActiveWeek, useCreateWeek, useWeek, useWeeks, useRepeatWeek, useUpdateWeek, useDeleteWeek } from '@/hooks/planning/usePlanning'
 import { useProfile } from '@/hooks/auth'
 import { DayPlannerCard } from '@/components/planning/DayPlannerCard'
 import { DAY_LABELS, DAY_ORDER as ALL_DAYS, type DayOfWeek } from '@/lib/constants/calendar'
@@ -44,6 +44,36 @@ export function WeeklyPlannerPage() {
   const [newWeekTitle, setNewWeekTitle] = useState('')
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
   const [renameTitle, setRenameTitle] = useState('')
+  
+  const deleteWeek = useDeleteWeek()
+  const [weekToDelete, setWeekToDelete] = useState<any | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+
+  const handleDeleteClick = (week: any) => {
+    setWeekToDelete(week)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleDeleteWeek = async () => {
+    if (!weekToDelete) return
+    try {
+      await deleteWeek.mutateAsync(weekToDelete.id)
+      toast.success('Semana excluída com sucesso!')
+      
+      if (activeWeek && activeWeek.id === weekToDelete.id) {
+        const remainingWeeks = weeks?.filter(w => w.id !== weekToDelete.id) || []
+        if (remainingWeeks.length > 0) {
+          navigate(`/app/semana/${remainingWeeks[0].id}`)
+        } else {
+          navigate('/app/semana/nova')
+        }
+      }
+      setIsDeleteDialogOpen(false)
+      setWeekToDelete(null)
+    } catch (err) {
+      toast.error('Erro ao excluir semana')
+    }
+  }
 
   const handleRenameWeek = async () => {
     if (!activeWeek) return
@@ -314,18 +344,18 @@ export function WeeklyPlannerPage() {
                         key={w.id}
                         onClick={() => navigate(`/app/semana/${w.id}`)}
                         className={cn(
-                          "rounded-xl px-3 py-2 text-sm cursor-pointer transition-colors focus:bg-neutral-50",
+                          "rounded-xl px-3 py-2 text-sm cursor-pointer transition-colors focus:bg-neutral-50 flex items-center justify-between group/item gap-4",
                           isCurrent 
                             ? "bg-primary/10 text-primary font-bold focus:bg-primary/15" 
                             : "hover:bg-neutral-50 text-on-surface"
                         )}
                       >
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-sm">
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className="font-semibold text-sm truncate">
                             {w.title || `${formatDateToShort(w.week_start_date)} a ${formatDateToShort(w.week_end_date)}`}
                           </span>
                           {w.title && (
-                            <span className="text-[10px] text-neutral-400 mt-0.5">
+                            <span className="text-[10px] text-neutral-400 mt-0.5 truncate">
                               {formatDateToShort(w.week_start_date)} a {formatDateToShort(w.week_end_date)}
                             </span>
                           )}
@@ -335,6 +365,18 @@ export function WeeklyPlannerPage() {
                             </span>
                           )}
                         </div>
+                        
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            handleDeleteClick(w);
+                          }}
+                          className="p-1.5 rounded-md text-neutral-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer opacity-100 sm:opacity-0 sm:group-hover/item:opacity-100 focus:opacity-100 shrink-0"
+                          title="Excluir semana"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
                       </DropdownMenuItem>
                     )
                   })}
@@ -497,6 +539,43 @@ export function WeeklyPlannerPage() {
               className="rounded-2xl py-3 px-5 text-sm font-bold bg-primary text-white"
             >
               {updateWeek.isPending ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para confirmar a exclusão da semana */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md rounded-3xl p-6 bg-white max-w-[90vw]">
+          <DialogHeader className="space-y-3 text-left">
+            <DialogTitle className="text-xl font-extrabold text-on-surface">Excluir Semana</DialogTitle>
+            <DialogDescription className="text-sm text-neutral-500">
+              Tem certeza que deseja excluir a semana{" "}
+              <span className="font-semibold text-on-surface">
+                {weekToDelete?.title || (weekToDelete ? `${formatDateToShort(weekToDelete.week_start_date)} a ${formatDateToShort(weekToDelete.week_end_date)}` : '')}
+              </span>
+              ? Esta ação é irreversível e excluirá todos os planos de refeições e listas de compras associados.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false)
+                setWeekToDelete(null)
+              }}
+              className="rounded-2xl py-3 px-5 border border-neutral-200 text-sm font-semibold hover:bg-neutral-50 transition-colors"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={handleDeleteWeek}
+              disabled={deleteWeek.isPending}
+              className="rounded-2xl py-3 px-5 text-sm font-bold bg-red-600 text-white hover:bg-red-700 transition-colors"
+            >
+              {deleteWeek.isPending ? 'Excluindo...' : 'Confirmar Exclusão'}
             </Button>
           </DialogFooter>
         </DialogContent>
