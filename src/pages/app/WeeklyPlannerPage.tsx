@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { useActiveWeek, useCreateWeek, useWeek, useWeeks, useRepeatWeek, useUpdateWeek, useDeleteWeek, useAssignRecipe } from '@/hooks/planning/usePlanning'
+import { useGenerateShoppingList } from '@/hooks/shopping/useShopping'
 import { useProfile } from '@/hooks/auth'
 import { DayPlannerCard } from '@/components/planning/DayPlannerCard'
 import { DAY_LABELS, DAY_ORDER as ALL_DAYS, type DayOfWeek } from '@/lib/constants/calendar'
@@ -50,6 +51,7 @@ export function WeeklyPlannerPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   
   const assignRecipe = useAssignRecipe()
+  const generateList = useGenerateShoppingList()
 
   const handleDeleteClick = (week: any) => {
     // Delay opening the dialog to let the dropdown close and restore focus first,
@@ -504,21 +506,36 @@ export function WeeklyPlannerPage() {
 
         {/* CTA to Shopping List */}
         <div className="pt-10">
-           <Link 
-            to={`/app/semana/${activeWeek.id}/compras`}
-            className="flex items-center justify-between bg-neutral-900 text-white p-6 rounded-3xl group"
+           <button
+            onClick={async () => {
+              if (!activeWeek?.id) return
+              const toastId = toast.loading('Gerando lista de compras baseada nas suas receitas...')
+              try {
+                await generateList.mutateAsync(activeWeek.id)
+                toast.success('Lista de compras gerada com sucesso!', { id: toastId })
+                navigate(`/app/semana/${activeWeek.id}/compras`)
+              } catch (err: any) {
+                toast.error('Erro ao gerar lista de compras: ' + (err.message || 'Erro desconhecido'), { id: toastId })
+              }
+            }}
+            disabled={generateList.isPending}
+            className="w-full flex items-center justify-between bg-neutral-900 text-white p-6 rounded-3xl group cursor-pointer hover:bg-neutral-800 transition-colors disabled:opacity-50"
            >
               <div className="flex items-center gap-4">
                  <div className="bg-white/10 p-3 rounded-2xl">
-                    <ShoppingCart className="h-6 w-6" />
+                    {generateList.isPending ? (
+                      <Loader2 className="h-6 w-6 animate-spin text-white" />
+                    ) : (
+                      <ShoppingCart className="h-6 w-6" />
+                    )}
                  </div>
-                 <div>
+                 <div className="text-left">
                     <p className="font-bold">Gerar Lista de Compras</p>
                     <p className="text-xs text-white/60">Baseado nas receitas planejadas acima.</p>
                  </div>
               </div>
               <ChevronRight className="h-5 w-5 text-white/40 group-hover:translate-x-1 transition-transform" />
-           </Link>
+           </button>
         </div>
       </main>
 

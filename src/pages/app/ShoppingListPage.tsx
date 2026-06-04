@@ -290,11 +290,24 @@ export function ShoppingListPage() {
         {/* Checklist Sections */}
         <div className="space-y-10">
           {Object.entries(groupedItems).length === 0 ? (
-            <EmptyState
-              icon={<Search className="h-10 w-10 text-neutral-300" />}
-              title="Nenhum item encontrado"
-              description="Tente buscar por outro nome de ingrediente."
-            />
+            searchTerm ? (
+              <EmptyState
+                icon={<Search className="h-10 w-10 text-neutral-300" />}
+                title="Nenhum item encontrado"
+                description="Tente buscar por outro nome de ingrediente."
+              />
+            ) : (
+              <EmptyState
+                icon={<ShoppingCart className="h-12 w-12 text-neutral-300" />}
+                title="Sua lista está vazia"
+                description="Certifique-se de adicionar receitas com ingredientes ao seu planejamento semanal, ou clique no botão abaixo para gerar/atualizar a lista."
+                action={
+                  <Button onClick={handleGenerate} disabled={generateList.isPending}>
+                     {generateList.isPending ? 'Gerando...' : 'Gerar / Atualizar Lista'}
+                  </Button>
+                }
+              />
+            )
           ) : (
             Object.entries(groupedItems).map(([category, catItems]) => (
               <section key={category}>
