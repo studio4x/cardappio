@@ -47,8 +47,8 @@ export function useCollection(slug: string | undefined) {
 
       if (error) throw error
       
-      // Flatten the recipes
-      const flattenedRecipes = data.items?.map((item: any) => item.recipe) ?? []
+      // Flatten and filter out null recipes
+      const flattenedRecipes = data.items?.map((item: any) => item.recipe).filter(Boolean) ?? []
       
       return {
         ...data,
