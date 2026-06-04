@@ -302,13 +302,6 @@ export function RecipeDetailPage() {
           <Plus className="h-5 w-5" />
           Adicionar ao Plano Semanal
         </button>
-        <button 
-          onClick={() => navigate('/app/compras')}
-          className="w-14 h-14 border flex items-center justify-center rounded-xl text-neutral-400 active:scale-90 transition-all cursor-pointer"
-          style={{ borderColor: 'var(--color-outline-variant)' }}
-        >
-          <ShoppingBasket className="h-6 w-6" />
-        </button>
       </div>
 
       {/* Dialog para Adicionar ao Plano Semanal */}
