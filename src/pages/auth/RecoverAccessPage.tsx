@@ -104,6 +104,8 @@ export function RecoverAccessPage() {
   }
 
   if (isReset) {
+    const hasCriticalError = error && !currentUserEmail;
+
     return (
       <div>
         <h2
@@ -134,81 +136,96 @@ export function RecoverAccessPage() {
           </div>
         )}
 
-        <form onSubmit={handleResetSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="new-password" className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--color-on-surface)' }}>
-              Nova Senha
-            </label>
-            <div className="relative">
-              <Key className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: 'var(--color-outline)' }} />
-              <input
-                id="new-password"
-                name="new-password"
-                type={showPassword ? 'text' : 'password'}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
-                required
-                autoComplete="new-password"
-                className="w-full rounded-lg border py-2.5 pl-10 pr-10 text-sm outline-none transition-colors"
-                style={{
-                  borderColor: 'var(--color-outline-variant)',
-                  backgroundColor: 'var(--color-surface-container-low)',
-                  color: 'var(--color-on-surface)',
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
+        {!hasCriticalError && (
+          <form onSubmit={handleResetSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="new-password" className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--color-on-surface)' }}>
+                Nova Senha
+              </label>
+              <div className="relative">
+                <Key className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: 'var(--color-outline)' }} />
+                <input
+                  id="new-password"
+                  name="new-password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  required
+                  autoComplete="new-password"
+                  className="w-full rounded-lg border py-2.5 pl-10 pr-10 text-sm outline-none transition-colors"
+                  style={{
+                    borderColor: 'var(--color-outline-variant)',
+                    backgroundColor: 'var(--color-surface-container-low)',
+                    color: 'var(--color-on-surface)',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label htmlFor="confirm-password" className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--color-on-surface)' }}>
-              Confirmar Nova Senha
-            </label>
-            <div className="relative">
-              <Key className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: 'var(--color-outline)' }} />
-              <input
-                id="confirm-password"
-                name="confirm-password"
-                type={showConfirmPassword ? 'text' : 'password'}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirme a nova senha"
-                required
-                autoComplete="new-password"
-                className="w-full rounded-lg border py-2.5 pl-10 pr-10 text-sm outline-none transition-colors"
-                style={{
-                  borderColor: 'var(--color-outline-variant)',
-                  backgroundColor: 'var(--color-surface-container-low)',
-                  color: 'var(--color-on-surface)',
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-              >
-                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
+            <div>
+              <label htmlFor="confirm-password" className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--color-on-surface)' }}>
+                Confirmar Nova Senha
+              </label>
+              <div className="relative">
+                <Key className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: 'var(--color-outline)' }} />
+                <input
+                  id="confirm-password"
+                  name="confirm-password"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirme a nova senha"
+                  required
+                  autoComplete="new-password"
+                  className="w-full rounded-lg border py-2.5 pl-10 pr-10 text-sm outline-none transition-colors"
+                  style={{
+                    borderColor: 'var(--color-outline-variant)',
+                    backgroundColor: 'var(--color-surface-container-low)',
+                    color: 'var(--color-on-surface)',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50 cursor-pointer"
-            style={{ backgroundColor: 'var(--color-primary)' }}
-          >
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            {isLoading ? 'Redefinindo...' : 'Salvar nova senha'}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50 cursor-pointer"
+              style={{ backgroundColor: 'var(--color-primary)' }}
+            >
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {isLoading ? 'Redefinindo...' : 'Salvar nova senha'}
+            </button>
+          </form>
+        )}
+
+        {hasCriticalError && (
+          <div className="mt-6 text-center">
+            <Link
+              to="/auth/recuperar"
+              className="inline-flex items-center gap-2 text-sm font-medium"
+              style={{ color: 'var(--color-primary)' }}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Solicitar novo link de recuperação
+            </Link>
+          </div>
+        )}
       </div>
     )
   }

@@ -23,52 +23,64 @@ export function AuthCallbackPage() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      // Supabase client auto-detects tokens in the URL hash
-      // and exchanges them for a session via detectSessionInUrl: true
-      const { data: { session }, error } = await supabase.auth.getSession()
-
-      if (error) {
-        console.error('Auth callback error:', error)
-        navigate('/auth/login', { replace: true })
-        return
-      }
-
-      if (session) {
-        // Check if this is a password recovery flow
-        const hashParams = new URLSearchParams(window.location.hash.substring(1))
+      try {
         const searchParams = new URLSearchParams(window.location.search)
-        const isRecovery = hashParams.get('type') === 'recovery' || 
-                           searchParams.get('type') === 'recovery' || 
-                           window.location.href.includes('type=recovery') ||
-                           sessionStorage.getItem('isRecoveryFlow') === 'true'
+        const code = searchParams.get('code')
 
-        if (isRecovery) {
-          sessionStorage.removeItem('isRecoveryFlow')
-          navigate('/auth/recuperar?reset=true', { replace: true })
+        if (code) {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+          if (exchangeError) {
+            console.error('Error exchanging code for session:', exchangeError)
+            navigate('/auth/login', { replace: true })
+            return
+          }
+        }
+
+        const { data: { session }, error } = await supabase.auth.getSession()
+
+        if (error) {
+          console.error('Auth callback error:', error)
+          navigate('/auth/login', { replace: true })
           return
         }
 
-        // Check if user has completed onboarding
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('onboarding_completed_at')
-          .eq('id', session.user.id)
-          .single()
+        if (session) {
+          // Check if this is a password recovery flow
+          const hashParams = new URLSearchParams(window.location.hash.substring(1))
+          const isRecovery = hashParams.get('type') === 'recovery' || 
+                             searchParams.get('type') === 'recovery' || 
+                             window.location.href.includes('type=recovery') ||
+                             sessionStorage.getItem('isRecoveryFlow') === 'true'
 
-        if (profile?.onboarding_completed_at) {
-          navigate('/app', { replace: true })
+          if (isRecovery) {
+            sessionStorage.removeItem('isRecoveryFlow')
+            navigate('/auth/recuperar?reset=true', { replace: true })
+            return
+          }
+
+          // Check if user has completed onboarding
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('onboarding_completed_at')
+            .eq('id', session.user.id)
+            .single()
+
+          if (profile?.onboarding_completed_at) {
+            navigate('/app', { replace: true })
+          } else {
+            navigate('/app/onboarding', { replace: true })
+          }
         } else {
-          navigate('/app/onboarding', { replace: true })
+          // No session — redirect to login
+          navigate('/auth/login', { replace: true })
         }
-      } else {
-        // No session — redirect to login
+      } catch (err) {
+        console.error('Unexpected error in handleCallback:', err)
         navigate('/auth/login', { replace: true })
       }
     }
 
-    // Small delay to let Supabase process the URL tokens
-    const timeout = setTimeout(handleCallback, 500)
-    return () => clearTimeout(timeout)
+    handleCallback()
   }, [navigate])
 
   return (
