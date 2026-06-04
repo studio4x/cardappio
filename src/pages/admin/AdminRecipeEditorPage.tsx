@@ -29,6 +29,7 @@ export function AdminRecipeEditorPage() {
     title: '',
     subtitle: '',
     difficulty_level: 'easy',
+    cost_level: 'medium',
     prep_time_minutes: 30,
     servings: 2,
     status: 'draft',
@@ -213,6 +214,33 @@ export function AdminRecipeEditorPage() {
                 onChange={(e) => setRecipeData({...recipeData, servings: parseInt(e.target.value)})}
                 className="w-full rounded-lg border p-2 outline-none"
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Dificuldade</label>
+              <select
+                value={recipeData.difficulty_level || 'easy'}
+                onChange={(e) => setRecipeData({...recipeData, difficulty_level: e.target.value})}
+                className="w-full rounded-lg border p-2 outline-none bg-white"
+              >
+                <option value="easy">Fácil</option>
+                <option value="medium">Médio</option>
+                <option value="hard">Difícil</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Nível de Custo</label>
+              <select
+                value={recipeData.cost_level || 'medium'}
+                onChange={(e) => setRecipeData({...recipeData, cost_level: e.target.value})}
+                className="w-full rounded-lg border p-2 outline-none bg-white"
+              >
+                <option value="low">Econômico</option>
+                <option value="medium">Moderado</option>
+                <option value="high">Premium</option>
+              </select>
             </div>
           </div>
         </div>
