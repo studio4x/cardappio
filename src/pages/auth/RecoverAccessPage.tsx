@@ -104,7 +104,7 @@ export function RecoverAccessPage() {
       }
 
       // 3. Verify the update actually persisted: updated_at must have changed
-      const afterUpdatedAt = updateData.updated_at
+      const afterUpdatedAt = updateData?.data?.updated_at || updateData?.updated_at
       if (!afterUpdatedAt || afterUpdatedAt === beforeUpdatedAt) {
         setError(
           'Não foi possível confirmar a alteração da senha no servidor. ' +
