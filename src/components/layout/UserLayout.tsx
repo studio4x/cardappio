@@ -1,4 +1,4 @@
-import { Outlet, Link } from 'react-router-dom'
+import { Outlet, Link, useLocation } from 'react-router-dom'
 import { Bell, LogOut } from 'lucide-react'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Logo } from '@/components/shared/Logo'
@@ -8,8 +8,13 @@ import { useNotifications } from '@/hooks/notifications/useNotifications'
 
 export function UserLayout() {
   const { user, signOut } = useAuth()
+  const { pathname } = useLocation()
   const { data: notifications } = useNotifications()
   const unreadCount = notifications?.filter(n => !n.is_read).length || 0
+
+  const isHomeActive = pathname === '/app' || pathname === '/app/'
+  const isPlannerActive = pathname.startsWith('/app/semana')
+  const isRecipesActive = pathname.startsWith('/app/receitas')
 
   return (
     <div
@@ -30,10 +35,29 @@ export function UserLayout() {
 
           <div className="flex items-center gap-2">
             <div className="hidden md:flex gap-6 mr-6">
-              <Link to="/app" className="text-sm font-bold no-underline" style={{ color: 'var(--color-primary)' }}>Home</Link>
-              <Link to="/app/semana" className="text-sm font-medium no-underline hover:text-primary transition-colors" style={{ color: 'var(--color-text-secondary)' }}>Planner</Link>
-              <Link to="/app/receitas" className="text-sm font-medium no-underline hover:text-primary transition-colors" style={{ color: 'var(--color-text-secondary)' }}>Receitas</Link>
+              <Link 
+                to="/app" 
+                className={`text-sm no-underline transition-colors ${isHomeActive ? 'font-bold' : 'font-medium hover:text-primary'}`} 
+                style={{ color: isHomeActive ? 'var(--color-primary)' : 'var(--color-text-secondary)' }}
+              >
+                Home
+              </Link>
+              <Link 
+                to="/app/semana" 
+                className={`text-sm no-underline transition-colors ${isPlannerActive ? 'font-bold' : 'font-medium hover:text-primary'}`} 
+                style={{ color: isPlannerActive ? 'var(--color-primary)' : 'var(--color-text-secondary)' }}
+              >
+                Planner
+              </Link>
+              <Link 
+                to="/app/receitas" 
+                className={`text-sm no-underline transition-colors ${isRecipesActive ? 'font-bold' : 'font-medium hover:text-primary'}`} 
+                style={{ color: isRecipesActive ? 'var(--color-primary)' : 'var(--color-text-secondary)' }}
+              >
+                Receitas
+              </Link>
             </div>
+
 
             <Link
               to="/app/notificacoes"
