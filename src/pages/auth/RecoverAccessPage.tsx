@@ -80,57 +80,26 @@ export function RecoverAccessPage() {
     setError(null)
 
     try {
-      // 1. Capture current updated_at to verify the change actually occurred
-      const { data: { user: beforeUser } } = await supabase.auth.getUser()
-      if (!beforeUser) {
-        setError('Sessão de recuperação expirada. Por favor, solicite um novo link.')
-        return
-      }
-      const beforeUpdatedAt = beforeUser.updated_at
-
-      // 2. Update the password using the Edge Function to bypass client-side limitations
-      const { data: updateData, error: updateError } = await supabase.functions.invoke('update-user-password', {
-        body: { password: newPassword }
+      // 1. Atualizar a senha diretamente pelo Auth do cliente (padrão oficial)
+      const { data, error: updateError } = await supabase.auth.updateUser({
+        password: newPassword
       })
 
       if (updateError) {
-        setError('Erro ao atualizar a senha no servidor. Verifique sua conexão e tente novamente.')
+        setError(translateAuthError(updateError.message))
         return
       }
 
-      if (!updateData || updateData.error) {
-         setError(updateData?.error || 'Erro desconhecido ao processar atualização.')
-         return
-      }
-
-      // 3. Verify the update actually persisted: updated_at must have changed
-      const afterUpdatedAt = updateData?.data?.updated_at || updateData?.updated_at
-      if (!afterUpdatedAt || afterUpdatedAt === beforeUpdatedAt) {
-        setError(
-          'Não foi possível confirmar a alteração da senha no servidor. ' +
-          'Tente desativar temporariamente bloqueadores de rede ou antivírus e repetir o processo.'
-        )
-        return
-      }
-
-      // 4. Sign out globally (revokes ALL sessions on the server side)
-      await supabase.auth.signOut({ scope: 'global' })
-
-      // 5. Force-clear any remaining session from localStorage as a fallback
-      try {
-        const keysToRemove = Object.keys(localStorage).filter(
-          (k) => k.startsWith('sb-') && k.endsWith('-auth-token')
-        )
-        keysToRemove.forEach((k) => localStorage.removeItem(k))
-        sessionStorage.removeItem('isRecoveryFlow')
-      } catch {
-        // Ignore storage errors (sandboxed environments)
-      }
-
-      toast.success('Senha redefinida com sucesso! Por favor, faça login com a nova senha.', {
+      // 2. Após a troca, a sessão já está atualizada localmente e pronta para uso
+      toast.success('Senha redefinida com sucesso!', {
         duration: 8000
       })
-      navigate(`/auth/login?email=${encodeURIComponent(currentUserEmail || '')}&reset=done`, { replace: true })
+      
+      // 3. Remove flag de recovery (opcional mas boa prática)
+      try { sessionStorage.removeItem('isRecoveryFlow') } catch {}
+
+      // 4. Redirecionar para a área logada do sistema (pois a sessão já está válida)
+      navigate('/app', { replace: true })
     } catch {
       setError('Erro inesperado ao atualizar a senha. Verifique sua conexão e tente novamente.')
     } finally {
