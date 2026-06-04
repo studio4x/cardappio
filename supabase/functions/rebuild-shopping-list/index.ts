@@ -52,7 +52,7 @@ serve(async (req) => {
       .select(`
         slots:meal_plan_slots(
           recipe:recipes(
-            ingredients:recipe_ingredients(name, quantity_label, normalized_name, is_optional)
+            ingredients:recipe_ingredients(name, quantity_label, unit, normalized_name, is_optional)
           )
         )
       `)
@@ -74,15 +74,16 @@ serve(async (req) => {
         for (const ing of slot.recipe.ingredients || []) {
           if (ing.is_optional) continue
           const key = (ing.normalized_name || ing.name).toLowerCase().trim()
+          const qtyStr = ing.quantity_label ? (ing.unit ? `${ing.quantity_label} ${ing.unit}` : ing.quantity_label) : (ing.unit || '')
           const existing = ingredientMap.get(key)
           if (existing) {
             existing.recipeCount++
-            if (ing.quantity_label) existing.quantities.push(ing.quantity_label)
+            if (qtyStr) existing.quantities.push(qtyStr)
           } else {
             ingredientMap.set(key, {
               label: ing.name,
               normalized: key,
-              quantities: ing.quantity_label ? [ing.quantity_label] : [],
+              quantities: qtyStr ? [qtyStr] : [],
               recipeCount: 1,
             })
           }

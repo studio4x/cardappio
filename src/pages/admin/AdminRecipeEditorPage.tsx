@@ -99,6 +99,7 @@ export function AdminRecipeEditorPage() {
           recipe_id: recipeId,
           name: ing.name,
           quantity_label: ing.quantity_label,
+          unit: ing.unit || null,
           sort_order: idx
         }))
         const { error: ingError } = await supabase.from('recipe_ingredients').insert(ingredientsToInsert)
@@ -322,7 +323,7 @@ export function AdminRecipeEditorPage() {
             size="sm" 
             onClick={() => setRecipeData({
               ...recipeData, 
-              ingredients: [...(recipeData.ingredients || []), { name: '', quantity_label: '', sort_order: (recipeData.ingredients?.length || 0) }]
+              ingredients: [...(recipeData.ingredients || []), { name: '', quantity_label: '', unit: '', sort_order: (recipeData.ingredients?.length || 0) }]
             })}
             className="gap-2"
           >
@@ -346,10 +347,10 @@ export function AdminRecipeEditorPage() {
                   className="w-full rounded-lg border p-2 text-sm outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
-              <div className="w-32">
+              <div className="w-28">
                 <input
-                  placeholder="Qtd (Ex: 200g)"
-                  value={ing.quantity_label}
+                  placeholder="Qtd (Ex: 200)"
+                  value={ing.quantity_label || ''}
                   onChange={(e) => {
                     const newIngs = [...recipeData.ingredients]
                     newIngs[index].quantity_label = e.target.value
@@ -357,6 +358,43 @@ export function AdminRecipeEditorPage() {
                   }}
                   className="w-full rounded-lg border p-2 text-sm outline-none focus:ring-1 focus:ring-primary"
                 />
+              </div>
+              <div className="w-40">
+                <select
+                  value={ing.unit || ''}
+                  onChange={(e) => {
+                    const newIngs = [...recipeData.ingredients]
+                    newIngs[index].unit = e.target.value || null
+                    setRecipeData({...recipeData, ingredients: newIngs})
+                  }}
+                  className="w-full rounded-lg border p-2 text-sm outline-none focus:ring-1 focus:ring-primary bg-white cursor-pointer"
+                >
+                  <option value="">Sem unidade</option>
+                  <option value="g">Gramas (g)</option>
+                  <option value="kg">Quilogramas (kg)</option>
+                  <option value="ml">Mililitros (ml)</option>
+                  <option value="l">Litros (l)</option>
+                  <option value="unidade">Unidade(s)</option>
+                  <option value="colher de sopa">Colher(es) de sopa</option>
+                  <option value="colher de chá">Colher(es) de chá</option>
+                  <option value="colher de sobremesa">Colher(es) de sobremesa</option>
+                  <option value="colher de café">Colher(es) de café</option>
+                  <option value="xícara">Xícara(s)</option>
+                  <option value="xícara de chá">Xícara(s) de chá</option>
+                  <option value="dente">Dente(s)</option>
+                  <option value="fatia">Fatia(s)</option>
+                  <option value="copo">Copo(s)</option>
+                  <option value="pitada">Pitada(s)</option>
+                  <option value="lata">Lata(s)</option>
+                  <option value="caixa">Caixa(s)</option>
+                  <option value="pacote">Pacote(s)</option>
+                  <option value="vidro">Vidro(s)</option>
+                  <option value="maço">Maço(s)</option>
+                  <option value="pedaço">Pedaço(s)</option>
+                  <option value="folha">Folha(s)</option>
+                  <option value="ramo">Ramo(s)</option>
+                  <option value="a gosto">A gosto</option>
+                </select>
               </div>
               <button 
                 onClick={() => {

@@ -26,8 +26,8 @@ export function UserRecipeEditorPage() {
   const [cost, setCost] = useState<'low' | 'medium' | 'high'>('medium')
   
   // Ingredients list
-  const [ingredients, setIngredients] = useState<{ name: string; quantity: string }[]>([
-    { name: '', quantity: '' }
+  const [ingredients, setIngredients] = useState<{ name: string; quantity: string; unit: string }[]>([
+    { name: '', quantity: '', unit: '' }
   ])
 
   // Steps list
@@ -59,7 +59,11 @@ export function UserRecipeEditorPage() {
               setIngredients(
                 recipe.ingredients
                   .sort((a: any, b: any) => a.sort_order - b.sort_order)
-                  .map((i: any) => ({ name: i.name, quantity: i.quantity_label || '' }))
+                  .map((i: any) => ({
+                    name: i.name,
+                    quantity: i.quantity_label || '',
+                    unit: i.unit || ''
+                  }))
               )
             }
             if (recipe.steps && recipe.steps.length > 0) {
@@ -82,14 +86,14 @@ export function UserRecipeEditorPage() {
   }, [id, navigate])
 
   const handleAddIngredient = () => {
-    setIngredients(prev => [...prev, { name: '', quantity: '' }])
+    setIngredients(prev => [...prev, { name: '', quantity: '', unit: '' }])
   }
 
   const handleRemoveIngredient = (index: number) => {
     setIngredients(prev => prev.filter((_, i) => i !== index))
   }
 
-  const handleIngredientChange = (index: number, field: 'name' | 'quantity', value: string) => {
+  const handleIngredientChange = (index: number, field: 'name' | 'quantity' | 'unit', value: string) => {
     setIngredients(prev => {
       const copy = [...prev]
       copy[index][field] = value
@@ -166,7 +170,8 @@ export function UserRecipeEditorPage() {
         .map((i, index) => ({
           recipe_id: recipeId!,
           name: i.name,
-          quantity_label: i.quantity,
+          quantity_label: i.quantity || null,
+          unit: i.unit || null,
           normalized_name: i.name.toLowerCase().trim(),
           sort_order: index
         }))
@@ -283,11 +288,44 @@ export function UserRecipeEditorPage() {
                 <div className="flex-1">
                   <Input value={ing.name} onChange={e => handleIngredientChange(idx, 'name', e.target.value)} placeholder="Nome do ingrediente" required />
                 </div>
-                <div className="w-32">
-                  <Input value={ing.quantity} onChange={e => handleIngredientChange(idx, 'quantity', e.target.value)} placeholder="Qtd. (ex: 200g)" required />
+                <div className="w-24">
+                  <Input value={ing.quantity} onChange={e => handleIngredientChange(idx, 'quantity', e.target.value)} placeholder="Qtd." />
+                </div>
+                <div className="w-40">
+                  <select
+                    value={ing.unit || ''}
+                    onChange={e => handleIngredientChange(idx, 'unit', e.target.value)}
+                    className="w-full rounded-xl border p-2.5 text-sm border-slate-200 outline-none bg-white cursor-pointer"
+                  >
+                    <option value="">Sem unidade</option>
+                    <option value="g">Gramas (g)</option>
+                    <option value="kg">Quilogramas (kg)</option>
+                    <option value="ml">Mililitros (ml)</option>
+                    <option value="l">Litros (l)</option>
+                    <option value="unidade">Unidade(s)</option>
+                    <option value="colher de sopa">Colher(es) de sopa</option>
+                    <option value="colher de chá">Colher(es) de chá</option>
+                    <option value="colher de sobremesa">Colher(es) de sobremesa</option>
+                    <option value="colher de café">Colher(es) de café</option>
+                    <option value="xícara">Xícara(s)</option>
+                    <option value="xícara de chá">Xícara(s) de chá</option>
+                    <option value="dente">Dente(s)</option>
+                    <option value="fatia">Fatia(s)</option>
+                    <option value="copo">Copo(s)</option>
+                    <option value="pitada">Pitada(s)</option>
+                    <option value="lata">Lata(s)</option>
+                    <option value="caixa">Caixa(s)</option>
+                    <option value="pacote">Pacote(s)</option>
+                    <option value="vidro">Vidro(s)</option>
+                    <option value="maço">Maço(s)</option>
+                    <option value="pedaço">Pedaço(s)</option>
+                    <option value="folha">Folha(s)</option>
+                    <option value="ramo">Ramo(s)</option>
+                    <option value="a gosto">A gosto</option>
+                  </select>
                 </div>
                 {ingredients.length > 1 && (
-                  <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveIngredient(idx)} className="text-red-500 rounded-full">
+                  <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveIngredient(idx)} className="text-red-500 rounded-full shrink-0">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 )}

@@ -31,10 +31,10 @@ serve(async (req) => {
     let prepTime = 30
     let servings = 4
     let ingredients = [
-      { name: "Ingrediente Principal", quantity_label: "500g" },
-      { name: "Água", quantity_label: "200ml" },
-      { name: "Sal", quantity_label: "1 colher de chá" },
-      { name: "Azeite de Oliva", quantity_label: "2 colheres de sopa" }
+      { name: "Ingrediente Principal", quantity_label: "500", unit: "g" },
+      { name: "Água", quantity_label: "200", unit: "ml" },
+      { name: "Sal", quantity_label: "1", unit: "colher de chá" },
+      { name: "Azeite de Oliva", quantity_label: "2", unit: "colher de sopa" }
     ]
     let steps = [
       "Higienize e separe todos os ingredientes.",
@@ -52,14 +52,14 @@ serve(async (req) => {
       prepTime = 45
       servings = 8
       ingredients = [
-        { name: "Cenouras médias", quantity_label: "3 unidades" },
-        { name: "Óleo de milho", quantity_label: "1/2 xícara" },
-        { name: "Ovos caipiras", quantity_label: "3 unidades" },
-        { name: "Açúcar demerara", quantity_label: "2 xícaras" },
-        { name: "Farinha de trigo peneirada", quantity_label: "2 xícaras" },
-        { name: "Fermento químico em pó", quantity_label: "1 colher de sopa" },
-        { name: "Chocolate em pó 50%", quantity_label: "1 xícara" },
-        { name: "Manteiga sem sal", quantity_label: "1 colher de sopa" }
+        { name: "Cenouras médias", quantity_label: "3", unit: "unidade" },
+        { name: "Óleo de milho", quantity_label: "1/2", unit: "xícara" },
+        { name: "Ovos caipiras", quantity_label: "3", unit: "unidade" },
+        { name: "Açúcar demerara", quantity_label: "2", unit: "xícara" },
+        { name: "Farinha de trigo peneirada", quantity_label: "2", unit: "xícara" },
+        { name: "Fermento químico em pó", quantity_label: "1", unit: "colher de sopa" },
+        { name: "Chocolate em pó 50%", quantity_label: "1", unit: "xícara" },
+        { name: "Manteiga sem sal", quantity_label: "1", unit: "colher de sopa" }
       ]
       steps = [
         "Bata no liquidificador as cenouras cortadas, o óleo e os ovos até obter um creme homogêneo.",
@@ -75,12 +75,12 @@ serve(async (req) => {
       prepTime = 20
       servings = 3
       ingredients = [
-        { name: "Peito de frango limpo", quantity_label: "500g" },
-        { name: "Limão tahiti", quantity_label: "1 unidade" },
-        { name: "Azeite de oliva extra virgem", quantity_label: "2 colheres de sopa" },
-        { name: "Dentes de alho amassados", quantity_label: "2 unidades" },
-        { name: "Alecrim fresco picado", quantity_label: "1 colher de sopa" },
-        { name: "Sal e pimenta do reino", quantity_label: "a gosto" }
+        { name: "Peito de frango limpo", quantity_label: "500", unit: "g" },
+        { name: "Limão tahiti", quantity_label: "1", unit: "unidade" },
+        { name: "Azeite de oliva extra virgem", quantity_label: "2", unit: "colher de sopa" },
+        { name: "Dentes de alho amassados", quantity_label: "2", unit: "dente" },
+        { name: "Alecrim fresco picado", quantity_label: "1", unit: "colher de sopa" },
+        { name: "Sal e pimenta do reino", quantity_label: null, unit: "a gosto" }
       ]
       steps = [
         "Corte o peito de frango em filés de espessura uniforme.",
@@ -96,15 +96,15 @@ serve(async (req) => {
       prepTime = 25
       servings = 4
       ingredients = [
-        { name: "Macarrão tipo Penne ou Spaguetti", quantity_label: "400g" },
-        { name: "Tomates italianos maduros picados", quantity_label: "6 unidades" },
-        { name: "Cebola roxa picada", quantity_label: "1 unidade" },
-        { name: "Folhas frescas de manjericão", quantity_label: "1 xícara" },
-        { name: "Azeite de oliva extra virgem", quantity_label: "3 colheres de sopa" },
-        { name: "Queijo parmesão ralado", quantity_label: "50g" }
+        { name: "Macarrão tipo Penne ou Spaguetti", quantity_label: "400", unit: "g" },
+        { name: "Tomates italianos maduros picados", quantity_label: "6", unit: "unidade" },
+        { name: "Cebola roxa picada", quantity_label: "1", unit: "unidade" },
+        { name: "Folhas frescas de manjericão", quantity_label: "1", unit: "xícara" },
+        { name: "Azeite de oliva extra virgem", quantity_label: "3", unit: "colher de sopa" },
+        { name: "Queijo parmesão ralado", quantity_label: "50", unit: "g" }
       ]
       steps = [
-        "Cozinhe o macarrão em abundante água salgada até atingir o ponto al dente.",
+        "Cozinhe o macarrão em abundante água salgada até atingir o point al dente.",
         "Em uma panela paralela, doure a cebola no azeite de oliva.",
         "Adicione os tomates picados e deixe cozinhar em fogo baixo até desmancharem e formarem um molho denso.",
         "Incorpore a massa cozida diretamente no molho de tomates rústico.",
@@ -143,6 +143,7 @@ serve(async (req) => {
       recipe_id: recipe.id,
       name: ing.name,
       quantity_label: ing.quantity_label,
+      unit: ing.unit,
       normalized_name: ing.name.toLowerCase().trim(),
       sort_order: idx
     }))

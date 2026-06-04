@@ -71,6 +71,7 @@ export interface RecipeIngredient {
   recipe_id: string
   name: string
   quantity_label: string | null
+  unit: string | null
   normalized_name: string | null
   sort_order: number
   is_optional: boolean

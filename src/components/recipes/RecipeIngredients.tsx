@@ -7,6 +7,17 @@ interface RecipeIngredientsProps {
 export function RecipeIngredients({ ingredients }: RecipeIngredientsProps) {
   const sortedIngredients = [...ingredients].sort((a, b) => a.sort_order - b.sort_order)
 
+  const formatQuantity = (qty: string | null, unit: string | null) => {
+    if (!qty && !unit) return ''
+    if (qty && unit) {
+      if (unit.toLowerCase() === 'unidade') {
+        return `${qty} ${qty.trim() === '1' ? 'unidade' : 'unidades'}`
+      }
+      return `${qty} ${unit}`
+    }
+    return qty || unit || ''
+  }
+
   return (
     <section className="mb-10">
       <h2
@@ -36,9 +47,9 @@ export function RecipeIngredients({ ingredients }: RecipeIngredientsProps) {
                 />
                 <div>
                   <span className="font-medium" style={{ color: 'var(--color-on-surface)' }}>{ing.name}</span>
-                  {ing.quantity_label && (
+                  {formatQuantity(ing.quantity_label, ing.unit) && (
                     <span className="ml-1" style={{ color: 'var(--color-text-secondary)' }}>
-                      — {ing.quantity_label}
+                      — {formatQuantity(ing.quantity_label, ing.unit)}
                     </span>
                   )}
                   {ing.is_optional && (
