@@ -4,7 +4,7 @@ import { Plus, ShoppingCart, Loader2, Save, SlidersVertical as Tune, ChevronRigh
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
-import { useActiveWeek, useCreateWeek, useWeek, useWeeks, useRepeatWeek, useUpdateWeek, useDeleteWeek } from '@/hooks/planning/usePlanning'
+import { useActiveWeek, useCreateWeek, useWeek, useWeeks, useRepeatWeek, useUpdateWeek, useDeleteWeek, useAssignRecipe } from '@/hooks/planning/usePlanning'
 import { useProfile } from '@/hooks/auth'
 import { DayPlannerCard } from '@/components/planning/DayPlannerCard'
 import { DAY_LABELS, DAY_ORDER as ALL_DAYS, type DayOfWeek } from '@/lib/constants/calendar'
@@ -48,6 +48,8 @@ export function WeeklyPlannerPage() {
   const deleteWeek = useDeleteWeek()
   const [weekToDelete, setWeekToDelete] = useState<any | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  
+  const assignRecipe = useAssignRecipe()
 
   const handleDeleteClick = (week: any) => {
     setWeekToDelete(week)
@@ -72,6 +74,15 @@ export function WeeklyPlannerPage() {
       setWeekToDelete(null)
     } catch (err) {
       toast.error('Erro ao excluir semana')
+    }
+  }
+
+  const handleRemoveRecipe = async (slotId: string) => {
+    try {
+      await assignRecipe.mutateAsync({ slotId, recipeId: null })
+      toast.success('Receita removida com sucesso!')
+    } catch (err) {
+      toast.error('Erro ao remover receita do plano')
     }
   }
 
@@ -470,7 +481,7 @@ export function WeeklyPlannerPage() {
         {/* Daily Slots */}
         <div className="space-y-12">
           {sortedDays.map((day) => (
-            <DayPlannerCard key={day.id} day={day} weekId={activeWeek.id} />
+            <DayPlannerCard key={day.id} day={day} weekId={activeWeek.id} onRemoveRecipe={handleRemoveRecipe} />
           ))}
         </div>
 

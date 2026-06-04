@@ -5,9 +5,10 @@ import { DAY_LABELS, type DayOfWeek } from '@/lib/constants/calendar'
 interface DayPlannerCardProps {
   day: MealPlanDay
   weekId: string
+  onRemoveRecipe?: (slotId: string) => void
 }
 
-export function DayPlannerCard({ day, weekId }: DayPlannerCardProps) {
+export function DayPlannerCard({ day, weekId, onRemoveRecipe }: DayPlannerCardProps) {
   const slots = [...(day.slots ?? [])].sort((a, b) => a.sort_order - b.sort_order)
   const isWeekend = day.day_of_week === 'saturday' || day.day_of_week === 'sunday'
 
@@ -22,7 +23,7 @@ export function DayPlannerCard({ day, weekId }: DayPlannerCardProps) {
 
       <div className="grid gap-3">
         {slots.map((slot) => (
-          <MealSlotCard key={slot.id} slot={slot} weekId={weekId} />
+          <MealSlotCard key={slot.id} slot={slot} weekId={weekId} onRemove={onRemoveRecipe} />
         ))}
       </div>
     </div>

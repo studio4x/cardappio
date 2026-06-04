@@ -56,12 +56,13 @@ export function MealSlotCard({ slot, weekId, onRemove }: MealSlotCardProps) {
                 {mealLabel}
               </span>
               <div className="flex gap-2">
-                <button 
-                  className="text-warm-gray-medium hover:text-primary transition-colors active:scale-90"
+                <Link 
+                  to={`/app/receitas?slot=${slot.id}&week=${weekId}`}
+                  className="text-warm-gray-medium hover:text-primary transition-colors active:scale-90 flex items-center justify-center"
                   title="Trocar"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
-                </button>
+                </Link>
                 <button 
                   onClick={(e) => {
                     e.preventDefault()
