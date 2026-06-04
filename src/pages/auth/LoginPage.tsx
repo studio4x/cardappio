@@ -12,6 +12,9 @@ export function LoginPage() {
   const { isAuthenticated, isAdmin } = useAuth()
   
   const emailParam = searchParams.get('email')
+  // If coming from a password reset, skip auto-redirect to prevent stale recovery
+  // sessions from bypassing the login form before they are fully cleared.
+  const justReset = searchParams.get('reset') === 'done'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -27,15 +30,17 @@ export function LoginPage() {
 
   // Double safety: if we become authenticated in the background (e.g. via AuthProvider
   // catching the session after a delay), redirect immediately.
+  // Exception: skip if the user just completed a password reset — the recovery session
+  // may still be alive briefly, and we want them to log in manually with the new password.
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !justReset) {
       if (isAdmin) {
         navigate('/admin', { replace: true })
       } else {
         navigate('/app', { replace: true })
       }
     }
-  }, [isAuthenticated, isAdmin, navigate])
+  }, [isAuthenticated, isAdmin, navigate, justReset])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

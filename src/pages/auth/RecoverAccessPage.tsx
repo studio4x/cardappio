@@ -80,7 +80,16 @@ export function RecoverAccessPage() {
     setError(null)
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
+      // 1. Capture current updated_at to verify the change actually occurred
+      const { data: { user: beforeUser } } = await supabase.auth.getUser()
+      if (!beforeUser) {
+        setError('Sessão de recuperação expirada. Por favor, solicite um novo link.')
+        return
+      }
+      const beforeUpdatedAt = beforeUser.updated_at
+
+      // 2. Update the password
+      const { data: updateData, error: updateError } = await supabase.auth.updateUser({
         password: newPassword
       })
 
@@ -89,15 +98,37 @@ export function RecoverAccessPage() {
         return
       }
 
-      // Sign out the user so they are forced to log in with their new credentials
-      await supabase.auth.signOut()
+      // 3. Verify the update actually persisted: updated_at must have changed
+      const afterUpdatedAt = updateData.user?.updated_at
+      if (!afterUpdatedAt || afterUpdatedAt === beforeUpdatedAt) {
+        setError(
+          'Não foi possível confirmar a alteração da senha. Sua conexão pode estar bloqueando a requisição (ex: antivírus Kaspersky). ' +
+          'Tente desativar temporariamente o antivírus e repetir o processo.'
+        )
+        return
+      }
 
-      toast.success('Senha redefinida com sucesso! Por favor, digite a sua nova senha.', {
+      // 4. Sign out globally (revokes ALL sessions on the server side)
+      await supabase.auth.signOut({ scope: 'global' })
+
+      // 5. Force-clear any remaining session from localStorage as a fallback
+      // (prevents stale recovery session from auto-redirecting the login page)
+      try {
+        const keysToRemove = Object.keys(localStorage).filter(
+          (k) => k.startsWith('sb-') && k.endsWith('-auth-token')
+        )
+        keysToRemove.forEach((k) => localStorage.removeItem(k))
+        sessionStorage.removeItem('isRecoveryFlow')
+      } catch {
+        // Ignore storage errors (sandboxed environments)
+      }
+
+      toast.success('Senha redefinida com sucesso! Por favor, faça login com a nova senha.', {
         duration: 8000
       })
-      navigate(`/auth/login?email=${encodeURIComponent(currentUserEmail || '')}`, { replace: true })
+      navigate(`/auth/login?email=${encodeURIComponent(currentUserEmail || '')}&reset=done`, { replace: true })
     } catch {
-      setError('Erro inesperado ao atualizar a senha.')
+      setError('Erro inesperado ao atualizar a senha. Verifique sua conexão e tente novamente.')
     } finally {
       setIsLoading(false)
     }
