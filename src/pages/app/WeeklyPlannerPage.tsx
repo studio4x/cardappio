@@ -52,8 +52,12 @@ export function WeeklyPlannerPage() {
   const assignRecipe = useAssignRecipe()
 
   const handleDeleteClick = (week: any) => {
-    setWeekToDelete(week)
-    setIsDeleteDialogOpen(true)
+    // Delay opening the dialog to let the dropdown close and restore focus first,
+    // avoiding the Radix UI focus conflict.
+    setTimeout(() => {
+      setWeekToDelete(week)
+      setIsDeleteDialogOpen(true)
+    }, 150)
   }
 
   const handleDeleteWeek = async () => {
@@ -349,11 +353,18 @@ export function WeeklyPlannerPage() {
                     Selecionar Semana
                   </div>
                   {weeks?.map((w) => {
-                    const isCurrent = w.id === activeWeek.id
+                    const isCurrent = w.id === activeWeek?.id
                     return (
                       <DropdownMenuItem
                         key={w.id}
-                        onClick={() => navigate(`/app/semana/${w.id}`)}
+                        onSelect={(e) => {
+                          const target = e.target as HTMLElement
+                          if (target.closest('[data-delete-btn]')) {
+                            e.preventDefault()
+                          } else {
+                            navigate(`/app/semana/${w.id}`)
+                          }
+                        }}
                         className={cn(
                           "rounded-xl px-3 py-2 text-sm cursor-pointer transition-colors focus:bg-neutral-50 flex items-center justify-between group/item gap-4",
                           isCurrent 
@@ -362,7 +373,7 @@ export function WeeklyPlannerPage() {
                         )}
                       >
                         <div className="flex flex-col min-w-0 flex-1">
-                          <span className="font-semibold text-sm truncate">
+                          <span className="font-semibold text-sm truncate font-semibold">
                             {w.title || `${formatDateToShort(w.week_start_date)} a ${formatDateToShort(w.week_end_date)}`}
                           </span>
                           {w.title && (
@@ -378,6 +389,7 @@ export function WeeklyPlannerPage() {
                         </div>
                         
                         <button
+                          data-delete-btn="true"
                           onClick={(e) => {
                             e.stopPropagation();
                             e.preventDefault();

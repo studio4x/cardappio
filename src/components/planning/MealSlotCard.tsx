@@ -58,7 +58,10 @@ export function MealSlotCard({ slot, weekId, onRemove }: MealSlotCardProps) {
               <div className="flex gap-2">
                 <Link 
                   to={`/app/receitas?slot=${slot.id}&week=${weekId}`}
-                  className="text-warm-gray-medium hover:text-primary transition-colors active:scale-90 flex items-center justify-center"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                  }}
+                  className="text-warm-gray-medium hover:text-primary transition-colors active:scale-90 flex items-center justify-center cursor-pointer"
                   title="Trocar"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
@@ -66,9 +69,10 @@ export function MealSlotCard({ slot, weekId, onRemove }: MealSlotCardProps) {
                 <button 
                   onClick={(e) => {
                     e.preventDefault()
+                    e.stopPropagation()
                     onRemove?.(slot.id)
                   }}
-                  className="text-red-300 hover:text-red-500 transition-colors active:scale-90"
+                  className="text-red-300 hover:text-red-500 transition-colors active:scale-90 cursor-pointer"
                   title="Remover"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
