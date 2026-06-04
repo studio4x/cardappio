@@ -180,18 +180,24 @@ export function RecipeDetailPage() {
               </h3>
               <div className="grid grid-cols-2 gap-3">
                  {[
-                   { label: 'CALORIAS', val: '342 kcal' },
-                   { label: 'PROTEÍNA', val: '28g' },
-                   { label: 'GORDURAS', val: '18g' },
-                   { label: 'CARBOS', val: '12g' }
+                   { label: 'CALORIAS', val: recipe.calories_per_serving != null ? `${Math.round(recipe.calories_per_serving)} kcal` : '—' },
+                   { label: 'PROTEÍNA', val: recipe.protein_per_serving != null ? `${recipe.protein_per_serving.toFixed(1)}g` : '—' },
+                   { label: 'GORDURAS', val: recipe.fat_per_serving != null ? `${recipe.fat_per_serving.toFixed(1)}g` : '—' },
+                   { label: 'CARBOS', val: recipe.carbs_per_serving != null ? `${recipe.carbs_per_serving.toFixed(1)}g` : '—' }
                  ].map(n => (
                    <div key={n.label} className="bg-white/50 p-3 rounded-xl border border-white">
                      <p className="text-[10px] font-bold text-neutral-400">{n.label}</p>
-                     <p className="text-sm font-bold text-primary">{n.val}</p>
+                     <p className={`text-sm font-bold ${n.val === '—' ? 'text-neutral-300' : 'text-primary'}`}>{n.val}</p>
                    </div>
                  ))}
               </div>
+              {recipe.calories_per_serving == null && (
+                <p className="text-[10px] text-neutral-400 mt-3 text-center">
+                  Informações nutricionais ainda não disponíveis para esta receita.
+                </p>
+              )}
             </div>
+
 
             {/* Variations / Swaps */}
             {recipe.variations && recipe.variations.length > 0 && (

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon } from 'lucide-react'
+import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Sparkles, Loader2 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { useRecipe, useRecipeCategories } from '@/hooks/recipes/useRecipes'
@@ -9,6 +9,8 @@ import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
+import { useGenerateNutrition } from '@/hooks/admin/useAIConfig'
+import { StepEditor } from '@/components/shared/StepEditor'
 
 /**
  * AdminRecipeEditorPage
@@ -24,6 +26,7 @@ export function AdminRecipeEditorPage() {
   // I'll assume for admin we fetch by ID. 
   // For simplicity here, I'll fetch using raw supabase if it's an ID.
   const queryClient = useQueryClient()
+  const generateNutrition = useGenerateNutrition()
   const [loading, setLoading] = useState(!isNew)
   const [recipeData, setRecipeData] = useState<any>({
     title: '',
@@ -34,6 +37,10 @@ export function AdminRecipeEditorPage() {
     servings: 2,
     status: 'draft',
     category_id: '',
+    calories_per_serving: null,
+    protein_per_serving: null,
+    fat_per_serving: null,
+    carbs_per_serving: null,
     ingredients: [],
     steps: []
   })
@@ -413,6 +420,84 @@ export function AdminRecipeEditorPage() {
         </div>
       </div>
 
+      {/* Nutritional Table */}
+      <div className="space-y-6 rounded-2xl border bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between border-b pb-4 mb-4">
+          <div>
+            <h3 className="font-bold">Tabela Nutricional</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Por porção. Preencha manualmente ou gere automaticamente com IA.</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              if (!recipeData.ingredients || recipeData.ingredients.length === 0) {
+                toast.error('Adicione ingredientes antes de gerar a tabela nutricional.')
+                return
+              }
+              try {
+                const result = await generateNutrition.mutateAsync({
+                  ingredients: recipeData.ingredients.map((i: any) => ({
+                    name: i.name,
+                    quantity_label: i.quantity_label || null,
+                    unit: i.unit || null
+                  })),
+                  servings: recipeData.servings || 1
+                })
+                setRecipeData((prev: any) => ({
+                  ...prev,
+                  calories_per_serving: result.calories,
+                  protein_per_serving: result.protein,
+                  fat_per_serving: result.fat,
+                  carbs_per_serving: result.carbs
+                }))
+                toast.success(`Tabela gerada com sucesso via ${result.provider === 'openai' ? 'OpenAI GPT' : 'Google Gemini'}! Revise os valores antes de salvar.`)
+              } catch {
+                // error handled in hook
+              }
+            }}
+            disabled={generateNutrition.isPending}
+            className="gap-2 border-primary/30 text-primary hover:bg-primary/5"
+          >
+            {generateNutrition.isPending
+              ? <><Loader2 className="h-4 w-4 animate-spin" /> Gerando...</>
+              : <><Sparkles className="h-4 w-4" /> Gerar com IA</>}
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {([
+            { label: 'Calorias (kcal)', field: 'calories_per_serving', placeholder: 'Ex: 342' },
+            { label: 'Proteínas (g)', field: 'protein_per_serving', placeholder: 'Ex: 28' },
+            { label: 'Gorduras (g)', field: 'fat_per_serving', placeholder: 'Ex: 18' },
+            { label: 'Carboidratos (g)', field: 'carbs_per_serving', placeholder: 'Ex: 12' },
+          ] as const).map(({ label, field, placeholder }) => (
+            <div key={field} className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-400">{label}</label>
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                value={recipeData[field] ?? ''}
+                onChange={e => setRecipeData((prev: any) => ({
+                  ...prev,
+                  [field]: e.target.value === '' ? null : parseFloat(e.target.value)
+                }))}
+                placeholder={placeholder}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-mono outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+              />
+            </div>
+          ))}
+        </div>
+
+        {generateNutrition.isPending && (
+          <div className="flex items-center gap-2 text-xs text-slate-400 animate-pulse">
+            <Sparkles className="h-3 w-3" />
+            Analisando ingredientes com IA... isso pode levar alguns segundos.
+          </div>
+        )}
+      </div>
+
       {/* Steps Management */}
       <div className="space-y-6 rounded-2xl border bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between border-b pb-2 mb-4">
@@ -434,30 +519,32 @@ export function AdminRecipeEditorPage() {
         <div className="space-y-4">
           {recipeData.steps?.sort((a: any, b: any) => a.step_number - b.step_number).map((step: any, index: number) => (
             <div key={index} className="flex gap-4 items-start">
-              <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 mt-1">
+              {/* Step number badge */}
+              <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 mt-2">
                 {index + 1}
               </div>
+
+              {/* Rich text editor */}
               <div className="flex-1">
-                <textarea
-                  placeholder="Descreva este passo..."
+                <StepEditor
                   value={step.content}
-                  onChange={(e) => {
+                  onChange={(html) => {
                     const newSteps = [...recipeData.steps]
-                    newSteps[index].content = e.target.value
-                    setRecipeData({...recipeData, steps: newSteps})
+                    newSteps[index] = { ...newSteps[index], content: html }
+                    setRecipeData({ ...recipeData, steps: newSteps })
                   }}
-                  rows={2}
-                  className="w-full rounded-lg border p-2 text-sm outline-none focus:ring-1 focus:ring-primary resize-none"
+                  placeholder={`Descreva o passo ${index + 1}...`}
                 />
               </div>
-              <button 
+
+              {/* Delete button */}
+              <button
                 onClick={() => {
                   const newSteps = recipeData.steps.filter((_: any, i: number) => i !== index)
-                  // Recalculate step numbers
-                  const renumbered = newSteps.map((s: any, i: number) => ({...s, step_number: i + 1}))
-                  setRecipeData({...recipeData, steps: renumbered})
+                  const renumbered = newSteps.map((s: any, i: number) => ({ ...s, step_number: i + 1 }))
+                  setRecipeData({ ...recipeData, steps: renumbered })
                 }}
-                className="p-2 text-slate-400 hover:text-red-500 transition-colors mt-1"
+                className="p-2 text-slate-400 hover:text-red-500 transition-colors mt-2"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -467,6 +554,17 @@ export function AdminRecipeEditorPage() {
             <p className="text-center py-4 text-slate-400 text-sm italic">Nenhum passo adicionado.</p>
           )}
         </div>
+      </div>
+
+      {/* ── Bottom Save Bar ─────────────────────────────────────── */}
+      <div className="flex items-center justify-between rounded-2xl border bg-white p-4 shadow-sm">
+        <p className="text-sm text-slate-400">
+          Revise os campos acima antes de salvar.
+        </p>
+        <Button onClick={handleSave} className="gap-2 px-8">
+          <Save className="h-4 w-4" />
+          Salvar Receita
+        </Button>
       </div>
     </div>
   )

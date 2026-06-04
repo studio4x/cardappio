@@ -1,0 +1,198 @@
+import { useEditor, EditorContent } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import Placeholder from '@tiptap/extension-placeholder'
+import Underline from '@tiptap/extension-underline'
+import TextAlign from '@tiptap/extension-text-align'
+import {
+  Bold,
+  Italic,
+  UnderlineIcon,
+  List,
+  ListOrdered,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Undo2,
+  Redo2,
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { useEffect } from 'react'
+
+interface StepEditorProps {
+  value: string
+  onChange: (html: string) => void
+  placeholder?: string
+}
+
+function ToolbarButton({
+  onClick,
+  active,
+  title,
+  disabled,
+  children,
+}: {
+  onClick: () => void
+  active?: boolean
+  title: string
+  disabled?: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      title={title}
+      disabled={disabled}
+      onMouseDown={(e) => {
+        e.preventDefault()
+        onClick()
+      }}
+      className={cn(
+        'rounded p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 disabled:opacity-30',
+        active && 'bg-primary/10 text-primary'
+      )}
+    >
+      {children}
+    </button>
+  )
+}
+
+export function StepEditor({ value, onChange, placeholder }: StepEditorProps) {
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: false,
+        codeBlock: false,
+        code: false,
+        blockquote: false,
+        horizontalRule: false,
+        strike: false,
+      }),
+      Underline,
+      Placeholder.configure({
+        placeholder: placeholder ?? 'Descreva este passo...',
+        emptyEditorClass:
+          'before:content-[attr(data-placeholder)] before:text-slate-400 before:pointer-events-none before:absolute before:top-[10px] before:left-[12px] before:text-sm',
+      }),
+      TextAlign.configure({ types: ['paragraph'] }),
+    ],
+    content: value || '',
+    onUpdate: ({ editor }) => {
+      // Emit empty string when editor only has an empty paragraph
+      const html = editor.isEmpty ? '' : editor.getHTML()
+      onChange(html)
+    },
+    editorProps: {
+      attributes: {
+        class:
+          'min-h-[80px] px-3 py-2.5 text-sm text-slate-800 outline-none focus:outline-none relative leading-relaxed',
+      },
+    },
+  })
+
+  // Sync external value changes (e.g. when recipe is loaded)
+  useEffect(() => {
+    if (!editor) return
+    const currentHTML = editor.isEmpty ? '' : editor.getHTML()
+    if (value !== currentHTML) {
+      editor.commands.setContent(value || '', { emitUpdate: false })
+    }
+  }, [value, editor])
+
+  if (!editor) return null
+
+  const iconSize = 'h-3.5 w-3.5'
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary transition-all">
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-0.5 border-b border-slate-100 bg-slate-50 px-2 py-1.5">
+        {/* Undo / Redo */}
+        <ToolbarButton
+          title="Desfazer"
+          onClick={() => editor.chain().focus().undo().run()}
+          disabled={!editor.can().undo()}
+        >
+          <Undo2 className={iconSize} />
+        </ToolbarButton>
+        <ToolbarButton
+          title="Refazer"
+          onClick={() => editor.chain().focus().redo().run()}
+          disabled={!editor.can().redo()}
+        >
+          <Redo2 className={iconSize} />
+        </ToolbarButton>
+
+        <div className="mx-1 h-4 w-px bg-slate-200" />
+
+        {/* Bold / Italic / Underline */}
+        <ToolbarButton
+          title="Negrito (Ctrl+B)"
+          onClick={() => editor.chain().focus().toggleBold().run()}
+          active={editor.isActive('bold')}
+        >
+          <Bold className={iconSize} />
+        </ToolbarButton>
+        <ToolbarButton
+          title="Itálico (Ctrl+I)"
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+          active={editor.isActive('italic')}
+        >
+          <Italic className={iconSize} />
+        </ToolbarButton>
+        <ToolbarButton
+          title="Sublinhado (Ctrl+U)"
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+          active={editor.isActive('underline')}
+        >
+          <UnderlineIcon className={iconSize} />
+        </ToolbarButton>
+
+        <div className="mx-1 h-4 w-px bg-slate-200" />
+
+        {/* Lists */}
+        <ToolbarButton
+          title="Lista com marcadores"
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          active={editor.isActive('bulletList')}
+        >
+          <List className={iconSize} />
+        </ToolbarButton>
+        <ToolbarButton
+          title="Lista numerada"
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          active={editor.isActive('orderedList')}
+        >
+          <ListOrdered className={iconSize} />
+        </ToolbarButton>
+
+        <div className="mx-1 h-4 w-px bg-slate-200" />
+
+        {/* Alignment */}
+        <ToolbarButton
+          title="Alinhar à esquerda"
+          onClick={() => editor.chain().focus().setTextAlign('left').run()}
+          active={editor.isActive({ textAlign: 'left' })}
+        >
+          <AlignLeft className={iconSize} />
+        </ToolbarButton>
+        <ToolbarButton
+          title="Centralizar"
+          onClick={() => editor.chain().focus().setTextAlign('center').run()}
+          active={editor.isActive({ textAlign: 'center' })}
+        >
+          <AlignCenter className={iconSize} />
+        </ToolbarButton>
+        <ToolbarButton
+          title="Alinhar à direita"
+          onClick={() => editor.chain().focus().setTextAlign('right').run()}
+          active={editor.isActive({ textAlign: 'right' })}
+        >
+          <AlignRight className={iconSize} />
+        </ToolbarButton>
+      </div>
+
+      {/* Editor body */}
+      <EditorContent editor={editor} />
+    </div>
+  )
+}
