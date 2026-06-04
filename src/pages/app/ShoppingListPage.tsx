@@ -150,7 +150,7 @@ export function ShoppingListPage() {
               >
                 {weeks.map((w) => (
                   <option key={w.id} value={w.id}>
-                    Semana {w.week_start_date} {w.status === 'active' ? '(Ativa)' : ''}
+                    {w.title || `Semana ${w.week_start_date}`} {w.status === 'active' ? '(Ativa)' : ''}
                   </option>
                 ))}
               </select>
@@ -200,7 +200,7 @@ export function ShoppingListPage() {
                     >
                       {weeks.map((w) => (
                         <option key={w.id} value={w.id}>
-                          Semana {w.week_start_date} {w.status === 'active' ? '(Ativa)' : ''}
+                          {w.title || `Semana ${w.week_start_date}`} {w.status === 'active' ? '(Ativa)' : ''}
                         </option>
                       ))}
                     </select>
@@ -208,7 +208,7 @@ export function ShoppingListPage() {
                   </div>
                 ) : (
                   <p className="text-sm text-text-secondary">
-                    {selectedWeek ? `Semana ${selectedWeek.week_start_date}` : 'Semana Atual'} • {totalCount} Itens
+                    {selectedWeek ? (selectedWeek.title || `Semana ${selectedWeek.week_start_date}`) : 'Semana Atual'} • {totalCount} Itens
                   </p>
                 )}
               </div>

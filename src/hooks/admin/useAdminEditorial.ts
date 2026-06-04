@@ -21,18 +21,41 @@ export function useAdminCollections() {
   })
 
   const saveMutation = useMutation({
-    mutationFn: async (collection: any) => {
+    mutationFn: async ({ recipes, ...collection }: { recipes?: string[] } & any) => {
       const { data, error } = await supabase
         .from('recipe_collections')
         .upsert(collection)
         .select()
         .single()
       if (error) throw error
+
+      if (recipes !== undefined) {
+        const { error: deleteError } = await supabase
+          .from('recipe_collection_items')
+          .delete()
+          .eq('collection_id', data.id)
+        
+        if (deleteError) throw deleteError
+
+        if (recipes.length > 0) {
+          const itemsToInsert = recipes.map((recipeId: string, index: number) => ({
+            collection_id: data.id,
+            recipe_id: recipeId,
+            sort_order: index
+          }))
+          const { error: insertError } = await supabase
+            .from('recipe_collection_items')
+            .insert(itemsToInsert)
+          if (insertError) throw insertError
+        }
+      }
+
       return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-collections'] })
       queryClient.invalidateQueries({ queryKey: ['recipe-collections'] })
+      queryClient.invalidateQueries({ queryKey: ['collection'] })
       toast.success('Coleção salva com sucesso!')
     }
   })

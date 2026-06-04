@@ -51,7 +51,7 @@ export function RecipeCard({
           )}
           {/* Difficulty badge */}
           <span
-            className="absolute top-2 right-2 rounded-full px-2.5 py-0.5 text-xs font-semibold text-white"
+            className="absolute top-2 right-2 rounded-full px-3 py-1 text-xs font-extrabold text-white border border-white/30 shadow-md transition-all"
             style={{ backgroundColor: difficultyColors[recipe.difficulty_level] }}
           >
             {difficultyLabels[recipe.difficulty_level]}

@@ -87,11 +87,13 @@ export function useCreateWeek() {
       endDate,
       selectedDays,
       mealModes,
+      title,
     }: {
       startDate: string
       endDate: string
       selectedDays: DayOfWeek[]
       mealModes: string[]
+      title?: string
     }) => {
       if (!supabaseUser) throw new Error('Not authenticated')
 
@@ -107,6 +109,7 @@ export function useCreateWeek() {
         .from('meal_plan_weeks')
         .insert({
           user_id: supabaseUser.id,
+          title: title || null,
           week_start_date: startDate,
           week_end_date: endDate,
           status: 'active',
@@ -315,4 +318,38 @@ export function useWeeks() {
     enabled: !!supabaseUser,
   })
 }
+
+/**
+ * Update week properties (like title).
+ */
+export function useUpdateWeek() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      weekId,
+      updates,
+    }: {
+      weekId: string
+      updates: Partial<Omit<MealPlanWeek, 'id' | 'user_id' | 'created_at' | 'updated_at'>>
+    }) => {
+      const { data, error } = await supabase
+        .from('meal_plan_weeks')
+        .update(updates)
+        .eq('id', weekId)
+        .select()
+        .single()
+
+      if (error) throw error
+      return data as MealPlanWeek
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['active-week'] })
+      queryClient.invalidateQueries({ queryKey: ['week', data.id] })
+      queryClient.invalidateQueries({ queryKey: ['weeks'] })
+      queryClient.invalidateQueries({ queryKey: ['meal-weeks-history'] })
+    },
+  })
+}
+
 

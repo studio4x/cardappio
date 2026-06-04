@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useQueryClient } from '@tanstack/react-query'
 
 /**
  * AdminRecipeEditorPage
@@ -22,6 +23,7 @@ export function AdminRecipeEditorPage() {
   // Note: useRecipe hook currently uses slug. Admin usually uses UUID.
   // I'll assume for admin we fetch by ID. 
   // For simplicity here, I'll fetch using raw supabase if it's an ID.
+  const queryClient = useQueryClient()
   const [loading, setLoading] = useState(!isNew)
   const [recipeData, setRecipeData] = useState<any>({
     title: '',
@@ -35,22 +37,43 @@ export function AdminRecipeEditorPage() {
     steps: []
   })
 
+  const [allCollections, setAllCollections] = useState<any[]>([])
+  const [selectedCollections, setSelectedCollections] = useState<string[]>([])
+
   const { data: categories } = useRecipeCategories()
 
   useEffect(() => {
-    if (!isNew) {
-      const fetchRecipe = async () => {
-        const { data, error } = await supabase
+    const loadData = async () => {
+      // Fetch all collections
+      const { data: colls } = await supabase
+        .from('recipe_collections')
+        .select('*')
+        .order('sort_order')
+      if (colls) setAllCollections(colls)
+
+      if (!isNew) {
+        setLoading(true)
+        const { data } = await supabase
           .from('recipes')
           .select('*, ingredients:recipe_ingredients(*), steps:recipe_steps(*)')
           .eq('id', id)
           .single()
         
         if (data) setRecipeData(data)
+
+        // Fetch current collection associations
+        const { data: items } = await supabase
+          .from('recipe_collection_items')
+          .select('collection_id')
+          .eq('recipe_id', id)
+        
+        if (items) {
+          setSelectedCollections(items.map((item: any) => item.collection_id))
+        }
         setLoading(false)
       }
-      fetchRecipe()
     }
+    loadData()
   }, [id, isNew])
 
   const handleSave = async () => {
@@ -94,6 +117,29 @@ export function AdminRecipeEditorPage() {
         const { error: stepError } = await supabase.from('recipe_steps').insert(stepsToInsert)
         if (stepError) throw stepError
       }
+
+      // 4. Sync Collections
+      const { error: collDeleteError } = await supabase
+        .from('recipe_collection_items')
+        .delete()
+        .eq('recipe_id', recipeId)
+      if (collDeleteError) throw collDeleteError
+
+      if (selectedCollections.length > 0) {
+        const itemsToInsert = selectedCollections.map(collId => ({
+          collection_id: collId,
+          recipe_id: recipeId
+        }))
+        const { error: collInsertError } = await supabase
+          .from('recipe_collection_items')
+          .insert(itemsToInsert)
+        if (collInsertError) throw collInsertError
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['recipes'] })
+      queryClient.invalidateQueries({ queryKey: ['recipe'] })
+      queryClient.invalidateQueries({ queryKey: ['recipe-collections'] })
+      queryClient.invalidateQueries({ queryKey: ['collection'] })
 
       toast.success('Receita salva com sucesso!')
       if (isNew) navigate(`/admin/receitas/${recipeId}`)
@@ -202,6 +248,39 @@ export function AdminRecipeEditorPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="space-y-2 pt-4 border-t border-slate-100">
+            <label className="text-sm font-medium">Coleções Editoriais</label>
+            {allCollections.length === 0 ? (
+              <p className="text-xs text-slate-400 italic">Nenhuma coleção cadastrada.</p>
+            ) : (
+              <div className="grid grid-cols-1 gap-2 mt-2 max-h-48 overflow-y-auto pr-1">
+                {allCollections.map(coll => {
+                  const isChecked = selectedCollections.includes(coll.id)
+                  return (
+                    <label key={coll.id} className="flex items-center gap-2.5 text-sm cursor-pointer p-1.5 hover:bg-slate-50 rounded-lg transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedCollections([...selectedCollections, coll.id])
+                          } else {
+                            setSelectedCollections(selectedCollections.filter(id => id !== coll.id))
+                          }
+                        }}
+                        className="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4"
+                      />
+                      <span className="font-medium text-slate-700">{coll.title}</span>
+                      {coll.is_premium && (
+                        <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded uppercase">P</span>
+                      )}
+                    </label>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>

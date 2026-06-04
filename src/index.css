@@ -31,6 +31,11 @@
   --color-on-surface-variant: #3f4a3c;
   --color-text-secondary: #757575;
 
+  /* Difficulty / Status Colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+
   /* Typography */
   --font-heading: 'Plus Jakarta Sans', sans-serif;
   --font-sans: 'Plus Jakarta Sans', sans-serif;

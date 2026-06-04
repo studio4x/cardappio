@@ -74,9 +74,14 @@ export function HistoryPage() {
                 </div>
                 <div>
                   <h4 className="font-black text-slate-900 text-lg">
-                    {format(new Date(week.week_start_date), "dd 'de' MMMM", { locale: ptBR })}
+                    {week.title || format(new Date(week.week_start_date), "dd 'de' MMMM", { locale: ptBR })}
                   </h4>
-                  <div className="flex items-center gap-2 mt-1">
+                  {week.title && (
+                    <p className="text-xs text-slate-400 font-medium mt-0.5">
+                      Semana de {format(new Date(week.week_start_date), "dd 'de' MMMM", { locale: ptBR })}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 mt-1.5">
                     <span className={cn(
                       "text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full",
                       week.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'

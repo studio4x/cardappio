@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
-import { Search, ChefHat, Sparkles, Star, Plus, Globe, ArrowRight, ListFilter, RefreshCw, Loader2 } from 'lucide-react'
+import { Search, ChefHat, Sparkles, Star, Plus, Globe, ArrowRight, ListFilter, RefreshCw, Loader2, LayoutGrid, ArrowLeft } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { useRecipes, useRecipeCategories } from '@/hooks/recipes/useRecipes'
+import { useCollections, useCollection } from '@/hooks/recipes/useCollections'
 import { useAssignRecipe } from '@/hooks/planning/usePlanning'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { supabase } from '@/integrations/supabase/client'
@@ -25,7 +26,8 @@ export function RecipePickerPage() {
   const weekId = searchParams.get('week')
   const isPickerMode = !!slotId && !!weekId
 
-  const [activeMethod, setActiveMethod] = useState<'catalog' | 'food_type' | 'suggestions' | 'favorites' | 'custom'>('catalog')
+  const [activeMethod, setActiveMethod] = useState<'catalog' | 'colecoes' | 'food_type' | 'suggestions' | 'favorites' | 'custom'>('catalog')
+  const [selectedCollectionSlug, setSelectedCollectionSlug] = useState<string | null>(null)
   
   // Method A: Food Type states
   const [selectedFoodType, setSelectedFoodType] = useState<string>('')
@@ -49,6 +51,9 @@ export function RecipePickerPage() {
   const allRecipes = data?.recipes || []
   const { data: categories } = useRecipeCategories()
   const assignRecipe = useAssignRecipe()
+
+  const { data: collections, isLoading: isLoadingCollections } = useCollections()
+  const { data: activeCollectionDetail, isLoading: isLoadingCollectionDetail } = useCollection(selectedCollectionSlug || undefined)
 
   // Method A filtering: Filter recipes by keyword in title/subtitle and select exactly 5 (shuffled/offset)
   const foodTypeRecipes = useMemo(() => {
@@ -169,6 +174,7 @@ export function RecipePickerPage() {
       <div className="flex gap-2 border-b overflow-x-auto no-scrollbar pb-2">
         {[
           { id: 'catalog', label: 'Catálogo Geral', icon: ChefHat },
+          { id: 'colecoes', label: 'Coleções', icon: LayoutGrid },
           { id: 'food_type', label: 'Tipo de Alimento (A)', icon: ListFilter },
           { id: 'suggestions', label: 'Sugestões (B)', icon: Sparkles },
           { id: 'favorites', label: 'Meus Favoritos (C)', icon: Star },
@@ -180,6 +186,7 @@ export function RecipePickerPage() {
               key={method.id}
               onClick={() => {
                 setActiveMethod(method.id as any)
+                setSelectedCollectionSlug(null)
                 if (method.id === 'favorites') loadFavoritesAndOwn()
               }}
               className={cn(
@@ -249,6 +256,98 @@ export function RecipePickerPage() {
               {allRecipes.map((recipe) => (
                 <RecipeCard key={recipe.id} recipe={recipe} onClick={() => handleSelectRecipe(recipe)} isPickerMode={isPickerMode} />
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Method: Editorial Collections */}
+      {activeMethod === 'colecoes' && (
+        <div className="space-y-6">
+          {!selectedCollectionSlug ? (
+            isLoadingCollections ? (
+              <LoadingState message="Carregando coleções..." />
+            ) : !collections || collections.length === 0 ? (
+              <EmptyState
+                icon={<LayoutGrid className="h-8 w-8 text-muted-foreground" />}
+                title="Sem coleções ativas"
+                description="Fique de olho! Em breve traremos novas coleções exclusivas."
+              />
+            ) : (
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {collections.map((coll) => (
+                  <button
+                    key={coll.id}
+                    onClick={() => setSelectedCollectionSlug(coll.slug)}
+                    className="group relative aspect-[21/9] w-full overflow-hidden rounded-3xl border text-left transition-all hover:shadow-lg cursor-pointer"
+                    style={{ borderColor: 'var(--color-outline-variant)' }}
+                  >
+                    {coll.cover_image_url && (
+                      <img
+                        src={coll.cover_image_url}
+                        alt={coll.title}
+                        className="absolute inset-0 h-full w-full object-cover transition-transform group-hover:scale-105"
+                      />
+                    )}
+                    <div
+                      className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-6 flex flex-col justify-end"
+                    >
+                      <h3 className="text-lg font-bold text-white mb-0.5">{coll.title}</h3>
+                      {coll.description && (
+                        <p className="text-xs text-gray-200 line-clamp-1">{coll.description}</p>
+                      )}
+                      {coll.is_premium && (
+                        <span className="absolute top-4 right-4 rounded-full bg-amber-400 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-amber-950">
+                          Premium
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )
+          ) : (
+            <div className="space-y-6">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  onClick={() => setSelectedCollectionSlug(null)}
+                  className="rounded-full flex items-center gap-1.5 text-xs font-bold uppercase text-slate-500 hover:bg-slate-100"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Voltar para Coleções
+                </Button>
+              </div>
+
+              {isLoadingCollectionDetail ? (
+                <LoadingState message="Carregando receitas da coleção..." />
+              ) : !activeCollectionDetail || !activeCollectionDetail.recipes || activeCollectionDetail.recipes.length === 0 ? (
+                <EmptyState
+                  icon={<ChefHat className="h-8 w-8 text-muted-foreground" />}
+                  title="Nenhuma receita"
+                  description="Esta coleção está vazia no momento."
+                />
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
+                    <h3 className="text-xl font-bold text-slate-900">{activeCollectionDetail.title}</h3>
+                    {activeCollectionDetail.description && (
+                      <p className="text-xs text-slate-500 mt-1">{activeCollectionDetail.description}</p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {activeCollectionDetail.recipes.map((recipe: any) => (
+                      <RecipeCard
+                        key={recipe.id}
+                        recipe={recipe}
+                        onClick={() => handleSelectRecipe(recipe)}
+                        isPickerMode={isPickerMode}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

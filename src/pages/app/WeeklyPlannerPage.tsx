@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react'
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom'
-import { Plus, ShoppingCart, Loader2, Save, SlidersVertical as Tune, ChevronRight, ChevronDown } from 'lucide-react'
+import { Plus, ShoppingCart, Loader2, Save, SlidersVertical as Tune, ChevronRight, ChevronDown, Pencil } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
-import { useActiveWeek, useCreateWeek, useWeek, useWeeks, useRepeatWeek } from '@/hooks/planning/usePlanning'
+import { useActiveWeek, useCreateWeek, useWeek, useWeeks, useRepeatWeek, useUpdateWeek } from '@/hooks/planning/usePlanning'
 import { useProfile } from '@/hooks/auth'
 import { DayPlannerCard } from '@/components/planning/DayPlannerCard'
 import { DAY_LABELS, DAY_ORDER as ALL_DAYS, type DayOfWeek } from '@/lib/constants/calendar'
@@ -17,6 +17,18 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
+import { toast } from 'sonner'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+
 
 export function WeeklyPlannerPage() {
   const navigate = useNavigate()
@@ -26,7 +38,32 @@ export function WeeklyPlannerPage() {
   
   const createWeek = useCreateWeek()
   const repeatWeek = useRepeatWeek()
+  const updateWeek = useUpdateWeek()
   const { data: weeks } = useWeeks()
+  
+  const [newWeekTitle, setNewWeekTitle] = useState('')
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
+  const [renameTitle, setRenameTitle] = useState('')
+
+  const handleRenameWeek = async () => {
+    if (!activeWeek) return
+    try {
+      await updateWeek.mutateAsync({
+        weekId: activeWeek.id,
+        updates: { title: renameTitle.trim() || null }
+      })
+      toast.success('Semana renomeada com sucesso!')
+      setIsRenameDialogOpen(false)
+    } catch (err) {
+      toast.error('Erro ao renomear semana')
+    }
+  }
+
+  const openRenameDialog = () => {
+    setRenameTitle(activeWeek?.title || '')
+    setIsRenameDialogOpen(true)
+  }
+
   
   const { data: activeWeekData, isLoading: isActiveLoading, error: activeError, refetch: refetchActive } = useActiveWeek()
   
@@ -151,8 +188,23 @@ export function WeeklyPlannerPage() {
         <div className="max-w-2xl mx-auto px-5 pt-8 pb-32">
           <PageHeader title="Montar Semana" subtitle="Selecione os dias e a data de início que deseja planejar." />
           <div className="bg-white rounded-3xl border p-6 space-y-6">
-             
-             {/* Data de Início */}
+            
+            {/* Título da Semana */}
+            <div className="space-y-2">
+              <label htmlFor="weekTitleInput" className="text-xs font-bold uppercase tracking-wider text-warm-gray-medium block">
+                Nome / Título da Semana (Opcional)
+              </label>
+              <Input
+                id="weekTitleInput"
+                type="text"
+                placeholder="Ex: Minha Semana Fit, Foco Dieta, Férias..."
+                value={newWeekTitle}
+                onChange={(e) => setNewWeekTitle(e.target.value)}
+                className="w-full px-4 py-3 rounded-2xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-neutral-50 text-sm text-on-surface font-semibold h-auto"
+              />
+            </div>
+
+            {/* Data de Início */}
              <div className="space-y-2">
                <label htmlFor="startDateInput" className="text-xs font-bold uppercase tracking-wider text-warm-gray-medium block">
                  Data de Início
@@ -199,7 +251,8 @@ export function WeeklyPlannerPage() {
                     startDate: customStartDate, 
                     endDate: customEndDate, 
                     selectedDays, 
-                    mealModes 
+                    mealModes,
+                    title: newWeekTitle.trim() || undefined
                   })
                   if(week) navigate(`/app/semana/${week.id}`)
                 }} 
@@ -239,13 +292,14 @@ export function WeeklyPlannerPage() {
             <div>
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-warm-gray-medium mb-1 block">
                 {activeWeek.status === 'active' ? 'SEMANA ATIVA' : 'SEMANA ARQUIVADA'}
+                {` • ${formatDateToShort(activeWeek.week_start_date)} a ${formatDateToShort(activeWeek.week_end_date)}`}
               </span>
               
               {/* Week Selector Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 text-3xl font-extrabold text-on-surface tracking-tight hover:opacity-80 transition-opacity text-left cursor-pointer">
-                    <span>Meu Planejamento</span>
+                    <span>{activeWeek.title || 'Meu Planejamento'}</span>
                     <ChevronDown className="h-6 w-6 text-primary shrink-0" />
                   </button>
                 </DropdownMenuTrigger>
@@ -267,9 +321,14 @@ export function WeeklyPlannerPage() {
                         )}
                       >
                         <div className="flex flex-col">
-                          <span>
-                            {formatDateToShort(w.week_start_date)} a {formatDateToShort(w.week_end_date)}
+                          <span className="font-semibold text-sm">
+                            {w.title || `${formatDateToShort(w.week_start_date)} a ${formatDateToShort(w.week_end_date)}`}
                           </span>
+                          {w.title && (
+                            <span className="text-[10px] text-neutral-400 mt-0.5">
+                              {formatDateToShort(w.week_start_date)} a {formatDateToShort(w.week_end_date)}
+                            </span>
+                          )}
                           {w.status === 'active' && (
                             <span className="text-[9px] uppercase tracking-wider text-primary font-bold mt-0.5">
                               Ativa
@@ -321,6 +380,14 @@ export function WeeklyPlannerPage() {
                 >
                   <Save className="h-4 w-4 text-secondary" />
                   <span>Repetir Esta Semana</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={openRenameDialog}
+                  className="rounded-xl px-3 py-2 text-sm cursor-pointer hover:bg-neutral-50 focus:bg-neutral-50 flex items-center gap-2"
+                >
+                  <Pencil className="h-4 w-4 text-primary" />
+                  <span>Renomear Semana</span>
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator className="my-1 bg-neutral-100" />
@@ -389,6 +456,51 @@ export function WeeklyPlannerPage() {
            </Link>
         </div>
       </main>
+
+      {/* Dialog para renomear a semana */}
+      <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
+        <DialogContent className="sm:max-w-md rounded-3xl p-6 bg-white max-w-[90vw]">
+          <DialogHeader className="space-y-3 text-left">
+            <DialogTitle className="text-xl font-extrabold text-on-surface">Renomear Semana</DialogTitle>
+            <DialogDescription className="text-sm text-neutral-500">
+              Escolha um nome personalizado para esta semana de planejamento.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="renameWeekInput" className="text-xs font-bold uppercase tracking-wider text-warm-gray-medium block">
+                Nome da Semana
+              </Label>
+              <Input
+                id="renameWeekInput"
+                type="text"
+                placeholder="Ex: Minha Semana Fit, Foco Dieta, Férias..."
+                value={renameTitle}
+                onChange={(e) => setRenameTitle(e.target.value)}
+                className="w-full px-4 py-3 rounded-2xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-neutral-50 text-sm text-on-surface font-semibold h-auto"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsRenameDialogOpen(false)}
+              className="rounded-2xl py-3 px-5 border border-neutral-200 text-sm font-semibold hover:bg-neutral-50 transition-colors"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={handleRenameWeek}
+              disabled={updateWeek.isPending}
+              className="rounded-2xl py-3 px-5 text-sm font-bold bg-primary text-white"
+            >
+              {updateWeek.isPending ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
