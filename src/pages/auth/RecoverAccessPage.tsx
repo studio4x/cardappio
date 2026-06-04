@@ -88,22 +88,27 @@ export function RecoverAccessPage() {
       }
       const beforeUpdatedAt = beforeUser.updated_at
 
-      // 2. Update the password
-      const { data: updateData, error: updateError } = await supabase.auth.updateUser({
-        password: newPassword
+      // 2. Update the password using the Edge Function to bypass client-side limitations
+      const { data: updateData, error: updateError } = await supabase.functions.invoke('update-user-password', {
+        body: { password: newPassword }
       })
 
       if (updateError) {
-        setError(translateAuthError(updateError.message))
+        setError('Erro ao atualizar a senha no servidor. Verifique sua conexão e tente novamente.')
         return
       }
 
+      if (!updateData || updateData.error) {
+         setError(updateData?.error || 'Erro desconhecido ao processar atualização.')
+         return
+      }
+
       // 3. Verify the update actually persisted: updated_at must have changed
-      const afterUpdatedAt = updateData.user?.updated_at
+      const afterUpdatedAt = updateData.updated_at
       if (!afterUpdatedAt || afterUpdatedAt === beforeUpdatedAt) {
         setError(
-          'Não foi possível confirmar a alteração da senha. Sua conexão pode estar bloqueando a requisição (ex: antivírus Kaspersky). ' +
-          'Tente desativar temporariamente o antivírus e repetir o processo.'
+          'Não foi possível confirmar a alteração da senha no servidor. ' +
+          'Tente desativar temporariamente bloqueadores de rede ou antivírus e repetir o processo.'
         )
         return
       }
@@ -112,7 +117,6 @@ export function RecoverAccessPage() {
       await supabase.auth.signOut({ scope: 'global' })
 
       // 5. Force-clear any remaining session from localStorage as a fallback
-      // (prevents stale recovery session from auto-redirecting the login page)
       try {
         const keysToRemove = Object.keys(localStorage).filter(
           (k) => k.startsWith('sb-') && k.endsWith('-auth-token')
