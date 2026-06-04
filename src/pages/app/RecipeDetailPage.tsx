@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Clock, Users, Sparkles, Lock, Utensils, ShoppingBasket, Plus, BarChart3, PillIcon, Calendar, CheckCircle2, ChevronRight, Loader2 } from 'lucide-react'
+import { ArrowLeft, Clock, Users, Sparkles, Lock, Utensils, ShoppingBasket, Plus, BarChart3, PillIcon, Calendar, CheckCircle2, ChevronRight, Loader2, PiggyBank } from 'lucide-react'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { useRecipe } from '@/hooks/recipes/useRecipes'
@@ -91,6 +91,7 @@ export function RecipeDetailPage() {
   const isLocked = recipe?.is_premium && !isPremiumUser
 
   const difficultyLabels = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' }
+  const costLabels = { low: 'Econômico', medium: 'Moderado', high: 'Premium' }
   const dayNames: Record<string, string> = {
     monday: 'Segunda-feira',
     tuesday: 'Terça-feira',
@@ -145,23 +146,28 @@ export function RecipeDetailPage() {
               </div>
             </section>
 
-            {/* Quick Info Bento */}
+             {/* Quick Info Bento */}
             <section className="mt-4">
-              <div className="grid grid-cols-3 gap-0 bg-white rounded-2xl p-4 shadow-sm border overflow-hidden" style={{ borderColor: 'var(--color-outline-variant)' }}>
+              <div className="grid grid-cols-4 gap-0 bg-white rounded-2xl p-4 shadow-sm border overflow-hidden" style={{ borderColor: 'var(--color-outline-variant)' }}>
                 <div className="flex flex-col items-center justify-center p-2 border-r" style={{ borderColor: 'var(--color-outline-variant)' }}>
                   <Clock className="h-5 w-5 text-fresh-green mb-1" />
                   <span className="text-[10px] font-bold text-neutral-400 uppercase">Tempo</span>
-                  <span className="text-xs font-bold text-on-surface">{recipe.prep_time_minutes} min</span>
+                  <span className="text-xs font-bold text-on-surface truncate max-w-full">{recipe.prep_time_minutes} min</span>
                 </div>
                 <div className="flex flex-col items-center justify-center p-2 border-r" style={{ borderColor: 'var(--color-outline-variant)' }}>
                   <Users className="h-5 w-5 text-fresh-green mb-1" />
                   <span className="text-[10px] font-bold text-neutral-400 uppercase">Porções</span>
-                  <span className="text-xs font-bold text-on-surface">{recipe.servings} pps</span>
+                  <span className="text-xs font-bold text-on-surface truncate max-w-full">{recipe.servings} pps</span>
                 </div>
-                <div className="flex flex-col items-center justify-center p-2">
+                <div className="flex flex-col items-center justify-center p-2 border-r" style={{ borderColor: 'var(--color-outline-variant)' }}>
                   <BarChart3 className="h-5 w-5 text-fresh-green mb-1" />
                   <span className="text-[10px] font-bold text-neutral-400 uppercase">Nível</span>
-                  <span className="text-xs font-bold text-on-surface">{difficultyLabels[recipe.difficulty_level]}</span>
+                  <span className="text-xs font-bold text-on-surface truncate max-w-full">{difficultyLabels[recipe.difficulty_level as keyof typeof difficultyLabels] || recipe.difficulty_level}</span>
+                </div>
+                <div className="flex flex-col items-center justify-center p-2">
+                  <PiggyBank className="h-5 w-5 text-fresh-green mb-1" />
+                  <span className="text-[10px] font-bold text-neutral-400 uppercase">Custo</span>
+                  <span className="text-xs font-bold text-on-surface truncate max-w-full">{costLabels[recipe.cost_level as keyof typeof costLabels] || 'Moderado'}</span>
                 </div>
               </div>
             </section>
