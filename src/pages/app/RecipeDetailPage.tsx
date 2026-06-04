@@ -111,7 +111,7 @@ export function RecipeDetailPage() {
   if (error || !recipe) return <ErrorState onRetry={() => refetch()} />
 
   return (
-    <div className="bg-off-white min-h-screen pb-40">
+    <div className="bg-off-white min-h-screen pb-40 p-6 md:p-10">
       {/* Back navigation & favorite button row */}
       <div className="flex items-center justify-between mb-6 w-full">
         <button 
