@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [preferences, setPreferences] = useState<UserPreferences | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  const fetchProfile = useCallback(async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string, isRecoverySession = false) => {
     try {
       // Timeout for profile fetch to avoid hanging the entire app if Supabase is blocked
       const profilePromise = supabase
@@ -44,6 +44,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         if (error.code === 'PGRST116') {
+          if (isRecoverySession) {
+            // During PASSWORD_RECOVERY, the user may not have a profile loaded yet.
+            // Do NOT sign out — this would destroy the recovery session and prevent
+            // the user from resetting their password.
+            console.warn('Profile not found during recovery session — skipping signOut to preserve recovery flow.')
+            return
+          }
           console.warn('Perfil órfão detectado (PGRST116). Destruindo sessão fantasma preventivamente.')
           await supabase.auth.signOut()
           setSession(null)
@@ -137,7 +144,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
+        const isRecoveryEvent = event === 'PASSWORD_RECOVERY'
+        if (isRecoveryEvent) {
           sessionStorage.setItem('isRecoveryFlow', 'true')
         }
         setSession(session)
@@ -146,7 +154,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           if (session?.user) {
             await Promise.all([
-              fetchProfile(session.user.id),
+              // Pass isRecoveryEvent so fetchProfile skips the destructive signOut
+              // when the user has no profile (recovery sessions are temporary)
+              fetchProfile(session.user.id, isRecoveryEvent),
               fetchPreferences(session.user.id),
             ])
           } else {
