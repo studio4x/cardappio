@@ -113,7 +113,7 @@ export function RecipeDetailPage() {
   return (
     <div className="bg-off-white min-h-screen pb-40">
       {/* Back navigation & favorite button row */}
-      <div className="max-w-4xl mx-auto flex items-center justify-between mb-6 px-4 sm:px-6">
+      <div className="flex items-center justify-between mb-6 w-full">
         <button 
           onClick={() => navigate(-1)}
           className="active:scale-95 transition-transform hover:bg-neutral-100 py-2 px-3 rounded-full cursor-pointer flex items-center gap-1.5 text-xs font-bold uppercase text-slate-500"
@@ -125,7 +125,7 @@ export function RecipeDetailPage() {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6">
+      <main className="w-full">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           
           {/* Left Column: Cover Image, Info Bento, Nutrition, Variations */}
@@ -146,7 +146,7 @@ export function RecipeDetailPage() {
             </section>
 
             {/* Quick Info Bento */}
-            <section className="relative z-10 -mt-10 px-4 md:px-0">
+            <section className="mt-4">
               <div className="grid grid-cols-3 gap-0 bg-white rounded-2xl p-4 shadow-sm border overflow-hidden" style={{ borderColor: 'var(--color-outline-variant)' }}>
                 <div className="flex flex-col items-center justify-center p-2 border-r" style={{ borderColor: 'var(--color-outline-variant)' }}>
                   <Clock className="h-5 w-5 text-fresh-green mb-1" />
@@ -287,7 +287,7 @@ export function RecipeDetailPage() {
 
       {/* Bottom Action Bar */}
       <div 
-        className="fixed bottom-0 left-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-4xl bg-white/95 backdrop-blur-md border-t md:border-x p-5 pb-8 md:pb-6 z-50 flex gap-4 transition-all md:rounded-t-3xl md:shadow-lg" 
+        className="fixed bottom-0 left-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1280px] bg-white/95 backdrop-blur-md border-t md:border-x p-5 pb-8 md:pb-6 z-50 flex gap-4 transition-all md:rounded-t-3xl md:shadow-lg" 
         style={{ borderColor: 'var(--color-outline-variant)' }}
       >
         <button 
