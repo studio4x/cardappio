@@ -7,6 +7,7 @@ import { config } from '@/config'
 const navLinks = [
   { label: 'Como funciona', href: '#como-funciona' },
   { label: 'Benefícios', href: '#beneficios' },
+  { label: 'Planos', href: '#planos' },
 ]
 
 export function PublicHeader() {

@@ -71,7 +71,7 @@ export const router = createBrowserRouter([
       { path: '/', element: <LandingPage /> },
       // TODO: Fase posterior
       { path: '/como-funciona', element: <HowItWorksPage /> },
-      { path: '/planos', element: <PublicPlansPage /> },
+      { path: '/planos', element: <Navigate to="/#planos" replace /> },
       { path: '/faq', element: <FaqPage /> },
       { path: '/contato', element: <ContactPage /> },
       { path: '/suporte', element: <SupportPage /> },

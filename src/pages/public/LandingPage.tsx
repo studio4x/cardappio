@@ -180,6 +180,97 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* Plans Section */}
+      <section id="planos" className="py-32 bg-slate-50 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-20 space-y-4">
+            <h2 className="text-4xl md:text-5xl font-black text-slate-900">
+              O plano ideal para sua <span className="text-gradient">cozinha</span>
+            </h2>
+            <p className="text-lg text-text-secondary max-w-2xl mx-auto leading-relaxed">
+              Economize tempo e dinheiro com planejamento inteligente. Escolha o plano que melhor se adapta à sua família.
+            </p>
+          </div>
+
+          <div className="grid gap-8 sm:grid-cols-2 max-w-4xl mx-auto">
+            {/* Free Plan */}
+            <div className="relative flex flex-col p-8 rounded-[2.5rem] border bg-white border-slate-200 transition-all hover:scale-[1.02] shadow-sm hover:shadow-md">
+              <div className="space-y-4 mb-8">
+                <h3 className="text-2xl font-bold text-slate-900">Gratuito</h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-black text-slate-900">R$ 0</span>
+                </div>
+                <p className="text-slate-600 text-sm">Perfeito para quem está começando a se organizar.</p>
+              </div>
+
+              <ul className="space-y-4 mb-10 flex-grow">
+                {[
+                  'Planejamento de até 3 dias/semana',
+                  'Acesso a 50 receitas básicas',
+                  'Lista de compras básica',
+                  '1 perfil de usuário'
+                ].map((feature, idx) => (
+                  <li key={idx} className="flex items-start gap-3 text-sm text-slate-700">
+                    <div className="mt-0.5 rounded-full p-0.5 bg-emerald-100 text-emerald-600">
+                      <Check className="h-3.5 w-3.5" />
+                    </div>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                to="/auth/cadastro"
+                className="bg-white border border-border text-on-surface hover:bg-neutral-50 px-6 py-4 rounded-2xl text-center font-bold text-sm shadow-sm hover:scale-[1.01] active:scale-95 transition-all no-underline flex items-center justify-center gap-2"
+              >
+                Começar agora <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+
+            {/* Pro Plan */}
+            <div className="relative flex flex-col p-8 rounded-[2.5rem] border-2 bg-white border-primary shadow-2xl shadow-primary/5 transition-all hover:scale-[1.02]">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full">
+                Mais Popular
+              </div>
+
+              <div className="space-y-4 mb-8">
+                <h3 className="text-2xl font-bold text-slate-900">Pro</h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-black text-slate-900">R$ 19,90</span>
+                  <span className="text-slate-500 font-medium">/mês</span>
+                </div>
+                <p className="text-slate-600 text-sm">O planejador completo para sua rotina diária.</p>
+              </div>
+
+              <ul className="space-y-4 mb-10 flex-grow">
+                {[
+                  'Planejamento de 7 dias (ilimitado)',
+                  'Catálogo Premium (+500 receitas)',
+                  'Lista de compras inteligente e editável',
+                  'Trocas e Sugestões inteligentes',
+                  'Histórico ilimitado',
+                  'Acesso prioritário a novas coleções'
+                ].map((feature, idx) => (
+                  <li key={idx} className="flex items-start gap-3 text-sm text-slate-700">
+                    <div className="mt-0.5 rounded-full p-0.5 bg-emerald-100 text-emerald-600">
+                      <Check className="h-3.5 w-3.5" />
+                    </div>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                to="/auth/cadastro?plan=pro"
+                className="bg-primary text-white hover:opacity-90 px-6 py-4 rounded-2xl text-center font-bold text-sm shadow-xl shadow-primary/20 hover:scale-[1.01] active:scale-95 transition-all no-underline flex items-center justify-center gap-2"
+              >
+                Assinar Pro <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section className="py-32">
         <div className="max-w-7xl mx-auto px-6">
