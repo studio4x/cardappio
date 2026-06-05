@@ -29,9 +29,11 @@ export function RecipeSteps({ steps }: RecipeStepsProps) {
               >
                 {step.step_number}
               </div>
-              <p className="text-base leading-relaxed pt-0.5" style={{ color: 'var(--color-on-surface)' }}>
-                {step.content}
-              </p>
+              <div
+                className="prose prose-sm max-w-none text-base leading-relaxed pt-0.5 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_strong]:font-semibold [&_em]:italic [&_u]:underline"
+                style={{ color: 'var(--color-on-surface)' }}
+                dangerouslySetInnerHTML={{ __html: step.content }}
+              />
             </div>
           ))}
         </div>

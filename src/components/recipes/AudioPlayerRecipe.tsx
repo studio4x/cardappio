@@ -81,6 +81,13 @@ export function AudioPlayerRecipe({ title, steps }: AudioPlayerRecipeProps) {
     playCurrentSegment()
   }
 
+  const stripHtml = (html: string) => {
+    if (typeof document === 'undefined') return html.replace(/<[^>]*>/g, '')
+    const tmp = document.createElement('DIV')
+    tmp.innerHTML = html
+    return tmp.textContent || tmp.innerText || ''
+  }
+
   const playCurrentSegment = () => {
     if (currentStepIndex === -1) {
       // Speak title and intro
@@ -93,7 +100,8 @@ export function AudioPlayerRecipe({ title, steps }: AudioPlayerRecipeProps) {
       // Speak current step
       const step = steps[currentStepIndex]
       if (step) {
-        speakText(`Passo ${step.step_number}. ${step.content}`, () => {
+        const cleanContent = stripHtml(step.content)
+        speakText(`Passo ${step.step_number}. ${cleanContent}`, () => {
           if (currentStepIndex < steps.length - 1) {
             setCurrentStepIndex(prev => prev + 1)
           } else {
@@ -174,7 +182,7 @@ export function AudioPlayerRecipe({ title, steps }: AudioPlayerRecipeProps) {
           ) : (
             <span>
               <strong className="text-emerald-400 block mb-1">Passo #{steps[currentStepIndex]?.step_number}</strong>
-              {steps[currentStepIndex]?.content}
+              {stripHtml(steps[currentStepIndex]?.content)}
             </span>
           )}
         </p>

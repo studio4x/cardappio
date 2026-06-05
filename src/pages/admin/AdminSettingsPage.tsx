@@ -4,13 +4,43 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { useAdminSettings } from '@/hooks/admin/useAdminSettings'
-import { Image as ImageIcon, Upload, Save, Trash2, Palette, Shield, Settings2, HelpCircle } from 'lucide-react'
+import { useAIConfig, useUpdateAIConfig, type AIConfig } from '@/hooks/admin/useAIConfig'
+import { Image as ImageIcon, Save, Trash2, Palette, Shield, Settings2, HelpCircle, Brain, Eye, EyeOff, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function AdminSettingsPage() {
   const { loading, visualIdentity, updateVisualIdentity, uploadAsset } = useAdminSettings()
   const [isSaving, setIsSaving] = useState(false)
   const [activeTab, setActiveTab] = useState('visual')
+
+  // AI Config state
+  const { data: aiConfig, isLoading: isLoadingAI } = useAIConfig()
+  const updateAIConfig = useUpdateAIConfig()
+  const [aiForm, setAIForm] = useState<AIConfig>({
+    openai_api_key: '',
+    gemini_api_key: '',
+    preferred_provider: 'openai'
+  })
+  const [showOpenAIKey, setShowOpenAIKey] = useState(false)
+  const [showGeminiKey, setShowGeminiKey] = useState(false)
+  const [aiFormDirty, setAIFormDirty] = useState(false)
+
+  // Sync AI form when config loads
+  const [aiFormInitialized, setAIFormInitialized] = useState(false)
+  if (aiConfig && !aiFormInitialized) {
+    setAIForm(aiConfig)
+    setAIFormInitialized(true)
+  }
+
+  const handleAIFormChange = (field: keyof AIConfig, value: string) => {
+    setAIForm(prev => ({ ...prev, [field]: value }))
+    setAIFormDirty(true)
+  }
+
+  const handleSaveAIConfig = async () => {
+    await updateAIConfig.mutateAsync(aiForm)
+    setAIFormDirty(false)
+  }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo_dark_url' | 'logo_light_url' | 'favicon_url') => {
     const file = e.target.files?.[0]
@@ -48,6 +78,10 @@ export function AdminSettingsPage() {
           <TabsTrigger value="visual" className="gap-2">
             <Palette className="h-4 w-4" />
             Identidade Visual
+          </TabsTrigger>
+          <TabsTrigger value="ia" className="gap-2">
+            <Brain className="h-4 w-4" />
+            Integrações IA
           </TabsTrigger>
           <TabsTrigger value="geral" className="gap-2">
             <Settings2 className="h-4 w-4" />
@@ -167,6 +201,147 @@ export function AdminSettingsPage() {
               recarregar a página (limpar cache) para ver as mudanças refletidas no navegador.
             </p>
           </div>
+        </TabsContent>
+
+        {/* TAB: INTEGRAÇÕES IA */}
+        <TabsContent value="ia" className="space-y-6">
+          {isLoadingAI ? (
+            <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+          ) : (
+            <>
+              {/* Security notice */}
+              <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-5 flex gap-3">
+                <AlertCircle className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-bold text-blue-800 mb-1">Segurança das credenciais</p>
+                  <p className="text-xs text-blue-700 leading-relaxed">
+                    As API keys são armazenadas no banco de dados protegido por RLS e acessadas exclusivamente pelo servidor (Edge Function). 
+                    Elas <strong>nunca são expostas no frontend</strong> ou transmitidas para o navegador.
+                  </p>
+                </div>
+              </div>
+
+              {/* Preferred Provider */}
+              <div className="rounded-2xl border bg-white p-6 shadow-sm space-y-4">
+                <h3 className="font-bold text-sm uppercase tracking-wider text-slate-500">Provedor Preferencial</h3>
+                <p className="text-xs text-slate-400">Quando ambas as keys estiverem configuradas, este provedor será usado primeiro. O outro será acionado automaticamente como fallback.</p>
+                <div className="flex gap-3">
+                  {(['openai', 'gemini'] as const).map(p => (
+                    <button
+                      key={p}
+                      onClick={() => { handleAIFormChange('preferred_provider', p) }}
+                      className={cn(
+                        'flex-1 py-3 px-4 rounded-xl border-2 font-bold text-sm transition-all cursor-pointer flex items-center justify-center gap-2',
+                        aiForm.preferred_provider === p
+                          ? 'border-primary bg-primary/5 text-primary'
+                          : 'border-slate-200 text-slate-400 hover:border-slate-300'
+                      )}
+                    >
+                      {p === 'openai' ? '🤖 OpenAI GPT' : '✨ Google Gemini'}
+                      {aiForm.preferred_provider === p && <CheckCircle2 className="h-4 w-4" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* OpenAI Card */}
+              <div className="rounded-2xl border bg-white p-6 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-slate-900 flex items-center justify-center text-white text-lg">🤖</div>
+                    <div>
+                      <h3 className="font-bold text-slate-800">OpenAI GPT</h3>
+                      <p className="text-xs text-slate-400">Modelo: gpt-4o-mini · Principal</p>
+                    </div>
+                  </div>
+                  {aiForm.openai_api_key && (
+                    <span className="text-[10px] bg-green-100 text-green-700 font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3" /> Configurado
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-600">API Key</label>
+                  <div className="relative">
+                    <input
+                      id="openai-api-key"
+                      type={showOpenAIKey ? 'text' : 'password'}
+                      value={aiForm.openai_api_key}
+                      onChange={e => handleAIFormChange('openai_api_key', e.target.value)}
+                      placeholder="sk-proj-..."
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-11 text-sm font-mono outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowOpenAIKey(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                    >
+                      {showOpenAIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    Obtenha sua key em <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">platform.openai.com/api-keys</a>
+                  </p>
+                </div>
+              </div>
+
+              {/* Gemini Card */}
+              <div className="rounded-2xl border bg-white p-6 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-lg">✨</div>
+                    <div>
+                      <h3 className="font-bold text-slate-800">Google Gemini</h3>
+                      <p className="text-xs text-slate-400">Modelo: gemini-3.5-flash · Fallback</p>
+                    </div>
+                  </div>
+                  {aiForm.gemini_api_key && (
+                    <span className="text-[10px] bg-green-100 text-green-700 font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3" /> Configurado
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-600">API Key</label>
+                  <div className="relative">
+                    <input
+                      id="gemini-api-key"
+                      type={showGeminiKey ? 'text' : 'password'}
+                      value={aiForm.gemini_api_key}
+                      onChange={e => handleAIFormChange('gemini_api_key', e.target.value)}
+                      placeholder="AIza..."
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-11 text-sm font-mono outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowGeminiKey(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                    >
+                      {showGeminiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    Obtenha sua key em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">aistudio.google.com/apikey</a>
+                  </p>
+                </div>
+              </div>
+
+              {/* Save button */}
+              <div className="flex justify-end">
+                <Button
+                  onClick={handleSaveAIConfig}
+                  disabled={!aiFormDirty || updateAIConfig.isPending}
+                  className="gap-2 px-8"
+                >
+                  {updateAIConfig.isPending
+                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Salvando...</>
+                    : <><Save className="h-4 w-4" /> Salvar Configurações</>}
+                </Button>
+              </div>
+            </>
+          )}
         </TabsContent>
 
         {/* TAB: GERAL */}
