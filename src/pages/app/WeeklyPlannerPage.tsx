@@ -340,7 +340,68 @@ export function WeeklyPlannerPage() {
      )
   }
 
-  const sortedDays = [...(activeWeek.days ?? [])].sort((a, b) => a.sort_order - b.sort_order)
+  const processedDays = useMemo(() => {
+    if (!activeWeek || !activeWeek.days) return []
+    
+    const today = new Date()
+    const getLocalDateStr = (d: Date) => {
+      const year = d.getFullYear()
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    }
+    const todayStr = getLocalDateStr(today)
+    
+    const getDayDateObj = (startDateStr: string, sortOrder: number) => {
+      const baseDate = new Date(startDateStr + 'T12:00:00')
+      const dayOfWeek = baseDate.getDay()
+      const diff = baseDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
+      const monday = new Date(baseDate.setDate(diff))
+      monday.setDate(monday.getDate() + sortOrder)
+      return monday
+    }
+    
+    return activeWeek.days.map((day: any) => {
+      const dayDate = getDayDateObj(activeWeek.week_start_date, day.sort_order)
+      const dayDateStr = getLocalDateStr(dayDate)
+      
+      const isToday = dayDateStr === todayStr
+      const isPassed = dayDateStr < todayStr
+      const isFuture = dayDateStr > todayStr
+      
+      const formattedDate = dayDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+      
+      return {
+        ...day,
+        date: dayDate,
+        dateStr: dayDateStr,
+        formattedDate,
+        isToday,
+        isPassed,
+        isFuture
+      }
+    })
+  }, [activeWeek])
+
+  const isCurrentWeek = useMemo(() => {
+    return processedDays.some(d => d.isToday)
+  }, [processedDays])
+
+  const chronoDays = useMemo(() => {
+    return [...processedDays].sort((a, b) => a.sort_order - b.sort_order)
+  }, [processedDays])
+
+  const displayDaysForList = useMemo(() => {
+    if (!isCurrentWeek) {
+      return chronoDays
+    }
+    
+    const todayDays = chronoDays.filter(d => d.isToday)
+    const futureDays = chronoDays.filter(d => d.isFuture)
+    const passedDays = chronoDays.filter(d => d.isPassed)
+    
+    return [...todayDays, ...futureDays, ...passedDays]
+  }, [chronoDays, isCurrentWeek])
 
   return (
     <div className="bg-surface min-h-screen pb-32">
@@ -498,31 +559,44 @@ export function WeeklyPlannerPage() {
 
           {/* Horizontal Day Scroller */}
           <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
-            {sortedDays.map((day, idx) => (
-              <div 
-                key={day.id}
-                className={cn(
-                  "flex-shrink-0 flex flex-col items-center justify-center w-16 h-24 rounded-3xl transition-all duration-300 border-2",
-                  idx === 0 
-                    ? "bg-primary border-primary text-white shadow-xl shadow-primary/20 ring-4 ring-primary/10" 
-                    : "bg-white border-neutral-100 text-on-surface"
-                )}
-              >
-                <span className={cn("text-[10px] font-bold uppercase tracking-widest", idx === 0 ? "opacity-80" : "text-warm-gray-medium")}>
-                  {DAY_LABELS[day.day_of_week as DayOfWeek].substring(0, 3)}
-                </span>
-                <span className="text-xl font-black mt-1">
-                  {getDayOfMonth(activeWeek.week_start_date, day.sort_order)}
-                </span>
-              </div>
-            ))}
+            {chronoDays.map((day, idx) => {
+              const hasToday = processedDays.some(d => d.isToday)
+              const isHighlighted = hasToday ? day.isToday : idx === 0
+              
+              return (
+                <div 
+                  key={day.id}
+                  className={cn(
+                    "flex-shrink-0 flex flex-col items-center justify-center w-16 h-24 rounded-3xl transition-all duration-300 border-2",
+                    isHighlighted 
+                      ? "bg-primary border-primary text-white shadow-xl shadow-primary/20 ring-4 ring-primary/10" 
+                      : "bg-white border-neutral-100 text-on-surface"
+                  )}
+                >
+                  <span className={cn("text-[10px] font-bold uppercase tracking-widest", isHighlighted ? "opacity-80" : "text-warm-gray-medium")}>
+                    {DAY_LABELS[day.day_of_week as DayOfWeek].substring(0, 3)}
+                  </span>
+                  <span className="text-xl font-black mt-1">
+                    {getDayOfMonth(activeWeek.week_start_date, day.sort_order)}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         </section>
 
         {/* Daily Slots */}
         <div className="space-y-12">
-          {sortedDays.map((day) => (
-            <DayPlannerCard key={day.id} day={day} weekId={activeWeek.id} onRemoveRecipe={handleRemoveRecipe} />
+          {displayDaysForList.map((day) => (
+            <DayPlannerCard 
+              key={day.id} 
+              day={day} 
+              weekId={activeWeek.id} 
+              onRemoveRecipe={handleRemoveRecipe}
+              isPassed={day.isPassed}
+              isToday={day.isToday}
+              formattedDate={day.formattedDate}
+            />
           ))}
         </div>
 
