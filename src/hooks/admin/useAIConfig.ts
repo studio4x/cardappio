@@ -8,11 +8,9 @@ export interface AIConfig {
   preferred_provider: 'openai' | 'gemini'
 }
 
-export interface NutritionResult {
-  calories: number
-  protein: number
-  fat: number
-  carbs: number
+import { type NutritionInfo } from '@/domains/recipes/types'
+
+export type NutritionResult = NutritionInfo & {
   provider: string
 }
 

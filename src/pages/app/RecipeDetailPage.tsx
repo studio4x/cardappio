@@ -173,30 +173,85 @@ export function RecipeDetailPage() {
             </section>
 
             {/* Nutrition Info */}
-            <div className="bg-surface-container rounded-2xl p-5 border" style={{ borderColor: 'var(--color-outline-variant)' }}>
-              <h3 className="text-sm font-bold mb-4 flex items-center gap-2 uppercase tracking-widest text-on-surface">
-                <PillIcon className="h-4 w-4 text-fresh-green" />
-                Nutrição por Porção
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                 {[
-                   { label: 'CALORIAS', val: recipe.calories_per_serving != null ? `${Math.round(recipe.calories_per_serving)} kcal` : '—' },
-                   { label: 'PROTEÍNA', val: recipe.protein_per_serving != null ? `${recipe.protein_per_serving.toFixed(1)}g` : '—' },
-                   { label: 'GORDURAS', val: recipe.fat_per_serving != null ? `${recipe.fat_per_serving.toFixed(1)}g` : '—' },
-                   { label: 'CARBOS', val: recipe.carbs_per_serving != null ? `${recipe.carbs_per_serving.toFixed(1)}g` : '—' }
-                 ].map(n => (
-                   <div key={n.label} className="bg-white/50 p-3 rounded-xl border border-white">
-                     <p className="text-[10px] font-bold text-neutral-400">{n.label}</p>
-                     <p className={`text-sm font-bold ${n.val === '—' ? 'text-neutral-300' : 'text-primary'}`}>{n.val}</p>
-                   </div>
-                 ))}
-              </div>
-              {recipe.calories_per_serving == null && (
-                <p className="text-[10px] text-neutral-400 mt-3 text-center">
-                  Informações nutricionais ainda não disponíveis para esta receita.
+            {recipe.nutrition_info && recipe.nutrition_info.nutrients ? (
+              <div className="bg-white rounded-2xl p-5 border shadow-sm text-slate-900 border-slate-200" style={{ borderColor: 'var(--color-outline-variant)' }}>
+                <h3 className="text-center font-black text-sm uppercase border-b-4 border-slate-950 pb-1 mb-2 tracking-wide">
+                  Informação Nutricional
+                </h3>
+                <div className="text-xs space-y-0.5 mb-3 text-slate-800">
+                  <p className="font-semibold">Porções por embalagem: <span className="font-bold">{recipe.servings}</span></p>
+                  <p className="font-semibold">Porção: <span className="font-bold">{recipe.nutrition_info.serving_size_g_ml}g ou ml</span> ({recipe.nutrition_info.serving_size_household})</p>
+                </div>
+                
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-[11px] border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-950">
+                        <th className="py-1 font-bold text-slate-400"></th>
+                        <th className="py-1 font-bold text-slate-900 text-right pr-2">100 g/ml</th>
+                        <th className="py-1 font-bold text-slate-900 text-right pr-2">Porção</th>
+                        <th className="py-1 font-bold text-slate-900 text-right">%VD*</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {([
+                        { label: 'Valor energético (kcal/kJ)', per100: `${recipe.nutrition_info.nutrients.energy_kcal?.per_100g ?? 0} / ${recipe.nutrition_info.nutrients.energy_kj?.per_100g ?? 0}`, perServing: `${recipe.nutrition_info.nutrients.energy_kcal?.per_serving ?? 0} / ${recipe.nutrition_info.nutrients.energy_kj?.per_serving ?? 0}`, vd: `${recipe.nutrition_info.nutrients.energy_kcal?.vd_percent ?? 0}%` },
+                        { label: 'Carboidratos (g)', per100: `${recipe.nutrition_info.nutrients.carbs?.per_100g ?? 0}`, perServing: `${recipe.nutrition_info.nutrients.carbs?.per_serving ?? 0}`, vd: `${recipe.nutrition_info.nutrients.carbs?.vd_percent ?? 0}%` },
+                        { label: 'Açúcares totais (g)', per100: `${recipe.nutrition_info.nutrients.total_sugars?.per_100g ?? 0}`, perServing: `${recipe.nutrition_info.nutrients.total_sugars?.per_serving ?? 0}`, vd: '—' },
+                        { label: 'Açúcares adicionados (g)', per100: `${recipe.nutrition_info.nutrients.added_sugars?.per_100g ?? 0}`, perServing: `${recipe.nutrition_info.nutrients.added_sugars?.per_serving ?? 0}`, vd: `${recipe.nutrition_info.nutrients.added_sugars?.vd_percent ?? 0}%` },
+                        { label: 'Proteínas (g)', per100: `${recipe.nutrition_info.nutrients.protein?.per_100g ?? 0}`, perServing: `${recipe.nutrition_info.nutrients.protein?.per_serving ?? 0}`, vd: `${recipe.nutrition_info.nutrients.protein?.vd_percent ?? 0}%` },
+                        { label: 'Gorduras totais (g)', per100: `${recipe.nutrition_info.nutrients.fat?.per_100g ?? 0}`, perServing: `${recipe.nutrition_info.nutrients.fat?.per_serving ?? 0}`, vd: `${recipe.nutrition_info.nutrients.fat?.vd_percent ?? 0}%` },
+                        { label: 'Gorduras saturadas (g)', per100: `${recipe.nutrition_info.nutrients.saturated_fat?.per_100g ?? 0}`, perServing: `${recipe.nutrition_info.nutrients.saturated_fat?.per_serving ?? 0}`, vd: `${recipe.nutrition_info.nutrients.saturated_fat?.vd_percent ?? 0}%` },
+                        { label: 'Gorduras trans (g)', per100: `${recipe.nutrition_info.nutrients.trans_fat?.per_100g ?? 0}`, perServing: `${recipe.nutrition_info.nutrients.trans_fat?.per_serving ?? 0}`, vd: '—' },
+                        { label: 'Fibra alimentar (g)', per100: `${recipe.nutrition_info.nutrients.fiber?.per_100g ?? 0}`, perServing: `${recipe.nutrition_info.nutrients.fiber?.per_serving ?? 0}`, vd: `${recipe.nutrition_info.nutrients.fiber?.vd_percent ?? 0}%` },
+                        { label: 'Sódio (mg)', per100: `${recipe.nutrition_info.nutrients.sodium?.per_100g ?? 0}`, perServing: `${recipe.nutrition_info.nutrients.sodium?.per_serving ?? 0}`, vd: `${recipe.nutrition_info.nutrients.sodium?.vd_percent ?? 0}%` }
+                      ] as const).map((n, idx) => {
+                        const isSub = n.label.startsWith('Açúcares') || n.label.startsWith('Gorduras s') || n.label.startsWith('Gorduras t')
+                        return (
+                          <tr key={idx} className={cn("hover:bg-slate-50/50", isSub ? "bg-slate-50/20" : "")}>
+                            <td className={cn("py-1.5 text-slate-800 font-semibold", isSub ? "pl-3 text-[10px] font-medium" : "")}>
+                              {n.label}
+                            </td>
+                            <td className="py-1.5 text-right text-slate-600 font-mono pr-2">{n.per100}</td>
+                            <td className="py-1.5 text-right text-slate-900 font-semibold font-mono pr-2">{n.perServing}</td>
+                            <td className="py-1.5 text-right text-slate-900 font-bold font-mono">{n.vd}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                
+                <p className="text-[9px] text-slate-400 mt-3 leading-relaxed pt-1.5 border-t border-slate-950">
+                  * Percentual de valores diários fornecidos pela porção.
                 </p>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="bg-surface-container rounded-2xl p-5 border" style={{ borderColor: 'var(--color-outline-variant)' }}>
+                <h3 className="text-sm font-bold mb-4 flex items-center gap-2 uppercase tracking-widest text-on-surface">
+                  <PillIcon className="h-4 w-4 text-fresh-green" />
+                  Nutrição por Porção
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                   {[
+                     { label: 'CALORIAS', val: recipe.calories_per_serving != null ? `${Math.round(recipe.calories_per_serving)} kcal` : '—' },
+                     { label: 'PROTEÍNA', val: recipe.protein_per_serving != null ? `${recipe.protein_per_serving.toFixed(1)}g` : '—' },
+                     { label: 'GORDURAS', val: recipe.fat_per_serving != null ? `${recipe.fat_per_serving.toFixed(1)}g` : '—' },
+                     { label: 'CARBOS', val: recipe.carbs_per_serving != null ? `${recipe.carbs_per_serving.toFixed(1)}g` : '—' }
+                   ].map(n => (
+                     <div key={n.label} className="bg-white/50 p-3 rounded-xl border border-white">
+                       <p className="text-[10px] font-bold text-neutral-400">{n.label}</p>
+                       <p className={`text-sm font-bold ${n.val === '—' ? 'text-neutral-300' : 'text-primary'}`}>{n.val}</p>
+                     </div>
+                   ))}
+                </div>
+                {recipe.calories_per_serving == null && (
+                  <p className="text-[10px] text-neutral-400 mt-3 text-center">
+                    Informações nutricionais ainda não disponíveis para esta receita.
+                  </p>
+                )}
+              </div>
+            )}
 
 
             {/* Variations / Swaps */}

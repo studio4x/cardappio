@@ -41,6 +41,7 @@ export function AdminRecipeEditorPage() {
     protein_per_serving: null,
     fat_per_serving: null,
     carbs_per_serving: null,
+    nutrition_info: null,
     ingredients: [],
     steps: []
   })
@@ -424,8 +425,8 @@ export function AdminRecipeEditorPage() {
       <div className="space-y-6 rounded-2xl border bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between border-b pb-4 mb-4">
           <div>
-            <h3 className="font-bold">Tabela Nutricional</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Por porção. Preencha manualmente ou gere automaticamente com IA.</p>
+            <h3 className="font-bold">Tabela Nutricional (Padrão ANVISA)</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Preencha os valores da porção ou gere automaticamente com a inteligência artificial.</p>
           </div>
           <Button
             variant="outline"
@@ -444,12 +445,18 @@ export function AdminRecipeEditorPage() {
                   })),
                   servings: recipeData.servings || 1
                 })
+
                 setRecipeData((prev: any) => ({
                   ...prev,
-                  calories_per_serving: result.calories,
-                  protein_per_serving: result.protein,
-                  fat_per_serving: result.fat,
-                  carbs_per_serving: result.carbs
+                  calories_per_serving: result.nutrients.energy_kcal.per_serving,
+                  protein_per_serving: result.nutrients.protein.per_serving,
+                  fat_per_serving: result.nutrients.fat.per_serving,
+                  carbs_per_serving: result.nutrients.carbs.per_serving,
+                  nutrition_info: {
+                    serving_size_g_ml: result.serving_size_g_ml,
+                    serving_size_household: result.serving_size_household,
+                    nutrients: result.nutrients
+                  }
                 }))
                 toast.success(`Tabela gerada com sucesso via ${result.provider === 'openai' ? 'OpenAI GPT' : 'Google Gemini'}! Revise os valores antes de salvar.`)
               } catch {
@@ -465,35 +472,194 @@ export function AdminRecipeEditorPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {([
-            { label: 'Calorias (kcal)', field: 'calories_per_serving', placeholder: 'Ex: 342' },
-            { label: 'Proteínas (g)', field: 'protein_per_serving', placeholder: 'Ex: 28' },
-            { label: 'Gorduras (g)', field: 'fat_per_serving', placeholder: 'Ex: 18' },
-            { label: 'Carboidratos (g)', field: 'carbs_per_serving', placeholder: 'Ex: 12' },
-          ] as const).map(({ label, field, placeholder }) => (
-            <div key={field} className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-400">{label}</label>
-              <input
-                type="number"
-                min="0"
-                step="0.1"
-                value={recipeData[field] ?? ''}
-                onChange={e => setRecipeData((prev: any) => ({
+        {/* Portion Metadata */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Peso/Volume da Porção (g ou ml)</label>
+            <input
+              type="number"
+              min="1"
+              value={recipeData.nutrition_info?.serving_size_g_ml ?? ''}
+              onChange={e => {
+                const val = e.target.value === '' ? 100 : parseInt(e.target.value)
+                setRecipeData((prev: any) => ({
                   ...prev,
-                  [field]: e.target.value === '' ? null : parseFloat(e.target.value)
-                }))}
-                placeholder={placeholder}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-mono outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-              />
-            </div>
-          ))}
+                  nutrition_info: {
+                    ...prev.nutrition_info,
+                    serving_size_g_ml: val
+                  }
+                }))
+              }}
+              placeholder="Ex: 150"
+              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Medida Caseira da Porção</label>
+            <input
+              type="text"
+              value={recipeData.nutrition_info?.serving_size_household ?? ''}
+              onChange={e => {
+                setRecipeData((prev: any) => ({
+                  ...prev,
+                  nutrition_info: {
+                    ...prev.nutrition_info,
+                    serving_size_household: e.target.value
+                  }
+                }))
+              }}
+              placeholder="Ex: 1 fatia, 1 xícara de chá, 1 concha"
+              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            />
+          </div>
+        </div>
+
+        {/* Nutrients Grid / Table */}
+        <div className="overflow-x-auto rounded-xl border border-slate-200 mt-4">
+          <table className="w-full border-collapse text-left text-sm">
+            <thead className="bg-slate-50">
+              <tr>
+                <th className="p-3 font-bold text-slate-500 border-b text-[11px] uppercase tracking-wider">Nutriente</th>
+                <th className="p-3 font-bold text-slate-500 border-b w-1/4 text-[11px] uppercase tracking-wider">Por 100 g/ml</th>
+                <th className="p-3 font-bold text-slate-500 border-b w-1/4 text-[11px] uppercase tracking-wider">Por Porção</th>
+                <th className="p-3 font-bold text-slate-500 border-b w-1/4 text-[11px] uppercase tracking-wider">%VD*</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {([
+                { label: 'Valor energético (kcal)', field: 'energy_kcal', placeholder: 'Ex: 342' },
+                { label: 'Valor energético (kJ)', field: 'energy_kj', placeholder: 'Ex: 1431' },
+                { label: 'Carboidratos (g)', field: 'carbs', placeholder: 'Ex: 12' },
+                { label: 'Açúcares totais (g)', field: 'total_sugars', placeholder: 'Ex: 5' },
+                { label: 'Açúcares adicionados (g)', field: 'added_sugars', placeholder: 'Ex: 2' },
+                { label: 'Proteínas (g)', field: 'protein', placeholder: 'Ex: 28' },
+                { label: 'Gorduras totais (g)', field: 'fat', placeholder: 'Ex: 18' },
+                { label: 'Gorduras saturadas (g)', field: 'saturated_fat', placeholder: 'Ex: 5' },
+                { label: 'Gorduras trans (g)', field: 'trans_fat', placeholder: 'Ex: 0' },
+                { label: 'Fibra alimentar (g)', field: 'fiber', placeholder: 'Ex: 3' },
+                { label: 'Sódio (mg)', field: 'sodium', placeholder: 'Ex: 120' }
+              ] as const).map(({ label, field, placeholder }) => {
+                const handleNutrientChange = (type: 'per_100g' | 'per_serving' | 'vd_percent', value: string) => {
+                  const parsedVal = value === '' ? null : parseFloat(value)
+                  const nutrition = recipeData.nutrition_info || { serving_size_g_ml: 100, serving_size_household: '1 porção', nutrients: {} }
+                  const nutrients = { ...nutrition.nutrients } as any
+                  
+                  nutrients[field] = { ...(nutrients[field] || { per_100g: 0, per_serving: 0, vd_percent: null }) }
+                  nutrients[field][type] = parsedVal
+
+                  // Auto-calculation logic:
+                  // 1. Calculate kJ if kcal changes
+                  if (field === 'energy_kcal') {
+                    nutrients.energy_kj = { ...(nutrients.energy_kj || { per_100g: 0, per_serving: 0, vd_percent: null }) }
+                    if (parsedVal !== null) {
+                      if (type === 'per_serving') {
+                        nutrients.energy_kj.per_serving = Math.round(parsedVal * 4.184)
+                        nutrients.energy_kj.vd_percent = Math.round((nutrients.energy_kj.per_serving / 8400) * 100)
+                      } else if (type === 'per_100g') {
+                        nutrients.energy_kj.per_100g = Math.round(parsedVal * 4.184)
+                      }
+                    } else {
+                      nutrients.energy_kj[type] = null
+                    }
+                  }
+
+                  // 2. Auto-calculate %VD from per_serving
+                  const vdRefs: Record<string, number> = {
+                    energy_kcal: 2000,
+                    energy_kj: 8400,
+                    carbs: 300,
+                    added_sugars: 50,
+                    protein: 50,
+                    fat: 65,
+                    saturated_fat: 22,
+                    fiber: 25,
+                    sodium: 2000
+                  }
+
+                  if (type === 'per_serving' && vdRefs[field]) {
+                    if (parsedVal !== null) {
+                      nutrients[field].vd_percent = Math.round((parsedVal / vdRefs[field]) * 100)
+                    } else {
+                      nutrients[field].vd_percent = null
+                    }
+                  }
+
+                  // 3. Auto-calculate per_100g if per_serving exists
+                  const size = nutrition.serving_size_g_ml || 100
+                  if (type === 'per_serving' && size > 0 && parsedVal !== null) {
+                    const isEnergy = field.startsWith('energy_')
+                    const calc100g = (parsedVal / size) * 100
+                    nutrients[field].per_100g = isEnergy ? Math.round(calc100g) : Math.round(calc100g * 10) / 10
+                  }
+
+                  // Sync legacy top-level fields for compatibility
+                  let legacyFields: any = {}
+                  if (field === 'energy_kcal' && type === 'per_serving') legacyFields.calories_per_serving = parsedVal
+                  if (field === 'protein' && type === 'per_serving') legacyFields.protein_per_serving = parsedVal
+                  if (field === 'fat' && type === 'per_serving') legacyFields.fat_per_serving = parsedVal
+                  if (field === 'carbs' && type === 'per_serving') legacyFields.carbs_per_serving = parsedVal
+
+                  setRecipeData((prev: any) => ({
+                    ...prev,
+                    ...legacyFields,
+                    nutrition_info: {
+                      ...nutrition,
+                      nutrients
+                    }
+                  }))
+                }
+
+                return (
+                  <tr key={field}>
+                    <td className="p-3 font-medium text-slate-700 text-xs">{label}</td>
+                    <td className="p-1.5">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        value={recipeData.nutrition_info?.nutrients?.[field]?.per_100g ?? ''}
+                        onChange={e => handleNutrientChange('per_100g', e.target.value)}
+                        placeholder={placeholder}
+                        className="w-full rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-mono outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-slate-50/50"
+                      />
+                    </td>
+                    <td className="p-1.5">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        value={recipeData.nutrition_info?.nutrients?.[field]?.per_serving ?? ''}
+                        onChange={e => handleNutrientChange('per_serving', e.target.value)}
+                        placeholder={placeholder}
+                        className="w-full rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-mono outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                      />
+                    </td>
+                    <td className="p-1.5">
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={recipeData.nutrition_info?.nutrients?.[field]?.vd_percent ?? ''}
+                          onChange={e => handleNutrientChange('vd_percent', e.target.value)}
+                          placeholder="Ex: 5"
+                          disabled={field === 'total_sugars' || field === 'trans_fat'}
+                          className="w-16 rounded-lg border border-slate-200 px-2 py-1 text-xs font-mono outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:bg-slate-100 disabled:text-slate-400"
+                        />
+                        <span className="text-[10px] text-slate-400">%</span>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
 
         {generateNutrition.isPending && (
-          <div className="flex items-center gap-2 text-xs text-slate-400 animate-pulse">
-            <Sparkles className="h-3 w-3" />
-            Analisando ingredientes com IA... isso pode levar alguns segundos.
+          <div className="flex items-center gap-2 text-xs text-slate-400 animate-pulse mt-2">
+            <Sparkles className="h-3 w-3 text-primary" />
+            Analisando ingredientes com IA no padrão ANVISA... isso pode levar alguns segundos.
           </div>
         )}
       </div>

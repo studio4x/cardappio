@@ -63,12 +63,37 @@ export interface Recipe {
   protein_per_serving: number | null
   fat_per_serving: number | null
   carbs_per_serving: number | null
+  nutrition_info: NutritionInfo | null
   // Joined fields
   category?: RecipeCategory
   ingredients?: RecipeIngredient[]
   steps?: RecipeStep[]
   tags?: RecipeTag[]
   variations?: RecipeVariation[]
+}
+
+export interface NutrientValue {
+  per_100g: number
+  per_serving: number
+  vd_percent: number | null
+}
+
+export interface NutritionInfo {
+  serving_size_g_ml: number
+  serving_size_household: string
+  nutrients: {
+    energy_kcal: NutrientValue
+    energy_kj: NutrientValue
+    carbs: NutrientValue
+    total_sugars: NutrientValue
+    added_sugars: NutrientValue
+    protein: NutrientValue
+    fat: NutrientValue
+    saturated_fat: NutrientValue
+    trans_fat: NutrientValue
+    fiber: NutrientValue
+    sodium: NutrientValue
+  }
 }
 
 export interface RecipeIngredient {
