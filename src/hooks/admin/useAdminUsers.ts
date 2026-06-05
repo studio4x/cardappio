@@ -8,6 +8,8 @@ export interface AdminUser {
   role: 'user' | 'admin' | 'super_admin'
   status: 'active' | 'inactive' | 'suspended'
   onboarding_completed_at: string | null
+  subscription_tier?: string
+  subscription_until?: string | null
   created_at: string
 }
 
@@ -159,6 +161,36 @@ export function useSendPasswordResetLink() {
         redirectTo: `${window.location.origin}/auth/callback`
       })
       if (error) throw error
+    }
+  })
+}
+
+export function useUpdateUserPlan() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ userId, planTier }: { userId: string; planTier: string }) => {
+      const { data, error } = await supabase.functions.invoke('admin-users', {
+        body: { action: 'update_plan', userId, planTier }
+      })
+
+      if (error) {
+        let errorMessage = error.message
+        try {
+          if ('context' in error && typeof (error as any).context.json === 'function') {
+            const body = await (error as any).context.json()
+            if (body && body.error) {
+              errorMessage = body.error
+            }
+          }
+        } catch (_) {}
+        throw new Error(errorMessage)
+      }
+      if (data?.status === 'error') throw new Error(data.message)
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
     }
   })
 }

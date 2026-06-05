@@ -196,7 +196,7 @@ async function callGemini(apiKey: string, prompt: string): Promise<NutritionInfo
       },
       generationConfig: {
         temperature: 0.3,
-        maxOutputTokens: 2048,
+        maxOutputTokens: 8192,
         responseMimeType: 'application/json',
         responseSchema: {
           type: 'object',

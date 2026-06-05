@@ -650,7 +650,7 @@ export function ProfilePreferencesPage() {
             <Button
               onClick={handleUpgrade}
               disabled={checkoutMutation.isPending || !selectedPlanId}
-              className="w-full py-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 bg-primary hover:opacity-90 text-white cursor-pointer"
+              className="w-full py-6 rounded-full text-sm font-bold flex items-center justify-center gap-2 shadow-lg cursor-pointer"
             >
               {checkoutMutation.isPending ? (
                 <>
@@ -665,7 +665,7 @@ export function ProfilePreferencesPage() {
             <Button
               variant="ghost"
               onClick={() => setIsPlanModalOpen(false)}
-              className="w-full py-3 rounded-xl text-slate-400 hover:text-slate-600 font-medium cursor-pointer"
+              className="w-full py-3 rounded-full text-slate-400 hover:text-slate-600 font-medium cursor-pointer"
             >
               Cancelar
             </Button>

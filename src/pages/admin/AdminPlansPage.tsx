@@ -28,6 +28,8 @@ export function AdminPlansPage() {
   const [trialDays, setTrialDays] = useState(0)
   const [featuresList, setFeaturesList] = useState<string[]>([])
   const [isActive, setIsActive] = useState(true)
+  const [stripePriceIdMonthly, setStripePriceIdMonthly] = useState('')
+  const [stripePriceIdYearly, setStripePriceIdYearly] = useState('')
 
   const handleOpenCreate = () => {
     setEditingPlan(null)
@@ -44,6 +46,8 @@ export function AdminPlansPage() {
       "Acesso PWA completo"
     ])
     setIsActive(true)
+    setStripePriceIdMonthly('')
+    setStripePriceIdYearly('')
     setIsOpen(true)
   }
 
@@ -57,6 +61,8 @@ export function AdminPlansPage() {
     setTrialDays(21) // default trial
     setFeaturesList(plan.features || [])
     setIsActive(plan.is_active)
+    setStripePriceIdMonthly(plan.stripe_price_id_monthly || '')
+    setStripePriceIdYearly(plan.stripe_price_id_yearly || '')
     setIsOpen(true)
   }
 
@@ -72,8 +78,8 @@ export function AdminPlansPage() {
       trial_days: Number(trialDays),
       features: featuresList.map(f => f.trim()).filter(Boolean),
       is_active: isActive,
-      stripe_price_id_monthly: editingPlan?.stripe_price_id_monthly ?? null,
-      stripe_price_id_yearly: editingPlan?.stripe_price_id_yearly ?? null,
+      stripe_price_id_monthly: stripePriceIdMonthly.trim() || null,
+      stripe_price_id_yearly: stripePriceIdYearly.trim() || null,
     }
 
     try {
@@ -242,6 +248,29 @@ export function AdminPlansPage() {
               <div className="flex items-center gap-2 pt-8">
                 <input id="isActive" type="checkbox" checked={isActive} onChange={e => setIsActive(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-primary" />
                 <Label htmlFor="isActive" className="cursor-pointer">Plano Ativo</Label>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 border-t pt-4 border-slate-100">
+              <div className="space-y-1">
+                <Label htmlFor="stripePriceIdMonthly">ID Preço Stripe (Mensal)</Label>
+                <Input 
+                  id="stripePriceIdMonthly" 
+                  value={stripePriceIdMonthly} 
+                  onChange={e => setStripePriceIdMonthly(e.target.value)} 
+                  placeholder="price_..." 
+                  className="bg-white text-slate-900"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="stripePriceIdYearly">ID Preço Stripe (Anual)</Label>
+                <Input 
+                  id="stripePriceIdYearly" 
+                  value={stripePriceIdYearly} 
+                  onChange={e => setStripePriceIdYearly(e.target.value)} 
+                  placeholder="price_..." 
+                  className="bg-white text-slate-900"
+                />
               </div>
             </div>
 

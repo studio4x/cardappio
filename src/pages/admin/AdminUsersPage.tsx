@@ -8,7 +8,8 @@ import {
   useCreateUser, 
   useResetUserPassword,
   useDeleteUser,
-  useSendPasswordResetLink
+  useSendPasswordResetLink,
+  useUpdateUserPlan
 } from '@/hooks/admin/useAdminUsers'
 import { 
   MoreHorizontal, 
@@ -22,7 +23,8 @@ import {
   User as UserIcon,
   Eye,
   EyeOff,
-  Copy
+  Copy,
+  CreditCard
 } from 'lucide-react'
 import { 
   DropdownMenu, 
@@ -58,6 +60,25 @@ export function AdminUsersPage() {
   const resetPassword = useResetUserPassword()
   const deleteUser = useDeleteUser()
   const sendResetLink = useSendPasswordResetLink()
+  const updatePlan = useUpdateUserPlan()
+
+  // State for Update Plan Dialog
+  const [isPlanOpen, setIsPlanOpen] = useState(false)
+  const [planTarget, setPlanTarget] = useState<{id: string, email: string, currentTier: string} | null>(null)
+  const [selectedPlanTier, setSelectedPlanTier] = useState('free')
+
+  const handleUpdatePlan = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!planTarget) return
+    try {
+      await updatePlan.mutateAsync({ userId: planTarget.id, planTier: selectedPlanTier })
+      toast.success('Plano do usuário atualizado com sucesso')
+      setIsPlanOpen(false)
+      setPlanTarget(null)
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao atualizar plano')
+    }
+  }
 
   // State for Create User Dialog
   const [isCreateOpen, setIsCreateOpen] = useState(false)
@@ -168,6 +189,7 @@ export function AdminUsersPage() {
             <tr>
               <th className="px-6 py-4">Usuário</th>
               <th className="px-6 py-4">Role</th>
+              <th className="px-6 py-4">Plano</th>
               <th className="px-6 py-4">Status</th>
               <th className="px-6 py-4">Cadastro</th>
               <th className="px-6 py-4"></th>
@@ -196,6 +218,21 @@ export function AdminUsersPage() {
                   </div>
                 </td>
                 <td className="px-6 py-4">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-medium text-slate-700 capitalize">
+                      {user.subscription_tier === 'plano-7-refeicoes' ? '7 Refeições' : 
+                       user.subscription_tier === 'plano-14-refeicoes' ? '14 Refeições' : 
+                       user.subscription_tier === 'plano-gratuito' || user.subscription_tier === 'free' ? 'Gratuito' : 
+                       user.subscription_tier || 'Gratuito'}
+                    </span>
+                    {user.subscription_until && (
+                      <span className="text-[10px] text-slate-400">
+                        Até {new Date(user.subscription_until).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                </td>
+                <td className="px-6 py-4">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     user.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
                   }`}>
@@ -218,6 +255,14 @@ export function AdminUsersPage() {
                       </div>
                       <DropdownMenuItem onClick={() => handleRoleUpdate(user.id, user.role === 'admin' ? 'user' : 'admin')}>
                         {user.role === 'admin' ? 'Rebaixar para Usuário' : 'Promover para Admin'}
+                      </DropdownMenuItem>
+                       <DropdownMenuItem onClick={() => {
+                        setPlanTarget({id: user.id, email: user.email, currentTier: user.subscription_tier || 'free'})
+                        setSelectedPlanTier(user.subscription_tier || 'free')
+                        setIsPlanOpen(true)
+                      }}>
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Alterar Plano
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => {
                         setResetTarget({id: user.id, email: user.email})
@@ -442,6 +487,49 @@ export function AdminUsersPage() {
               {deleteUser.isPending ? 'Excluindo...' : 'Confirmar Exclusão'}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Update Plan Dialog */}
+      <Dialog open={isPlanOpen} onOpenChange={setIsPlanOpen}>
+        <DialogContent className="sm:max-w-md">
+          <form onSubmit={handleUpdatePlan}>
+            <DialogHeader>
+              <DialogTitle>Alterar Plano do Usuário</DialogTitle>
+              <DialogDescription>
+                Selecione o novo plano para o usuário <strong>{planTarget?.email}</strong>.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="plan-tier">Plano Selecionado</Label>
+                <Select 
+                  value={selectedPlanTier} 
+                  onValueChange={setSelectedPlanTier}
+                >
+                  <SelectTrigger id="plan-tier" className="w-full">
+                    <SelectValue placeholder="Selecione o plano" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="free">Gratuito</SelectItem>
+                    <SelectItem value="plano-7-refeicoes">Plano 7 Refeições</SelectItem>
+                    <SelectItem value="plano-14-refeicoes">Plano 14 Refeições</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-xs text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-100">
+                Nota: Esta alteração atualizará a assinatura ativa do usuário na base de dados imediatamente.
+              </p>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsPlanOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={updatePlan.isPending}>
+                {updatePlan.isPending ? 'Atualizando...' : 'Confirmar Alteração'}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

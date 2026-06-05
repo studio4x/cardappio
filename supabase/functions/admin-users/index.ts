@@ -46,6 +46,8 @@ serve(async (req) => {
           role: profile?.role || u.user_metadata?.role || 'user',
           status: profile?.status || 'active',
           onboarding_completed_at: profile?.onboarding_completed_at || null,
+          subscription_tier: profile?.subscription_tier || 'free',
+          subscription_until: profile?.subscription_until || null,
           created_at: u.created_at,
           updated_at: profile?.updated_at || u.updated_at || u.created_at
         }
@@ -195,6 +197,72 @@ serve(async (req) => {
       if (profileError) throw profileError
 
       return successResponse(null, 'Permissão atualizada com sucesso.')
+    }
+
+    if (action === 'update_plan') {
+      const planTier = body.planTier || body.tier
+      if (!userId || !planTier) {
+        return errorResponse('ID do usuário e plano (planTier) são obrigatórios.', 400)
+      }
+
+      if (planTier === 'free' || planTier === 'plano-gratuito') {
+        const { error: deleteError } = await supabaseAdmin
+          .from('user_subscriptions')
+          .delete()
+          .eq('user_id', userId)
+
+        if (deleteError) throw deleteError
+
+        const { error: profileError } = await supabaseAdmin
+          .from('profiles')
+          .update({
+            subscription_tier: 'free',
+            subscription_until: null
+          })
+          .eq('id', userId)
+
+        if (profileError) throw profileError
+      } else {
+        const { data: plan, error: planError } = await supabaseAdmin
+          .from('subscription_plans')
+          .select('id')
+          .eq('slug', planTier)
+          .single()
+
+        if (planError || !plan) {
+          return errorResponse(`Plano com slug "${planTier}" não encontrado.`, 400)
+        }
+
+        const currentPeriodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
+        const { error: subError } = await supabaseAdmin
+          .from('user_subscriptions')
+          .upsert({
+            user_id: userId,
+            plan_id: plan.id,
+            status: 'active',
+            tier: planTier,
+            billing_cycle: 'monthly',
+            current_period_end: currentPeriodEnd,
+            cancel_at_period_end: false
+          }, {
+            onConflict: 'user_id'
+          })
+
+        if (subError) throw subError
+
+        const { error: profileError } = await supabaseAdmin
+          .from('profiles')
+          .update({
+            subscription_tier: planTier,
+            subscription_until: currentPeriodEnd
+          })
+          .eq('id', userId)
+
+        if (profileError) throw profileError
+      }
+
+      return successResponse(null, 'Plano do usuário atualizado com sucesso.')
     }
 
     if (action === 'reset_password') {
