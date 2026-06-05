@@ -2,8 +2,24 @@ import { Link } from 'react-router-dom'
 import { Utensils, ArrowRight, Clock, Star, PiggyBank, Sparkles, Check, ChevronRight } from 'lucide-react'
 import { config } from '@/config'
 import { SEO } from '@/components/shared/SEO'
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '@/integrations/supabase/client'
+import type { AdminPlan } from '@/hooks/admin/useAdminPlans'
 
 export function LandingPage() {
+  const { data: plans, isLoading } = useQuery({
+    queryKey: ['public-plans'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('price_monthly', { ascending: true })
+      if (error) throw error
+      return data as AdminPlan[]
+    }
+  })
+
   return (
     <div className="bg-background min-h-screen selection:bg-fresh-green selection:text-white">
       <SEO 
@@ -192,82 +208,83 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div className="grid gap-8 sm:grid-cols-2 max-w-4xl mx-auto">
-            {/* Free Plan */}
-            <div className="relative flex flex-col p-8 rounded-[2.5rem] border bg-white border-slate-200 transition-all hover:scale-[1.02] shadow-sm hover:shadow-md">
-              <div className="space-y-4 mb-8">
-                <h3 className="text-2xl font-bold text-slate-900">Gratuito</h3>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-slate-900">R$ 0</span>
+          {isLoading ? (
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
+              {[1, 2].map((i) => (
+                <div key={i} className="animate-pulse bg-white border border-slate-200 rounded-[2.5rem] p-8 h-[400px] flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <div className="h-6 w-24 bg-slate-200 rounded-full"></div>
+                    <div className="h-10 w-32 bg-slate-200 rounded-full"></div>
+                    <div className="h-4 w-48 bg-slate-200 rounded-full"></div>
+                  </div>
+                  <div className="space-y-3">
+                    {[1, 2, 3].map(j => (
+                      <div key={j} className="h-3 w-full bg-slate-200 rounded-full"></div>
+                    ))}
+                  </div>
+                  <div className="h-12 w-full bg-slate-200 rounded-2xl"></div>
                 </div>
-                <p className="text-slate-600 text-sm">Perfeito para quem está começando a se organizar.</p>
-              </div>
-
-              <ul className="space-y-4 mb-10 flex-grow">
-                {[
-                  'Planejamento de até 3 dias/semana',
-                  'Acesso a 50 receitas básicas',
-                  'Lista de compras básica',
-                  '1 perfil de usuário'
-                ].map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-3 text-sm text-slate-700">
-                    <div className="mt-0.5 rounded-full p-0.5 bg-emerald-100 text-emerald-600">
-                      <Check className="h-3.5 w-3.5" />
-                    </div>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              <Link
-                to="/auth/cadastro"
-                className="bg-white border border-border text-on-surface hover:bg-neutral-50 px-6 py-4 rounded-2xl text-center font-bold text-sm shadow-sm hover:scale-[1.01] active:scale-95 transition-all no-underline flex items-center justify-center gap-2"
-              >
-                Começar agora <ArrowRight className="h-4 w-4" />
-              </Link>
+              ))}
             </div>
+          ) : (
+            <div className={`grid gap-8 max-w-5xl mx-auto ${
+              plans && plans.length >= 3 ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'
+            }`}>
+              {plans?.map((plan) => {
+                const isPro = plan.slug === 'pro'
+                const isFree = plan.price_monthly === 0
+                return (
+                  <div 
+                    key={plan.id}
+                    className={`relative flex flex-col p-8 rounded-[2.5rem] border transition-all hover:scale-[1.02] ${
+                      isPro 
+                        ? 'border-2 bg-white border-primary shadow-2xl shadow-primary/5' 
+                        : 'bg-white border-slate-200 shadow-sm hover:shadow-md'
+                    }`}
+                  >
+                    {isPro && (
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full">
+                        Mais Popular
+                      </div>
+                    )}
 
-            {/* Pro Plan */}
-            <div className="relative flex flex-col p-8 rounded-[2.5rem] border-2 bg-white border-primary shadow-2xl shadow-primary/5 transition-all hover:scale-[1.02]">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full">
-                Mais Popular
-              </div>
-
-              <div className="space-y-4 mb-8">
-                <h3 className="text-2xl font-bold text-slate-900">Pro</h3>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-slate-900">R$ 19,90</span>
-                  <span className="text-slate-500 font-medium">/mês</span>
-                </div>
-                <p className="text-slate-600 text-sm">O planejador completo para sua rotina diária.</p>
-              </div>
-
-              <ul className="space-y-4 mb-10 flex-grow">
-                {[
-                  'Planejamento de 7 dias (ilimitado)',
-                  'Catálogo Premium (+500 receitas)',
-                  'Lista de compras inteligente e editável',
-                  'Trocas e Sugestões inteligentes',
-                  'Histórico ilimitado',
-                  'Acesso prioritário a novas coleções'
-                ].map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-3 text-sm text-slate-700">
-                    <div className="mt-0.5 rounded-full p-0.5 bg-emerald-100 text-emerald-600">
-                      <Check className="h-3.5 w-3.5" />
+                    <div className="space-y-4 mb-8">
+                      <h3 className="text-2xl font-bold text-slate-900">{plan.name}</h3>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-4xl font-black text-slate-900">
+                          R$ {plan.price_monthly.toLocaleString('pt-BR', { minimumFractionDigits: plan.price_monthly % 1 !== 0 ? 2 : 0, maximumFractionDigits: 2 })}
+                        </span>
+                        {!isFree && <span className="text-slate-500 font-medium">/mês</span>}
+                      </div>
+                      {plan.description && <p className="text-slate-600 text-sm">{plan.description}</p>}
                     </div>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
 
-              <Link
-                to="/auth/cadastro?plan=pro"
-                className="bg-primary text-white hover:opacity-90 px-6 py-4 rounded-2xl text-center font-bold text-sm shadow-xl shadow-primary/20 hover:scale-[1.01] active:scale-95 transition-all no-underline flex items-center justify-center gap-2"
-              >
-                Assinar Pro <ArrowRight className="h-4 w-4" />
-              </Link>
+                    <ul className="space-y-4 mb-10 flex-grow">
+                      {(plan.features || []).map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-3 text-sm text-slate-700">
+                          <div className="mt-0.5 rounded-full p-0.5 bg-emerald-100 text-emerald-600">
+                            <Check className="h-3.5 w-3.5" />
+                          </div>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+
+                    <Link
+                      to={isFree ? '/auth/cadastro' : `/auth/cadastro?plan=${plan.slug}`}
+                      className={`px-6 py-4 rounded-2xl text-center font-bold text-sm transition-all no-underline flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-95 ${
+                        isPro
+                          ? 'bg-primary text-white hover:opacity-90 shadow-xl shadow-primary/20'
+                          : 'bg-white border border-border text-on-surface hover:bg-neutral-50 shadow-sm'
+                      }`}
+                    >
+                      {isFree ? 'Começar agora' : `Assinar ${plan.name}`} <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+                )
+              })}
             </div>
-          </div>
+          )}
         </div>
       </section>
 

@@ -26,7 +26,7 @@ export function AdminPlansPage() {
   const [priceMonthly, setPriceMonthly] = useState(0)
   const [priceYearly, setPriceYearly] = useState(0)
   const [trialDays, setTrialDays] = useState(0)
-  const [features, setFeatures] = useState('')
+  const [featuresList, setFeaturesList] = useState<string[]>([])
   const [isActive, setIsActive] = useState(true)
 
   const handleOpenCreate = () => {
@@ -37,7 +37,12 @@ export function AdminPlansPage() {
     setPriceMonthly(0)
     setPriceYearly(0)
     setTrialDays(21)
-    setFeatures('["7 refeições por semana", "Repetição obrigatória almoço/jantar", "Lista de compras inteligente", "Acesso PWA completo"]')
+    setFeaturesList([
+      "7 refeições por semana",
+      "Repetição obrigatória almoço/jantar",
+      "Lista de compras inteligente",
+      "Acesso PWA completo"
+    ])
     setIsActive(true)
     setIsOpen(true)
   }
@@ -50,19 +55,13 @@ export function AdminPlansPage() {
     setPriceMonthly(plan.price_monthly)
     setPriceYearly(plan.price_yearly)
     setTrialDays(21) // default trial
-    setFeatures(JSON.stringify(plan.features || []))
+    setFeaturesList(plan.features || [])
     setIsActive(plan.is_active)
     setIsOpen(true)
   }
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
-    let parsedFeatures: string[] = []
-    try {
-      parsedFeatures = JSON.parse(features)
-    } catch {
-      parsedFeatures = features.split(',').map(f => f.trim()).filter(Boolean)
-    }
 
     const payload = {
       name,
@@ -71,7 +70,7 @@ export function AdminPlansPage() {
       price_monthly: Number(priceMonthly),
       price_yearly: Number(priceYearly),
       trial_days: Number(trialDays),
-      features: parsedFeatures,
+      features: featuresList.map(f => f.trim()).filter(Boolean),
       is_active: isActive,
       stripe_price_id_monthly: editingPlan?.stripe_price_id_monthly ?? null,
       stripe_price_id_yearly: editingPlan?.stripe_price_id_yearly ?? null,
@@ -246,9 +245,47 @@ export function AdminPlansPage() {
               </div>
             </div>
 
-            <div className="space-y-1">
-              <Label htmlFor="features">Recursos (Formatado JSON ou Comma Separated)</Label>
-              <Input id="features" value={features} onChange={e => setFeatures(e.target.value)} required />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Recursos do Plano</Label>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setFeaturesList(prev => [...prev, ''])}
+                  className="h-7 rounded-full text-xs flex items-center gap-1"
+                >
+                  <Plus className="h-3 w-3" /> Adicionar
+                </Button>
+              </div>
+              
+              <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+                {featuresList.map((feature, idx) => (
+                  <div key={idx} className="flex gap-2 items-center">
+                    <Input 
+                      value={feature} 
+                      onChange={e => {
+                        const val = e.target.value
+                        setFeaturesList(prev => prev.map((f, i) => i === idx ? val : f))
+                      }} 
+                      placeholder={`Recurso #${idx + 1}`}
+                      className="flex-grow"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => setFeaturesList(prev => prev.filter((_, i) => i !== idx))}
+                      className="h-9 w-9 rounded-xl hover:text-red-500 flex-shrink-0"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                {featuresList.length === 0 && (
+                  <p className="text-xs text-slate-400 text-center py-2">Nenhum recurso adicionado ainda.</p>
+                )}
+              </div>
             </div>
 
             <DialogFooter className="pt-4 gap-2">
