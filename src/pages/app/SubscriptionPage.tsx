@@ -11,7 +11,9 @@ export function SubscriptionPage() {
 
   if (isLoading) return <LoadingState message="Verificando assinatura..." />
 
-  const isPro = profile?.subscription_tier === 'pro'
+  const isPro = profile?.subscription_tier && 
+                profile.subscription_tier !== 'free' && 
+                profile.subscription_tier !== 'plano-gratuito'
 
   const handleUpgrade = (interval: 'month' | 'year') => {
     // For now using a placeholder plan ID from the migration 005

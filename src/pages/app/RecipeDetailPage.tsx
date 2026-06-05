@@ -87,7 +87,7 @@ export function RecipeDetailPage() {
     }
   }
 
-  const isPremiumUser = user?.subscription_tier && user.subscription_tier !== 'free'
+  const isPremiumUser = user?.subscription_tier && user.subscription_tier !== 'free' && user.subscription_tier !== 'plano-gratuito'
   const isLocked = recipe?.is_premium && !isPremiumUser
 
   const difficultyLabels = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' }

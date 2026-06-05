@@ -14,7 +14,7 @@ export interface Profile {
   status: UserStatus
   last_seen_at: string | null
   onboarding_completed_at: string | null
-  subscription_tier: 'free' | 'pro' | 'plano-7-refeicoes' | 'plano-14-refeicoes' | 'plano-nutricionista'
+  subscription_tier: 'free' | 'plano-gratuito' | 'pro' | 'plano-7-refeicoes' | 'plano-14-refeicoes' | 'plano-nutricionista'
   subscription_until: string | null
   created_at: string
   updated_at: string

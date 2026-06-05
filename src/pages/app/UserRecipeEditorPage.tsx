@@ -13,7 +13,7 @@ import { toast } from 'sonner'
 export function UserRecipeEditorPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { supabaseUser } = useAuth()
+  const { supabaseUser, user } = useAuth()
   const { data: categories } = useRecipeCategories()
 
   const [isLoading, setIsLoading] = useState(false)
@@ -123,6 +123,28 @@ export function UserRecipeEditorPage() {
     setIsLoading(true)
 
     try {
+      if (!id) {
+        const isPremium = user?.subscription_tier && 
+                          user.subscription_tier !== 'free' && 
+                          user.subscription_tier !== 'plano-gratuito'
+        
+        if (!isPremium) {
+          const { count, error: countError } = await supabase
+            .from('recipes')
+            .select('*', { count: 'exact', head: true })
+            .eq('created_by', supabaseUser.id)
+            
+          if (countError) throw countError
+          
+          if (count && count >= 10) {
+            toast.error('Limite atingido! O Plano Gratuito permite criar no máximo 10 receitas. Faça upgrade para ter receitas ilimitadas!')
+            navigate('/app/assinatura')
+            setIsLoading(false)
+            return
+          }
+        }
+      }
+
       const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.random().toString(36).substring(2, 7)
       
       const recipeData = {

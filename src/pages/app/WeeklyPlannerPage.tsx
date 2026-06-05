@@ -35,7 +35,7 @@ export function WeeklyPlannerPage() {
   const navigate = useNavigate()
   const { weekId: routeWeekId } = useParams()
   const { pathname } = useLocation()
-  const { preferences } = useProfile()
+  const { profile, preferences } = useProfile()
   
   const createWeek = useCreateWeek()
   const repeatWeek = useRepeatWeek()
@@ -279,7 +279,18 @@ export function WeeklyPlannerPage() {
                   {ALL_DAYS.map((day) => (
                     <button
                       key={day}
-                      onClick={() => setSelectedDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day])}
+                      onClick={() => {
+                        const isSelected = selectedDays.includes(day)
+                        const isPremium = profile?.subscription_tier && 
+                                          profile.subscription_tier !== 'free' && 
+                                          profile.subscription_tier !== 'plano-gratuito'
+                        
+                        if (!isPremium && !isSelected && selectedDays.length >= 3) {
+                          toast.error('O Plano Gratuito permite selecionar no máximo 3 dias. Faça upgrade para planejar a semana completa!')
+                          return
+                        }
+                        setSelectedDays(prev => isSelected ? prev.filter(d => d !== day) : [...prev, day])
+                      }}
                       className={cn(
                         "rounded-2xl border px-4 py-4 text-xs font-bold transition-all uppercase tracking-widest cursor-pointer",
                         selectedDays.includes(day) ? "bg-emerald-50 border-primary text-primary" : "bg-neutral-50 border-transparent text-neutral-400"
@@ -294,6 +305,16 @@ export function WeeklyPlannerPage() {
              <Button 
                 onClick={async () => {
                   if (!customStartDate || !customEndDate) return
+                  const isPremium = profile?.subscription_tier && 
+                                    profile.subscription_tier !== 'free' && 
+                                    profile.subscription_tier !== 'plano-gratuito'
+                  
+                  if (!isPremium && selectedDays.length > 3) {
+                    toast.error('O Plano Gratuito permite planejar no máximo 3 dias por semana. Faça upgrade para planejar a semana completa!')
+                    navigate('/app/assinatura')
+                    return
+                  }
+                  
                   const week = await createWeek.mutateAsync({ 
                     startDate: customStartDate, 
                     endDate: customEndDate, 
