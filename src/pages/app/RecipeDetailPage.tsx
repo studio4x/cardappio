@@ -27,7 +27,7 @@ export function RecipeDetailPage() {
   const { recipeSlug } = useParams()
   const navigate = useNavigate()
   const { data: recipe, isLoading, error, refetch } = useRecipe(recipeSlug)
-  const { user } = useAuth() 
+  const { user, preferences } = useAuth() 
   const [activeTab, setActiveTab] = useState<'ingredients' | 'instructions'>('ingredients')
   
   // States for adding to plan modal wizard
@@ -346,7 +346,11 @@ export function RecipeDetailPage() {
               ) : (
                 <div className="space-y-6">
                    {activeTab === 'ingredients' ? (
-                     <RecipeIngredients ingredients={recipe.ingredients ?? []} />
+                     <RecipeIngredients 
+                       ingredients={recipe.ingredients ?? []} 
+                       servings={recipe.servings}
+                       householdSize={preferences?.household_size}
+                     />
                    ) : (
                      <RecipeSteps steps={recipe.steps ?? []} />
                    )}

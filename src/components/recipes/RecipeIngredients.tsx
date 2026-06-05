@@ -1,31 +1,67 @@
 import type { RecipeIngredient } from '@/types/recipes'
+import { Sparkles } from 'lucide-react'
 
 interface RecipeIngredientsProps {
   ingredients: RecipeIngredient[]
+  servings?: number
+  householdSize?: number
 }
 
-export function RecipeIngredients({ ingredients }: RecipeIngredientsProps) {
+export function RecipeIngredients({ ingredients, servings, householdSize }: RecipeIngredientsProps) {
   const sortedIngredients = [...ingredients].sort((a, b) => a.sort_order - b.sort_order)
+
+  // Calcule o fator de escala (se o perfil tiver tamanho de família diferente das porções originais)
+  const scaleFactor = (householdSize && servings && servings > 0) ? (householdSize / servings) : 1
 
   const formatQuantity = (qty: string | null, unit: string | null) => {
     if (!qty && !unit) return ''
-    if (qty && unit) {
-      if (unit.toLowerCase() === 'unidade') {
-        return `${qty} ${qty.trim() === '1' ? 'unidade' : 'unidades'}`
+    
+    let displayQty = qty
+    if (qty && scaleFactor !== 1) {
+      // Tenta parsear valores numéricos simples (ex: "200", "1.5", "1")
+      const num = parseFloat(qty.replace(',', '.'))
+      if (!isNaN(num) && num > 0) {
+        const scaled = num * scaleFactor
+        // Formata com no máximo 2 casas decimais e substitui ponto por vírgula se necessário
+        displayQty = Number(scaled.toFixed(2)).toString().replace('.', ',')
       }
-      return `${qty} ${unit}`
     }
-    return qty || unit || ''
+
+    if (displayQty && unit) {
+      if (unit.toLowerCase() === 'unidade') {
+        return `${displayQty} ${displayQty.trim() === '1' ? 'unidade' : 'unidades'}`
+      }
+      return `${displayQty} ${unit}`
+    }
+    return displayQty || unit || ''
   }
 
   return (
     <section className="mb-10">
-      <h2
-        className="mb-4 text-xl font-bold"
-        style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-on-surface)' }}
-      >
-        Ingredientes
-      </h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+        <h2
+          className="text-xl font-bold"
+          style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-on-surface)' }}
+        >
+          Ingredientes
+        </h2>
+        {scaleFactor !== 1 && householdSize && (
+          <span className="text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-xl flex items-center gap-1">
+            <Sparkles className="h-3 w-3" />
+            Ajustado para {householdSize} pessoas
+          </span>
+        )}
+      </div>
+
+      {scaleFactor !== 1 && householdSize && servings && (
+        <div className="mb-4 text-xs font-semibold bg-primary/5 text-primary border border-primary/10 px-4 py-3 rounded-2xl flex items-center gap-2 shadow-sm">
+          <Sparkles className="h-4 w-4 shrink-0 text-primary" />
+          <span>
+            Quantidades multiplicadas por <strong>{scaleFactor.toFixed(1).replace('.0', '')}x</strong> para cozinhar para a sua família de <strong>{householdSize} pessoas</strong> (receita original: {servings} {servings === 1 ? 'porção' : 'porções'}).
+          </span>
+        </div>
+      )}
+
       <div
         className="rounded-[2rem] border p-6"
         style={{

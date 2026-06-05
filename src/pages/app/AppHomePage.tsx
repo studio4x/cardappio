@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { CalendarDays, Plus, ShoppingCart, ChefHat, Sparkles, BookOpen, Heart, ArrowRight, Star, Utensils, Clock, PiggyBank, CheckSquare as ListChecks, Loader2 } from 'lucide-react'
+import { CalendarDays, Plus, ShoppingCart, ChefHat, Sparkles, BookOpen, Heart, ArrowRight, ChevronRight, Star, Utensils, Clock, PiggyBank, CheckSquare as ListChecks, Loader2 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { LoadingState } from '@/components/shared/LoadingState'
@@ -14,7 +14,7 @@ import { toast } from 'sonner'
 import type { Recipe } from '@/types/recipes'
 
 export function AppHomePage() {
-  const { user } = useAuth()
+  const { user, preferences } = useAuth()
   const { data: activeWeek, isLoading: weekLoading } = useActiveWeek()
   const { data: notices } = useEditorialNotices()
   
@@ -81,11 +81,28 @@ export function AppHomePage() {
     <div className="pb-8">
       {/* Welcome Section */}
       <section className="mb-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1 block">Dashboard</span>
             <h2 className="text-3xl font-bold text-on-surface">{greeting}</h2>
             <p className="text-text-secondary mt-1">Organize seu cardápio da semana de forma rápida e prática.</p>
+            
+            {preferences && (
+              <div className="mt-4 flex flex-wrap gap-2 text-[11px] font-bold">
+                <span className="bg-orange-50/80 text-orange-700 px-3 py-1.5 rounded-xl border border-orange-100/60 flex items-center gap-1.5 shadow-sm">
+                  <Utensils className="h-3.5 w-3.5" />
+                  Cozinhando para {preferences.household_size} {preferences.household_size === 1 ? 'pessoa' : 'pessoas'}
+                </span>
+                <span className="bg-emerald-50/80 text-emerald-700 px-3 py-1.5 rounded-xl border border-emerald-100/60 flex items-center gap-1.5 shadow-sm">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  Planejando {preferences.default_plan_days} dias/semana
+                </span>
+                <span className="bg-blue-50/80 text-blue-700 px-3 py-1.5 rounded-xl border border-blue-100/60 flex items-center gap-1.5 shadow-sm">
+                  <ChefHat className="h-3.5 w-3.5" />
+                  Refeições: {preferences.default_meal_modes?.map(m => m === 'lunch' ? 'Almoço' : m === 'dinner' ? 'Jantar' : m).join(' e ')}
+                </span>
+              </div>
+            )}
           </div>
           <Link
             to={activeWeek ? `/app/semana/${activeWeek.id}` : "/app/semana/nova"}
@@ -102,7 +119,7 @@ export function AppHomePage() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-10">
         {/* Week Summary Card */}
         <div 
-          className="md:col-span-8 bg-white border rounded-3xl p-6 shadow-sm overflow-hidden"
+          className="col-span-12 bg-white border rounded-3xl p-6 shadow-sm overflow-hidden"
           style={{ borderColor: 'var(--color-outline-variant)' }}
         >
           <div className="flex items-center justify-between mb-6">
@@ -125,10 +142,10 @@ export function AppHomePage() {
           ) : weekLoading ? (
             <div className="h-24 animate-pulse bg-slate-100 rounded-2xl" />
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
               {[...(activeWeek?.days ?? [])]
                 .sort((a, b) => a.sort_order - b.sort_order)
-                .slice(0, 4)
+                .slice(0, 7)
                 .map((day) => {
                   const filledCount = (day.slots ?? []).filter(s => s.recipe_id).length
                   const isToday = day.day_of_week === todayName
@@ -149,7 +166,7 @@ export function AppHomePage() {
                       </span>
                       <div className="h-1 bg-primary w-full rounded-full opacity-60"></div>
                       <p className="text-xs font-bold truncate mt-1">
-                        {filledCount > 0 ? `${filledCount} Planejados` : "Vazio"}
+                        {filledCount > 0 ? `${filledCount} Ref.` : "Vazio"}
                       </p>
                     </div>
                   )
@@ -158,9 +175,71 @@ export function AppHomePage() {
           )}
         </div>
 
+        {/* Card do Cardápio */}
+        <div 
+          className="col-span-12 md:col-span-6 bg-white border rounded-3xl p-6 shadow-sm flex flex-col justify-between"
+          style={{ borderColor: 'var(--color-outline-variant)' }}
+        >
+          <div>
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+              <ChefHat className="h-5 w-5 text-primary" />
+              Explorar Cardápio
+            </h3>
+            
+            {recsLoading ? (
+              <div className="space-y-3 animate-pulse">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-14 bg-slate-100 rounded-xl" />
+                ))}
+              </div>
+            ) : !recommendedRecipesData?.recipes || recommendedRecipesData.recipes.length === 0 ? (
+              <div className="py-8 text-center bg-surface-container-low rounded-2xl border-2 border-dashed border-outline-variant">
+                <p className="text-sm font-medium text-text-secondary">Nenhuma receita recomendada disponível.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recommendedRecipesData.recipes.slice(0, 3).map((recipe) => (
+                  <Link 
+                    key={recipe.id}
+                    to={`/app/receitas/${recipe.slug}`}
+                    className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 no-underline text-on-surface"
+                  >
+                    <div className="h-12 w-12 rounded-lg overflow-hidden shrink-0 bg-slate-100">
+                      {recipe.cover_image_url ? (
+                        <img src={recipe.cover_image_url} alt={recipe.title} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center text-slate-300">
+                          <ChefHat className="h-6 w-6" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold truncate">{recipe.title}</p>
+                      <p className="text-[11px] text-text-secondary flex items-center gap-2 mt-0.5">
+                        <span>{recipe.prep_time_minutes} min</span>
+                        <span>•</span>
+                        <span className="capitalize">{getDifficultyLabel(recipe.difficulty_level)}</span>
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <Link 
+            to="/app/receitas"
+            className="w-full mt-6 bg-primary text-white font-bold text-sm py-3 px-4 rounded-xl text-center no-underline shadow-md shadow-primary/10 hover:bg-primary/95 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+          >
+            Acessar Cardápio Completo
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
         {/* Quick Shopping List Card */}
         <div 
-          className="md:col-span-4 bg-white border rounded-3xl p-6 shadow-sm relative overflow-hidden flex flex-col justify-between"
+          className="col-span-12 md:col-span-6 bg-white border rounded-3xl p-6 shadow-sm relative overflow-hidden flex flex-col justify-between"
           style={{ backgroundColor: 'var(--color-surface-container-highest)', borderColor: 'var(--color-outline-variant)' }}
         >
           <div className="absolute top-0 right-0 p-4 opacity-10">

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom'
 import { Plus, ShoppingCart, Loader2, Save, SlidersVertical as Tune, ChevronRight, ChevronDown, Pencil, X } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -129,6 +129,12 @@ export function WeeklyPlannerPage() {
   const [selectedDays, setSelectedDays] = useState<DayOfWeek[]>(
     ALL_DAYS.slice(0, preferences?.default_plan_days ?? 5)
   )
+
+  useEffect(() => {
+    if (preferences?.default_plan_days) {
+      setSelectedDays(ALL_DAYS.slice(0, preferences.default_plan_days))
+    }
+  }, [preferences?.default_plan_days])
 
   const defaultMondayStr = useMemo(() => {
     const today = new Date()
