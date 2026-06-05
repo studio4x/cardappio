@@ -4,10 +4,43 @@ import { LoadingState } from '@/components/shared/LoadingState'
 import { Check, Crown, CreditCard, ArrowRight, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/app/providers/AuthProvider'
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '@/integrations/supabase/client'
+import { useEffect } from 'react'
+import { toast } from 'sonner'
 
 export function SubscriptionPage() {
   const { user: profile } = useAuth()
   const { subscription, isLoading, checkoutMutation } = useSubscription()
+
+  const { data: plans } = useQuery({
+    queryKey: ['public-plans'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('price_monthly', { ascending: true })
+      if (error) throw error
+      return data
+    }
+  })
+
+  const queryParams = new URLSearchParams(window.location.search)
+  const checkoutImmediate = queryParams.get('checkout_immediate') === 'true'
+  const planSlug = queryParams.get('plan')
+
+  useEffect(() => {
+    if (checkoutImmediate && plans && plans.length > 0) {
+      const targetPlan = planSlug ? plans.find(p => p.slug === planSlug) : plans.find(p => p.price_monthly > 0)
+      if (targetPlan) {
+        checkoutMutation.mutate({
+          planId: targetPlan.id,
+          interval: 'monthly'
+        })
+      }
+    }
+  }, [checkoutImmediate, planSlug, plans])
 
   if (isLoading) return <LoadingState message="Verificando assinatura..." />
 
@@ -16,10 +49,14 @@ export function SubscriptionPage() {
                 profile.subscription_tier !== 'plano-gratuito'
 
   const handleUpgrade = (interval: 'month' | 'year') => {
-    // For now using a placeholder plan ID from the migration 005
+    const paidPlan = plans?.find(p => p.price_monthly > 0)
+    if (!paidPlan) {
+      toast.error('Nenhum plano pago disponível no momento.')
+      return
+    }
     checkoutMutation.mutate({ 
-      planId: 'plan_pro_standard', // Match with seed data if exists
-      interval 
+      planId: paidPlan.id,
+      interval: interval === 'year' ? 'yearly' : 'monthly'
     })
   }
 

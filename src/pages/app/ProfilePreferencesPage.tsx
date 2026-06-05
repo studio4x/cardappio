@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { User, Settings, Bell, CreditCard, ChevronRight, LogOut, Check, Eye, EyeOff, Key } from 'lucide-react'
+import { User, Settings, Bell, CreditCard, ChevronRight, LogOut, Check, Eye, EyeOff, Key, Sparkles, ArrowRight, Loader2 } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
@@ -9,6 +9,10 @@ import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { useSubscription } from '@/hooks/subscription/useSubscription'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 
 /**
  * ProfilePreferencesPage (Screen 15)
@@ -27,8 +31,46 @@ export function ProfilePreferencesPage() {
   const updatePreferences = useUpdatePreferences()
   const updateNotifPrefs = useUpdateNotificationPreferences()
   const { signOut } = useAuth()
+  const navigate = useNavigate()
+  const { checkoutMutation } = useSubscription()
 
   const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'notifications' | 'subscription'>('profile')
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false)
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('')
+  const [selectedInterval, setSelectedInterval] = useState<'monthly' | 'yearly'>('monthly')
+
+  const { data: plans } = useQuery({
+    queryKey: ['public-plans'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('price_monthly', { ascending: true })
+      if (error) throw error
+      return data
+    }
+  })
+
+  const paidPlans = plans?.filter(p => p.price_monthly > 0) || []
+
+  useEffect(() => {
+    if (paidPlans.length > 0 && !selectedPlanId) {
+      setSelectedPlanId(paidPlans[0].id)
+    }
+  }, [paidPlans, selectedPlanId])
+
+  const handleUpgrade = async () => {
+    if (!selectedPlanId) return
+    try {
+      await checkoutMutation.mutateAsync({
+        planId: selectedPlanId,
+        interval: selectedInterval === 'yearly' ? 'yearly' : 'monthly'
+      })
+    } catch (err) {
+      console.error(err)
+    }
+  }
   
   // Local state for profile and meal preferences
   const [fullName, setFullName] = useState('')
@@ -517,13 +559,119 @@ export function ProfilePreferencesPage() {
               <p className="text-slate-300 text-sm mb-8">
                 Você está utilizando a versão limitada. Assine o **Cardappio Pro** para desbloquear todas as receitas e listas de compras inteligentes.
               </p>
-              <Button variant="outline" className="w-full bg-white text-slate-900 hover:bg-slate-100 border-none font-bold">
+              <Button 
+                onClick={() => setIsPlanModalOpen(true)}
+                variant="outline" 
+                className="w-full bg-white text-slate-900 hover:bg-slate-100 border-none font-bold cursor-pointer"
+              >
                 Mudar para Pro
               </Button>
             </div>
           </div>
         )}
       </div>
+
+      {/* Modal de Seleção de Plano */}
+      <Dialog open={isPlanModalOpen} onOpenChange={setIsPlanModalOpen}>
+        <DialogContent className="max-w-md rounded-3xl p-6 bg-white">
+          <DialogHeader className="text-left">
+            <DialogTitle className="text-xl font-extrabold text-slate-900">Escolha o seu plano Pro</DialogTitle>
+            <DialogDescription className="text-sm text-slate-500">
+              Desbloqueie receitas premium, planejador ilimitado e listas automáticas de compras.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* Opções de Intervalo */}
+            <div className="flex p-1 bg-slate-100 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setSelectedInterval('monthly')}
+                className={cn(
+                  "flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer",
+                  selectedInterval === 'monthly' ? "bg-white shadow-sm text-primary" : "text-slate-400"
+                )}
+              >
+                Mensal
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedInterval('yearly')}
+                className={cn(
+                  "flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5",
+                  selectedInterval === 'yearly' ? "bg-white shadow-sm text-primary" : "text-slate-400"
+                )}
+              >
+                Anual
+                <span className="bg-emerald-100 text-emerald-700 text-[9px] px-1.5 py-0.5 rounded-full">Desconto</span>
+              </button>
+            </div>
+
+            {/* Lista de Planos */}
+            <div className="space-y-3">
+              {paidPlans.map(plan => {
+                const isSelected = selectedPlanId === plan.id
+                const price = selectedInterval === 'yearly' ? plan.price_yearly / 12 : plan.price_monthly
+                const totalPrice = selectedInterval === 'yearly' ? plan.price_yearly : plan.price_monthly
+                return (
+                  <button
+                    key={plan.id}
+                    type="button"
+                    onClick={() => setSelectedPlanId(plan.id)}
+                    className={cn(
+                      "w-full flex items-center justify-between p-4 border rounded-2xl text-left transition-all cursor-pointer",
+                      isSelected 
+                        ? "border-primary bg-primary/5 ring-2 ring-primary/20" 
+                        : "border-slate-200 hover:border-slate-300"
+                    )}
+                  >
+                    <div className="space-y-1">
+                      <p className="font-bold text-slate-900">{plan.name}</p>
+                      <p className="text-xs text-slate-500 line-clamp-1">{plan.description}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0 ml-4">
+                      <p className="font-black text-slate-900">
+                        R$ {price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        <span className="text-[10px] text-slate-400 font-medium">/mês</span>
+                      </p>
+                      {selectedInterval === 'yearly' && (
+                        <p className="text-[9px] text-emerald-600 font-bold">
+                          Cobrado R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/ano
+                        </p>
+                      )}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <DialogFooter className="flex flex-col gap-2">
+            <Button
+              onClick={handleUpgrade}
+              disabled={checkoutMutation.isPending || !selectedPlanId}
+              className="w-full py-6 rounded-2xl text-md font-bold flex items-center justify-center gap-2"
+            >
+              {checkoutMutation.isPending ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" /> Iniciando Checkout...
+                </>
+              ) : (
+                <>
+                  Ir para Checkout <ArrowRight className="h-5 w-5" />
+                </>
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setIsPlanModalOpen(false)}
+              className="w-full text-slate-400 hover:text-slate-600 font-medium"
+            >
+              Cancelar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

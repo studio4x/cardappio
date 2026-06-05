@@ -199,20 +199,20 @@ async function callGemini(apiKey: string, prompt: string): Promise<NutritionInfo
         maxOutputTokens: 2048,
         responseMimeType: 'application/json',
         responseSchema: {
-          type: 'OBJECT',
+          type: 'object',
           properties: {
-            serving_size_g_ml: { type: 'INTEGER', description: 'Peso ou volume estimado de uma porção em g ou ml' },
-            serving_size_household: { type: 'STRING', description: 'Medida caseira correspondente à porção' },
-            calories: { type: 'NUMBER', description: 'Calorias por porção em kcal' },
-            carbs: { type: 'NUMBER', description: 'Carboidratos por porção em gramas' },
-            total_sugars: { type: 'NUMBER', description: 'Açúcares totais por porção em gramas' },
-            added_sugars: { type: 'NUMBER', description: 'Açúcares adicionados por porção em gramas' },
-            protein: { type: 'NUMBER', description: 'Proteínas por porção em gramas' },
-            fat: { type: 'NUMBER', description: 'Gorduras totais por porção em gramas' },
-            saturated_fat: { type: 'NUMBER', description: 'Gorduras saturadas por porção em gramas' },
-            trans_fat: { type: 'NUMBER', description: 'Gorduras trans por porção em gramas' },
-            fiber: { type: 'NUMBER', description: 'Fibra alimentar por porção em gramas' },
-            sodium: { type: 'NUMBER', description: 'Sódio por porção em miligramas' }
+            serving_size_g_ml: { type: 'integer', description: 'Peso ou volume estimado de uma porção em g ou ml' },
+            serving_size_household: { type: 'string', description: 'Medida caseira correspondente à porção' },
+            calories: { type: 'number', description: 'Calorias por porção em kcal' },
+            carbs: { type: 'number', description: 'Carboidratos por porção em gramas' },
+            total_sugars: { type: 'number', description: 'Açúcares totais por porção em gramas' },
+            added_sugars: { type: 'number', description: 'Açúcares adicionados por porção em gramas' },
+            protein: { type: 'number', description: 'Proteínas por porção em gramas' },
+            fat: { type: 'number', description: 'Gorduras totais por porção em gramas' },
+            saturated_fat: { type: 'number', description: 'Gorduras saturadas por porção em gramas' },
+            trans_fat: { type: 'number', description: 'Gorduras trans por porção em gramas' },
+            fiber: { type: 'number', description: 'Fibra alimentar por porção em gramas' },
+            sodium: { type: 'number', description: 'Sódio por porção em miligramas' }
           },
           required: [
             "serving_size_g_ml", "serving_size_household", "calories", "carbs", 
@@ -230,11 +230,21 @@ async function callGemini(apiKey: string, prompt: string): Promise<NutritionInfo
   }
 
   const data = await response.json()
-  const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text
-  if (!rawText) throw new Error('Gemini returned empty content')
+  const candidate = data.candidates?.[0]
+  const rawText = candidate?.content?.parts?.[0]?.text
+  
+  if (!rawText) {
+    console.error('Gemini candidates info:', JSON.stringify(data.candidates))
+    throw new Error('Gemini returned empty content')
+  }
 
   const jsonMatch = rawText.match(/\{[\s\S]*\}/)
-  if (!jsonMatch) throw new Error(`No JSON object found in Gemini response: ${rawText}`)
+  if (!jsonMatch) {
+    console.error('Gemini raw text:', rawText)
+    console.error('Gemini finish reason:', candidate?.finishReason)
+    console.error('Gemini safety ratings:', JSON.stringify(candidate?.safetyRatings))
+    throw new Error(`No JSON object found in Gemini response: ${rawText}`)
+  }
 
   const parsed = JSON.parse(jsonMatch[0]) as AISchema
   return formatNutritionData(parsed)
@@ -277,7 +287,7 @@ serve(async (req) => {
     const prompt = buildPrompt(ingredients, servings || 1)
 
     let result: NutritionInfo | null = null
-    let lastError: string = ''
+    const errors: string[] = []
 
     const providers: Array<'openai' | 'gemini'> = aiConfig.preferred_provider === 'gemini'
       ? ['gemini', 'openai']
@@ -285,24 +295,31 @@ serve(async (req) => {
 
     for (const provider of providers) {
       try {
-        if (provider === 'openai' && aiConfig.openai_api_key) {
-          result = await callOpenAI(aiConfig.openai_api_key, prompt)
-          break
-        } else if (provider === 'gemini' && aiConfig.gemini_api_key) {
-          result = await callGemini(aiConfig.gemini_api_key, prompt)
-          break
+        if (provider === 'openai') {
+          if (aiConfig.openai_api_key) {
+            result = await callOpenAI(aiConfig.openai_api_key, prompt)
+            break
+          } else {
+            errors.push('OpenAI: Chave API não configurada.')
+          }
+        } else if (provider === 'gemini') {
+          if (aiConfig.gemini_api_key) {
+            result = await callGemini(aiConfig.gemini_api_key, prompt)
+            break
+          } else {
+            errors.push('Gemini: Chave API não configurada.')
+          }
         }
       } catch (err: any) {
-        lastError = `${err.message}`
+        errors.push(`${provider === 'openai' ? 'OpenAI' : 'Gemini'}: ${err.message}`)
         console.warn(`Provider ${provider} failed, trying fallback...`, err.message)
-        continue
       }
     }
 
     if (!result) {
       return createResponse(null, {
         code: 'AI_ERROR',
-        message: `Nenhum provedor de IA disponível. Verifique as API keys. ${lastError ? `Detalhes: ${lastError}` : 'Nenhuma chave foi inserida nas configurações.'}`
+        message: `Nenhum provedor de IA disponível ou funcional. Detalhes dos erros:\n${errors.join('\n')}`
       }, 200)
     }
 

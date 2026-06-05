@@ -5,8 +5,10 @@ import { SEO } from '@/components/shared/SEO'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import type { AdminPlan } from '@/hooks/admin/useAdminPlans'
+import { useAuth } from '@/app/providers/AuthProvider'
 
 export function LandingPage() {
+  const { isAuthenticated } = useAuth()
   const { data: plans, isLoading } = useQuery({
     queryKey: ['public-plans'],
     queryFn: async () => {
@@ -271,7 +273,13 @@ export function LandingPage() {
                     </ul>
 
                     <Link
-                      to={isFree ? '/auth/cadastro' : `/auth/cadastro?plan=${plan.slug}`}
+                      to={
+                        isFree 
+                          ? (isAuthenticated ? '/app' : '/auth/cadastro') 
+                          : (isAuthenticated 
+                              ? `/app/assinatura?checkout_immediate=true&plan=${plan.slug}` 
+                              : `/auth/cadastro?plan=${plan.slug}`)
+                      }
                       className={`px-6 py-4 rounded-2xl text-center font-bold text-sm transition-all no-underline flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-95 ${
                         isPro
                           ? 'bg-primary text-white hover:opacity-90 shadow-xl shadow-primary/20'

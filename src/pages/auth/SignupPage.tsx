@@ -57,7 +57,11 @@ export function SignupPage() {
 
       setSuccess(true)
 
-      let targetRoute = '/app/onboarding'
+      const planSlug = new URLSearchParams(window.location.search).get('plan')
+      let targetRoute = planSlug && planSlug !== 'plano-gratuito'
+        ? `/app/assinatura?checkout_immediate=true&plan=${planSlug}`
+        : '/app/onboarding'
+
       if (data?.user) {
         try {
           const profilePromise = supabase

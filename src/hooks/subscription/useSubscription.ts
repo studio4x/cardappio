@@ -28,21 +28,24 @@ export function useSubscription() {
   })
 
   const checkoutMutation = useMutation({
-    mutationFn: async ({ planId, interval }: { planId: string, interval: 'month' | 'year' }) => {
+    mutationFn: async ({ planId, interval }: { planId: string, interval: 'month' | 'year' | 'monthly' | 'yearly' }) => {
       if (!supabaseUser) throw new Error('Not authenticated')
+
+      const billingPeriod = interval === 'year' || interval === 'yearly' ? 'yearly' : 'monthly'
 
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: { 
           plan_id: planId,
-          interval,
+          billing_period: billingPeriod,
           success_url: `${window.location.origin}/app/perfil?checkout=success`,
           cancel_url: `${window.location.origin}/app/assinatura?checkout=cancel`
         }
       })
 
       if (error) throw error
-      if (data.url) {
-        window.location.href = data.url
+      const checkoutUrl = data?.checkout_url || data?.url
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl
       }
       return data
     },
