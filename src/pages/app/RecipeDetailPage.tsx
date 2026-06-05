@@ -224,6 +224,8 @@ export function RecipeDetailPage() {
                 
                 <p className="text-[9px] text-slate-400 mt-3 leading-relaxed pt-1.5 border-t border-slate-950">
                   * Percentual de valores diários fornecidos pela porção.
+                  <br />
+                  ** Valores aproximados. Os valores finais dependem da quantidade utilizada de itens definidos "a gosto".
                 </p>
               </div>
             ) : (
@@ -245,9 +247,13 @@ export function RecipeDetailPage() {
                      </div>
                    ))}
                 </div>
-                {recipe.calories_per_serving == null && (
+                {recipe.calories_per_serving == null ? (
                   <p className="text-[10px] text-neutral-400 mt-3 text-center">
                     Informações nutricionais ainda não disponíveis para esta receita.
+                  </p>
+                ) : (
+                  <p className="text-[9px] text-neutral-400 mt-3 text-center leading-relaxed">
+                    * Valores aproximados. Os valores finais dependem da quantidade utilizada de itens definidos "a gosto".
                   </p>
                 )}
               </div>
