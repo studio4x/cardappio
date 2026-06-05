@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Sparkles, Loader2 } from 'lucide-react'
+import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Sparkles, Loader2, Crown } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { useRecipe, useRecipeCategories } from '@/hooks/recipes/useRecipes'
@@ -37,6 +37,7 @@ export function AdminRecipeEditorPage() {
     servings: 2,
     status: 'draft',
     category_id: '',
+    is_premium: false,
     calories_per_serving: null,
     protein_per_serving: null,
     fat_per_serving: null,
@@ -285,6 +286,20 @@ export function AdminRecipeEditorPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+            <input
+              id="is_premium"
+              type="checkbox"
+              checked={recipeData.is_premium || false}
+              onChange={(e) => setRecipeData({...recipeData, is_premium: e.target.checked})}
+              className="rounded border-slate-300 text-primary focus:ring-primary h-5 w-5 cursor-pointer"
+            />
+            <label htmlFor="is_premium" className="text-sm font-semibold text-slate-800 cursor-pointer flex items-center gap-1.5">
+              <Crown className="h-4 w-4 text-amber-500" />
+              Esta é uma Receita Premium (Exclusiva Pro)
+            </label>
           </div>
 
           <div className="space-y-2 pt-4 border-t border-slate-100">
