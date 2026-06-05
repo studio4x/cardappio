@@ -233,6 +233,71 @@ export function WeeklyPlannerPage() {
     }
   }
 
+  // ⚠️ All useMemo hooks must be declared before any conditional early returns
+  // to comply with the Rules of Hooks (React Error #310)
+  const processedDays = useMemo(() => {
+    if (!activeWeek || !activeWeek.days) return []
+    
+    const today = new Date()
+    const getLocalDateStr = (d: Date) => {
+      const year = d.getFullYear()
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    }
+    const todayStr = getLocalDateStr(today)
+    
+    const getDayDateObj = (startDateStr: string, sortOrder: number) => {
+      const baseDate = new Date(startDateStr + 'T12:00:00')
+      const dayOfWeek = baseDate.getDay()
+      const diff = baseDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
+      const monday = new Date(baseDate.setDate(diff))
+      monday.setDate(monday.getDate() + sortOrder)
+      return monday
+    }
+    
+    return activeWeek.days.map((day: any) => {
+      const dayDate = getDayDateObj(activeWeek.week_start_date, day.sort_order)
+      const dayDateStr = getLocalDateStr(dayDate)
+      
+      const isToday = dayDateStr === todayStr
+      const isPassed = dayDateStr < todayStr
+      const isFuture = dayDateStr > todayStr
+      
+      const formattedDate = dayDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+      
+      return {
+        ...day,
+        date: dayDate,
+        dateStr: dayDateStr,
+        formattedDate,
+        isToday,
+        isPassed,
+        isFuture
+      }
+    })
+  }, [activeWeek])
+
+  const isCurrentWeek = useMemo(() => {
+    return processedDays.some(d => d.isToday)
+  }, [processedDays])
+
+  const chronoDays = useMemo(() => {
+    return [...processedDays].sort((a, b) => a.sort_order - b.sort_order)
+  }, [processedDays])
+
+  const displayDaysForList = useMemo(() => {
+    if (!isCurrentWeek) {
+      return chronoDays
+    }
+    
+    const todayDays = chronoDays.filter(d => d.isToday)
+    const futureDays = chronoDays.filter(d => d.isFuture)
+    const passedDays = chronoDays.filter(d => d.isPassed)
+    
+    return [...todayDays, ...futureDays, ...passedDays]
+  }, [chronoDays, isCurrentWeek])
+
   if (isLoading) return <LoadingState message="Carregando planejador..." />
   if (error) return <ErrorState onRetry={() => refetch()} />
 
@@ -340,68 +405,6 @@ export function WeeklyPlannerPage() {
      )
   }
 
-  const processedDays = useMemo(() => {
-    if (!activeWeek || !activeWeek.days) return []
-    
-    const today = new Date()
-    const getLocalDateStr = (d: Date) => {
-      const year = d.getFullYear()
-      const month = String(d.getMonth() + 1).padStart(2, '0')
-      const day = String(d.getDate()).padStart(2, '0')
-      return `${year}-${month}-${day}`
-    }
-    const todayStr = getLocalDateStr(today)
-    
-    const getDayDateObj = (startDateStr: string, sortOrder: number) => {
-      const baseDate = new Date(startDateStr + 'T12:00:00')
-      const dayOfWeek = baseDate.getDay()
-      const diff = baseDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
-      const monday = new Date(baseDate.setDate(diff))
-      monday.setDate(monday.getDate() + sortOrder)
-      return monday
-    }
-    
-    return activeWeek.days.map((day: any) => {
-      const dayDate = getDayDateObj(activeWeek.week_start_date, day.sort_order)
-      const dayDateStr = getLocalDateStr(dayDate)
-      
-      const isToday = dayDateStr === todayStr
-      const isPassed = dayDateStr < todayStr
-      const isFuture = dayDateStr > todayStr
-      
-      const formattedDate = dayDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
-      
-      return {
-        ...day,
-        date: dayDate,
-        dateStr: dayDateStr,
-        formattedDate,
-        isToday,
-        isPassed,
-        isFuture
-      }
-    })
-  }, [activeWeek])
-
-  const isCurrentWeek = useMemo(() => {
-    return processedDays.some(d => d.isToday)
-  }, [processedDays])
-
-  const chronoDays = useMemo(() => {
-    return [...processedDays].sort((a, b) => a.sort_order - b.sort_order)
-  }, [processedDays])
-
-  const displayDaysForList = useMemo(() => {
-    if (!isCurrentWeek) {
-      return chronoDays
-    }
-    
-    const todayDays = chronoDays.filter(d => d.isToday)
-    const futureDays = chronoDays.filter(d => d.isFuture)
-    const passedDays = chronoDays.filter(d => d.isPassed)
-    
-    return [...todayDays, ...futureDays, ...passedDays]
-  }, [chronoDays, isCurrentWeek])
 
   return (
     <div className="bg-surface min-h-screen pb-32">
