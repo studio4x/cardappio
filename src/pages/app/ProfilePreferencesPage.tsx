@@ -646,11 +646,11 @@ export function ProfilePreferencesPage() {
             </div>
           </div>
 
-          <DialogFooter className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-6">
             <Button
               onClick={handleUpgrade}
               disabled={checkoutMutation.isPending || !selectedPlanId}
-              className="w-full py-6 rounded-2xl text-md font-bold flex items-center justify-center gap-2"
+              className="w-full py-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 bg-primary hover:opacity-90 text-white cursor-pointer"
             >
               {checkoutMutation.isPending ? (
                 <>
@@ -658,18 +658,18 @@ export function ProfilePreferencesPage() {
                 </>
               ) : (
                 <>
-                  Ir para Checkout <ArrowRight className="h-5 w-5" />
+                  Ir para Checkout <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </Button>
             <Button
               variant="ghost"
               onClick={() => setIsPlanModalOpen(false)}
-              className="w-full text-slate-400 hover:text-slate-600 font-medium"
+              className="w-full py-3 rounded-xl text-slate-400 hover:text-slate-600 font-medium cursor-pointer"
             >
               Cancelar
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
