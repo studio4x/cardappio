@@ -92,10 +92,11 @@ export function useRecipe(slug: string | undefined) {
         .eq('status', 'published')
         .order('sort_order', { foreignTable: 'recipe_ingredients' })
         .order('step_number', { foreignTable: 'recipe_steps' })
-        .single()
+        .maybeSingle()
 
-      if (error) throw error
-      return data as Recipe
+      // PGRST116 = no rows returned (recipe blocked by RLS or not found)
+      if (error && error.code !== 'PGRST116') throw error
+      return (data ?? null) as Recipe | null
     },
     enabled: !!slug,
   })

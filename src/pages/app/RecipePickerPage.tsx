@@ -21,6 +21,7 @@ import { toast } from 'sonner'
 export function RecipePickerPage() {
   const navigate = useNavigate()
   const { user, preferences } = useAuth()
+  const isPremiumUser = !!(user?.subscription_tier && user.subscription_tier !== 'free' && user.subscription_tier !== 'plano-gratuito')
   const [searchParams] = useSearchParams()
   const slotId = searchParams.get('slot')
   const weekId = searchParams.get('week')
@@ -254,7 +255,7 @@ export function RecipePickerPage() {
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {allRecipes.map((recipe) => (
-                <RecipeCard key={recipe.id} recipe={recipe} onClick={() => handleSelectRecipe(recipe)} isPickerMode={isPickerMode} />
+                <RecipeCard key={recipe.id} recipe={recipe} onClick={() => handleSelectRecipe(recipe)} isPickerMode={isPickerMode} isUserPremium={isPremiumUser} />
               ))}
             </div>
           )}
@@ -343,6 +344,7 @@ export function RecipePickerPage() {
                         recipe={recipe}
                         onClick={() => handleSelectRecipe(recipe)}
                         isPickerMode={isPickerMode}
+                        isUserPremium={isPremiumUser}
                       />
                     ))}
                   </div>
@@ -425,7 +427,7 @@ export function RecipePickerPage() {
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {suggestedRecipes.map((recipe) => (
-              <RecipeCard key={recipe.id} recipe={recipe} onClick={() => handleSelectRecipe(recipe)} isPickerMode={isPickerMode} />
+              <RecipeCard key={recipe.id} recipe={recipe} onClick={() => handleSelectRecipe(recipe)} isPickerMode={isPickerMode} isUserPremium={isPremiumUser} />
             ))}
           </div>
         </div>
@@ -441,7 +443,7 @@ export function RecipePickerPage() {
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {userFavorites.map((recipe) => (
-                <RecipeCard key={recipe.id} recipe={recipe} onClick={() => handleSelectRecipe(recipe)} isPickerMode={isPickerMode} />
+                <RecipeCard key={recipe.id} recipe={recipe} onClick={() => handleSelectRecipe(recipe)} isPickerMode={isPickerMode} isUserPremium={isPremiumUser} />
               ))}
             </div>
           )}
