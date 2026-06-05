@@ -113,20 +113,32 @@ export function UserLayout() {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 pb-28 md:pb-12">
+      <main className="flex-1 pb-12">
         <div className="container-app py-6">
           <Outlet />
-          
-          <div className="mt-12 mb-4 flex flex-col items-center gap-1 opacity-20">
-            <span className="text-[10px] font-bold uppercase tracking-widest">
-              Cardappio v{__BUILD_VERSION__}
+        </div>
+      </main>
+
+      {/* Sticky Footer */}
+      <footer 
+        className="w-full pt-4 pb-20 sm:py-4 border-t bg-white" 
+        style={{ 
+          borderColor: 'var(--color-outline-variant)',
+          backgroundColor: 'color-mix(in srgb, var(--color-surface-container-lowest) 95%, transparent)'
+        }}
+      >
+        <div className="container-app flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
+          <span>&copy; {new Date().getFullYear()} Cardappio. Todos os direitos reservados.</span>
+          <div className="flex items-center gap-3">
+            <span className="font-bold uppercase tracking-widest text-[9px] bg-slate-100 px-2.5 py-1 rounded-full text-slate-500 border border-slate-200">
+              v{__BUILD_VERSION__}
             </span>
-            <span className="text-[10px] font-mono">
-              build #{__COMMIT_HASH__}
+            <span className="font-mono text-[9px] bg-slate-100 px-2.5 py-1 rounded-full text-slate-500 border border-slate-200">
+              #{__COMMIT_HASH__}
             </span>
           </div>
         </div>
-      </main>
+      </footer>
 
       {/* Mobile bottom nav */}
       <MobileBottomNav />

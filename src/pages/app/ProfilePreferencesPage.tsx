@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { User, Settings, Bell, CreditCard, ChevronRight, LogOut, Check, Eye, EyeOff, Key, Sparkles, ArrowRight, Loader2 } from 'lucide-react'
+import { User, Settings, Bell, CreditCard, ChevronRight, LogOut, Check, Eye, EyeOff, Key, Sparkles, ArrowRight, Loader2, Crown } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
@@ -32,7 +32,7 @@ export function ProfilePreferencesPage() {
   const updateNotifPrefs = useUpdateNotificationPreferences()
   const { signOut } = useAuth()
   const navigate = useNavigate()
-  const { checkoutMutation } = useSubscription()
+  const { subscription, checkoutMutation } = useSubscription()
 
   const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'notifications' | 'subscription'>('profile')
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false)
@@ -544,31 +544,223 @@ export function ProfilePreferencesPage() {
         )}
 
         {/* SUBSCRIPTION TAB */}
-        {activeTab === 'subscription' && (
-          <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-            <div className="rounded-2xl border p-8 bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-xl">
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Plano Atual</span>
-                  <h3 className="text-2xl font-black">Plano Grátis</h3>
+        {activeTab === 'subscription' && (() => {
+          const isPro = profile?.subscription_tier && 
+                        profile.subscription_tier !== 'free' && 
+                        profile.subscription_tier !== 'plano-gratuito';
+          
+          // Find plan info if active
+          const activePlanName = subscription?.plan?.name || (isPro ? 'Plano Pro' : 'Plano Grátis');
+          const isSelectedIntervalYearly = selectedInterval === 'yearly';
+
+          return (
+            <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                {/* Cartão de Assinatura Atual */}
+                <div className="lg:col-span-5 space-y-4">
+                  <h4 className="text-sm font-bold uppercase tracking-wider text-slate-400">Seu Status Atual</h4>
+                  
+                  <div className={cn(
+                    "relative overflow-hidden rounded-[2rem] p-6 text-white shadow-xl aspect-[1.58/1] flex flex-col justify-between transition-all duration-300 hover:shadow-2xl hover:scale-[1.01]",
+                    isPro 
+                      ? "bg-gradient-to-br from-amber-500 via-orange-500 to-red-600 shadow-orange-500/10" 
+                      : "bg-gradient-to-br from-slate-800 to-slate-950 border border-slate-700/50 shadow-slate-900/10"
+                  )}>
+                    {/* Glowing effect inside card */}
+                    <div className="absolute -right-16 -top-16 w-36 h-36 rounded-full bg-white/10 blur-xl pointer-events-none" />
+                    
+                    <div className="flex justify-between items-start z-10">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-white/70">Membro Premium</span>
+                        <h3 className="text-2xl font-black tracking-tight mt-1">{activePlanName}</h3>
+                      </div>
+                      <div className={cn(
+                        "rounded-2xl p-3 backdrop-blur-md",
+                        isPro ? "bg-white/20" : "bg-white/10"
+                      )}>
+                        {isPro ? <Crown className="h-6 w-6 text-yellow-300 animate-pulse" /> : <CreditCard className="h-6 w-6 text-slate-300" />}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 z-10">
+                      {/* Fake Card Number for premium aesthetic */}
+                      <p className="font-mono text-lg tracking-[0.25em] text-white/90">
+                        {isPro ? "••••  ••••  ••••  2026" : "••••  ••••  ••••  FREE"}
+                      </p>
+                      
+                      <div className="flex justify-between items-end">
+                        <div>
+                          <p className="text-[9px] font-bold uppercase tracking-wider text-white/60">Validade</p>
+                          <p className="text-xs font-semibold mt-0.5">
+                            {isPro && subscription?.subscription_until 
+                              ? new Date(subscription.subscription_until).toLocaleDateString('pt-BR') 
+                              : "Permanente"}
+                          </p>
+                        </div>
+                        <span className={cn(
+                          "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border backdrop-blur-md",
+                          isPro 
+                            ? "bg-yellow-400/25 border-yellow-300/40 text-yellow-200" 
+                            : "bg-slate-700/50 border-slate-600/30 text-slate-300"
+                        )}>
+                          {isPro ? "Ativo PRO" : "Grátis Limitado"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Active Limits Info */}
+                  <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm space-y-4">
+                    <h5 className="font-bold text-slate-900 text-sm">Recursos Disponíveis:</h5>
+                    <ul className="space-y-2.5">
+                      <li className="flex items-center gap-3 text-xs text-slate-600">
+                        <div className={cn("h-4 w-4 rounded-full flex items-center justify-center text-white", isPro ? "bg-emerald-500" : "bg-slate-300")}>
+                          <Check className="h-2.5 w-2.5 stroke-[3]" />
+                        </div>
+                        <span>Planejamento semanal: <strong>{isPro ? 'Sem limites' : 'Apenas 1 ativo'}</strong></span>
+                      </li>
+                      <li className="flex items-center gap-3 text-xs text-slate-600">
+                        <div className={cn("h-4 w-4 rounded-full flex items-center justify-center text-white", isPro ? "bg-emerald-500" : "bg-slate-300")}>
+                          <Check className="h-2.5 w-2.5 stroke-[3]" />
+                        </div>
+                        <span>Acesso a Receitas: <strong>{isPro ? 'Mais de 500 exclusivas' : 'Apenas receitas básicas'}</strong></span>
+                      </li>
+                      <li className="flex items-center gap-3 text-xs text-slate-600">
+                        <div className={cn("h-4 w-4 rounded-full flex items-center justify-center text-white", isPro ? "bg-emerald-500" : "bg-slate-300")}>
+                          <Check className="h-2.5 w-2.5 stroke-[3]" />
+                        </div>
+                        <span>Lista de Compras Inteligente: <strong>{isPro ? 'Automática e Ilimitada' : 'Gerada com restrições'}</strong></span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
-                <div className="rounded-full bg-slate-700 p-3">
-                  <CreditCard className="h-6 w-6" />
+
+                {/* Planos de Assinatura */}
+                <div className="lg:col-span-7 space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h4 className="text-sm font-bold uppercase tracking-wider text-slate-400">Escolha o seu Upgrade</h4>
+                      <p className="text-xs text-slate-500 mt-1">Tenha organização completa e economize tempo na cozinha.</p>
+                    </div>
+
+                    {/* Toggle Intervalo */}
+                    <div className="flex p-1 bg-slate-100 rounded-xl max-w-[200px] border border-slate-200/50 self-start sm:self-center">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedInterval('monthly')}
+                        className={cn(
+                          "px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer",
+                          !isSelectedIntervalYearly ? "bg-white shadow-sm text-primary" : "text-slate-400"
+                        )}
+                      >
+                        Mensal
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedInterval('yearly')}
+                        className={cn(
+                          "px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1",
+                          isSelectedIntervalYearly ? "bg-white shadow-sm text-primary" : "text-slate-400"
+                        )}
+                      >
+                        Anual
+                        <span className="bg-emerald-100 text-emerald-700 text-[8px] px-1.5 py-0.5 rounded-full font-black">20% OFF</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Lista de Planos Disponíveis */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {paidPlans.map(plan => {
+                      const isUserActivePlan = profile?.subscription_tier === plan.slug;
+                      const price = isSelectedIntervalYearly ? plan.price_yearly / 12 : plan.price_monthly;
+                      const totalPrice = isSelectedIntervalYearly ? plan.price_yearly : plan.price_monthly;
+                      
+                      return (
+                        <div
+                          key={plan.id}
+                          className={cn(
+                            "rounded-3xl border p-6 bg-white transition-all duration-300 relative flex flex-col justify-between hover:shadow-lg",
+                            isUserActivePlan 
+                              ? "border-primary ring-2 ring-primary/20" 
+                              : "border-slate-100"
+                          )}
+                        >
+                          {isUserActivePlan && (
+                            <span className="absolute -top-3 left-6 bg-primary text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-full tracking-wider shadow-sm">
+                              Seu Plano
+                            </span>
+                          )}
+
+                          <div className="space-y-4">
+                            <div>
+                              <h5 className="font-extrabold text-slate-900 text-lg">{plan.name}</h5>
+                              <p className="text-xs text-slate-500 mt-1 min-h-[32px] line-clamp-2">{plan.description}</p>
+                            </div>
+
+                            <div className="flex items-baseline gap-1 pt-2">
+                              <span className="text-3xl font-black text-slate-900">
+                                R$ {price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                              <span className="text-slate-400 text-xs font-semibold">/mês</span>
+                            </div>
+
+                            {isSelectedIntervalYearly && (
+                              <p className="text-[10px] text-emerald-600 font-bold">
+                                Cobrado R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} por ano
+                              </p>
+                            )}
+
+                            {/* Plan features checkmarks */}
+                            <ul className="space-y-2.5 pt-4 border-t border-slate-50">
+                              {(plan.features || [
+                                "Cardápios personalizados",
+                                "Sugestões de substituição",
+                                "Salvar favoritos ilimitados",
+                                "Listas de compras completas"
+                              ]).map((feature: string, idx: number) => (
+                                <li key={idx} className="flex items-start gap-2.5 text-xs text-slate-600">
+                                  <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                                  <span>{feature}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          <div className="pt-6 mt-4">
+                            <Button
+                              onClick={async () => {
+                                try {
+                                  await checkoutMutation.mutateAsync({
+                                    planId: plan.id,
+                                    interval: isSelectedIntervalYearly ? 'yearly' : 'monthly'
+                                  });
+                                } catch (e) {
+                                  console.error(e);
+                                }
+                              }}
+                              disabled={checkoutMutation.isPending || isUserActivePlan}
+                              className={cn(
+                                "w-full py-5 rounded-full text-xs font-bold cursor-pointer transition-all",
+                                isUserActivePlan 
+                                  ? "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed" 
+                                  : "bg-primary hover:opacity-95 text-white shadow-md shadow-primary/10"
+                              )}
+                            >
+                              {checkoutMutation.isPending ? "Processando..." : isUserActivePlan ? "Plano Ativo" : "Escolher Plano"}
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
+
               </div>
-              <p className="text-slate-300 text-sm mb-8">
-                Você está utilizando a versão limitada. Assine o **Cardappio Pro** para desbloquear todas as receitas e listas de compras inteligentes.
-              </p>
-              <Button 
-                onClick={() => setIsPlanModalOpen(true)}
-                variant="outline" 
-                className="w-full bg-white text-slate-900 hover:bg-slate-100 border-none font-bold cursor-pointer"
-              >
-                Mudar para Pro
-              </Button>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Modal de Seleção de Plano */}
