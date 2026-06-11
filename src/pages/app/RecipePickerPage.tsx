@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
-import { Search, ChefHat, Sparkles, Star, Plus, Globe, ArrowRight, ListFilter, RefreshCw, Loader2, LayoutGrid, ArrowLeft } from 'lucide-react'
+import { Search, ChefHat, Sparkles, Star, Plus, Globe, ArrowRight, ListFilter, RefreshCw, Loader2, LayoutGrid, ArrowLeft, Crown } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
@@ -124,6 +124,10 @@ export function RecipePickerPage() {
   })
 
   const handleSelectRecipe = async (recipe: Recipe) => {
+    if (recipe.is_premium && !isPremiumUser) {
+      navigate(`/app/receitas/${recipe.slug}`)
+      return
+    }
     if (isPickerMode && slotId) {
       try {
         await assignRecipe.mutateAsync({
@@ -396,7 +400,15 @@ export function RecipePickerPage() {
                     {foodTypeRecipes.map(recipe => (
                       <div key={recipe.id} className="flex items-center justify-between bg-slate-50 rounded-2xl p-4 border border-slate-100 hover:border-primary transition-all">
                         <div>
-                          <h5 className="font-bold text-sm text-slate-900">{recipe.title}</h5>
+                          <div className="flex items-center gap-1.5">
+                            <h5 className="font-bold text-sm text-slate-900">{recipe.title}</h5>
+                            {recipe.is_premium && (
+                              <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-400 px-1.5 py-0.5 text-[8px] font-black uppercase text-amber-950">
+                                <Crown className="h-2 w-2" />
+                                Pro
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-slate-500 mt-0.5">{recipe.prep_time_minutes} min | porções: {recipe.servings}</p>
                         </div>
                         <Button size="sm" onClick={() => handleSelectRecipe(recipe)} className="rounded-full">

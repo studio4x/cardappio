@@ -81,8 +81,13 @@ export function MealSlotCard({ slot, weekId, onRemove }: MealSlotCardProps) {
             </div>
             
             <Link to={`/app/receitas/${slot.recipe.slug}`} className="block group">
-              <h4 className="text-sm font-bold text-on-surface line-clamp-1 group-hover:text-primary transition-colors">
+              <h4 className="text-sm font-bold text-on-surface line-clamp-1 group-hover:text-primary transition-colors flex items-center gap-1.5">
                 {slot.recipe.title}
+                {slot.recipe.is_premium && (
+                  <span className="inline-flex items-center gap-0.5 rounded bg-amber-400 px-1 py-0.2 text-[8px] font-black uppercase text-amber-950 leading-none">
+                    Pro
+                  </span>
+                )}
               </h4>
             </Link>
 

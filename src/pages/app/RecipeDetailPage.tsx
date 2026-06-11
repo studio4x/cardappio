@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Clock, Users, Sparkles, Lock, Utensils, ShoppingBasket, Plus, BarChart3, PillIcon, Calendar, CheckCircle2, ChevronRight, Loader2, PiggyBank } from 'lucide-react'
+import { ArrowLeft, Clock, Users, Sparkles, Lock, Utensils, ShoppingBasket, Plus, BarChart3, PillIcon, Calendar, CheckCircle2, ChevronRight, Loader2, PiggyBank, Crown } from 'lucide-react'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { useRecipe } from '@/hooks/recipes/useRecipes'
@@ -110,6 +110,98 @@ export function RecipeDetailPage() {
 
   if (isLoading) return <LoadingState message="Carregando receita..." />
   if (error || !recipe) return <ErrorState onRetry={() => refetch()} />
+
+  if (isLocked) {
+    return (
+      <div className="bg-off-white min-h-screen pb-20 p-6 md:p-10 flex flex-col items-center">
+        {/* Back navigation */}
+        <div className="flex items-center justify-between mb-8 w-full max-w-2xl">
+          <button 
+            onClick={() => navigate(-1)}
+            className="active:scale-95 transition-transform hover:bg-neutral-100 py-2 px-3 rounded-full cursor-pointer flex items-center gap-1.5 text-xs font-bold uppercase text-slate-500"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </button>
+        </div>
+
+        {/* Locked Page Card */}
+        <div className="w-full max-w-2xl bg-slate-900 rounded-[2.5rem] text-white p-8 md:p-12 shadow-2xl relative overflow-hidden border border-amber-500/20">
+          {/* Background decoration or image blur */}
+          {recipe.cover_image_url && (
+            <div 
+              className="absolute inset-0 bg-cover bg-center opacity-15 blur-lg pointer-events-none" 
+              style={{ backgroundImage: `url(${recipe.cover_image_url})` }}
+            />
+          )}
+          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+            <Crown className="h-32 w-32 text-amber-400 rotate-12" />
+          </div>
+
+          <div className="relative z-10 flex flex-col items-center text-center space-y-6">
+            <div className="h-16 w-16 bg-amber-400/10 rounded-2xl flex items-center justify-center border border-amber-400/30 text-amber-400 animate-pulse">
+              <Lock className="h-8 w-8" />
+            </div>
+
+            <div className="space-y-2 max-w-md">
+              <h2 className="text-2xl md:text-3xl font-black text-white leading-tight">
+                Receita Pro Exclusiva
+              </h2>
+              <p className="text-sm text-slate-300 font-bold uppercase tracking-wider text-amber-400">
+                {recipe.title}
+              </p>
+              <p className="text-sm text-slate-400 pt-2 leading-relaxed">
+                Esta receita faz parte do catálogo premium. Faça upgrade para o plano Pro e tenha acesso ilimitado a esta e centenas de outras preparações deliciosas.
+              </p>
+            </div>
+
+            {/* Benefits List */}
+            <div className="w-full bg-white/5 border border-white/10 rounded-3xl p-6 text-left space-y-4 my-4">
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 border-b border-white/10 pb-2">
+                Benefícios do Plano Pro
+              </h3>
+              <ul className="space-y-3.5">
+                {[
+                  { title: 'Acesso a +500 receitas premium', desc: 'Pratos elaborados e receitas exclusivas Pro' },
+                  { title: 'Planejamento de 7 dias da semana', desc: 'Organize de segunda a domingo sem limites' },
+                  { title: 'Lista de compras inteligente e ilimitada', desc: 'Gerada automaticamente a partir do cardápio' },
+                  { title: 'IA Cozinheira / Narração por voz', desc: 'Passo a passo por áudio para cozinhar sem tocar na tela' },
+                  { title: 'Filtros avançados e preferências', desc: 'Restrições e preferências adaptadas perfeitamente' }
+                ].map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-3">
+                    <div className="h-5 w-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-500/30">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-100 leading-tight">{item.title}</p>
+                      <p className="text-xs text-slate-400 mt-0.5 leading-snug">{item.desc}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full pt-4">
+              <Button 
+                onClick={() => navigate('/app/assinatura')} 
+                className="flex-1 rounded-2xl py-6 font-bold bg-amber-400 text-amber-950 hover:bg-amber-300 shadow-xl shadow-amber-400/10 active:scale-95 transition-all border-none"
+              >
+                Conhecer Planos Pro
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/app/receitas')} 
+                className="flex-1 rounded-2xl py-6 font-bold border-white/10 text-white hover:bg-white/5 bg-transparent active:scale-95 transition-all"
+              >
+                Voltar para Receitas
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-off-white min-h-screen pb-40 p-6 md:p-10">

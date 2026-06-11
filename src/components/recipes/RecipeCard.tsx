@@ -2,6 +2,7 @@ import { Clock, Users, ChefHat, Crown, Lock } from 'lucide-react'
 import type { Recipe } from '@/types/recipes'
 import { FavoriteButton } from './FavoriteButton'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/app/providers/AuthProvider'
 
 interface RecipeCardProps {
   recipe: Recipe
@@ -14,15 +15,20 @@ export function RecipeCard({
   recipe,
   onClick,
   isPickerMode = false,
-  isUserPremium = false,
+  isUserPremium,
 }: RecipeCardProps) {
+  const { user } = useAuth()
+  const resolvedIsUserPremium = isUserPremium !== undefined
+    ? isUserPremium
+    : !!(user?.subscription_tier && user.subscription_tier !== 'free' && user.subscription_tier !== 'plano-gratuito')
+
   const difficultyLabels = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' }
   const difficultyColors = {
     easy: 'var(--color-success)',
     medium: 'var(--color-warning)',
     hard: 'var(--color-error)',
   }
-  const isLocked = recipe.is_premium && !isUserPremium
+  const isLocked = recipe.is_premium && !resolvedIsUserPremium
 
   return (
     <div className="relative w-full">
@@ -33,11 +39,8 @@ export function RecipeCard({
         />
       )}
       <button
-        onClick={isLocked ? undefined : onClick}
-        className={cn(
-          "group flex flex-col rounded-2xl border overflow-hidden text-left transition-shadow w-full",
-          isLocked ? "cursor-default opacity-90" : "hover:shadow-md cursor-pointer"
-        )}
+        onClick={onClick}
+        className="group flex flex-col rounded-2xl border overflow-hidden text-left transition-shadow w-full hover:shadow-md cursor-pointer"
         style={{
           backgroundColor: 'var(--color-surface-container-lowest)',
           borderColor: isLocked ? 'rgba(245, 158, 11, 0.3)' : 'var(--color-outline-variant)',

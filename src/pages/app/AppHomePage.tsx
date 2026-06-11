@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { CalendarDays, Plus, ShoppingCart, ChefHat, Sparkles, BookOpen, Heart, ArrowRight, ChevronRight, Star, Utensils, Clock, PiggyBank, CheckSquare as ListChecks, Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { CalendarDays, Plus, ShoppingCart, ChefHat, Sparkles, BookOpen, Heart, ArrowRight, ChevronRight, Star, Utensils, Clock, PiggyBank, CheckSquare as ListChecks, Loader2, Crown, Lock } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { LoadingState } from '@/components/shared/LoadingState'
@@ -15,6 +16,7 @@ import type { Recipe } from '@/types/recipes'
 
 export function AppHomePage() {
   const { user, preferences } = useAuth()
+  const isPremiumUser = !!(user?.subscription_tier && user.subscription_tier !== 'free' && user.subscription_tier !== 'plano-gratuito')
   const { data: activeWeek, isLoading: weekLoading } = useActiveWeek()
   const { data: notices } = useEditorialNotices()
   
@@ -214,7 +216,14 @@ export function AppHomePage() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold truncate">{recipe.title}</p>
+                      <p className="text-sm font-bold truncate flex items-center gap-1.5">
+                        {recipe.title}
+                        {recipe.is_premium && (
+                          <span className="inline-flex items-center gap-0.5 rounded bg-amber-400 px-1 py-0.2 text-[8px] font-black uppercase text-amber-950">
+                            Pro
+                          </span>
+                        )}
+                      </p>
                       <p className="text-[11px] text-text-secondary flex items-center gap-2 mt-0.5">
                         <span>{recipe.prep_time_minutes} min</span>
                         <span>•</span>
@@ -380,62 +389,83 @@ export function AppHomePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {displayRecipes.map((recipe) => (
-              <Link 
-                key={recipe.id} 
-                to={`/app/receitas/${recipe.slug}`}
-                className="bg-white rounded-2xl overflow-hidden border shadow-sm hover:shadow-md transition-shadow group cursor-pointer no-underline block" 
-                style={{ borderColor: 'var(--color-outline-variant)' }}
-              >
-                <div className="h-44 relative overflow-hidden bg-slate-100">
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      toggleFavorite.mutate({ recipeId: recipe.id, isFavorite: isRecipeFavorite(recipe.id) });
-                    }}
-                    disabled={toggleFavorite.isPending}
-                    className="absolute top-4 right-4 bg-white/90 hover:bg-white p-2 rounded-full backdrop-blur-md shadow-sm z-10 active:scale-90 transition-transform cursor-pointer disabled:opacity-50"
-                  >
-                    <Star 
-                      className={`h-4 w-4 transition-colors ${
-                        isRecipeFavorite(recipe.id) 
-                          ? 'text-tertiary fill-tertiary' 
-                          : 'text-warm-gray-medium hover:text-tertiary'
-                      }`} 
-                    />
-                  </button>
-                  {recipe.cover_image_url ? (
-                    <img 
-                      src={recipe.cover_image_url} 
-                      alt={recipe.title} 
-                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="h-full w-full flex items-center justify-center text-slate-400">
-                       <Utensils className="h-12 w-12 opacity-20" />
+            {displayRecipes.map((recipe) => {
+              const isLocked = recipe.is_premium && !isPremiumUser;
+              return (
+                <Link 
+                  key={recipe.id} 
+                  to={`/app/receitas/${recipe.slug}`}
+                  className="bg-white rounded-2xl overflow-hidden border shadow-sm hover:shadow-md transition-shadow group cursor-pointer no-underline block" 
+                  style={{ borderColor: 'var(--color-outline-variant)' }}
+                >
+                  <div className="h-44 relative overflow-hidden bg-slate-100">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleFavorite.mutate({ recipeId: recipe.id, isFavorite: isRecipeFavorite(recipe.id) });
+                      }}
+                      disabled={toggleFavorite.isPending}
+                      className="absolute top-4 right-4 bg-white/90 hover:bg-white p-2 rounded-full backdrop-blur-md shadow-sm z-10 active:scale-90 transition-transform cursor-pointer disabled:opacity-50"
+                    >
+                      <Star 
+                        className={`h-4 w-4 transition-colors ${
+                          isRecipeFavorite(recipe.id) 
+                            ? 'text-tertiary fill-tertiary' 
+                            : 'text-warm-gray-medium hover:text-tertiary'
+                        }`} 
+                      />
+                    </button>
+                    {recipe.cover_image_url ? (
+                      <img 
+                        src={recipe.cover_image_url} 
+                        alt={recipe.title} 
+                        className={cn("h-full w-full object-cover group-hover:scale-105 transition-transform duration-300", isLocked && "brightness-50")}
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-slate-400">
+                         <Utensils className="h-12 w-12 opacity-20" />
+                      </div>
+                    )}
+
+                    {/* Premium Lock Overlay */}
+                    {isLocked && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/40 backdrop-blur-[1px]">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-400/90 shadow-md">
+                          <Lock className="h-4 w-4 text-amber-950" />
+                        </div>
+                        <span className="text-[9px] font-black text-white uppercase tracking-wider">Exclusivo Pro</span>
+                      </div>
+                    )}
+
+                    {/* Premium badge */}
+                    {recipe.is_premium && (
+                      <span className="absolute top-4 left-4 flex items-center gap-1 rounded-full bg-amber-400/95 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-950 shadow z-10">
+                        <Crown className="h-2.5 w-2.5" />
+                        Pro
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <div className="flex gap-2 mb-2">
+                      <span className="bg-green-50 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                        {recipe.usage_context || 'Receita'}
+                      </span>
+                      <span className="bg-neutral-100 text-neutral-600 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                        {recipe.prep_time_minutes} min
+                      </span>
                     </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <div className="flex gap-2 mb-2">
-                    <span className="bg-green-50 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                      {recipe.usage_context || 'Receita'}
-                    </span>
-                    <span className="bg-neutral-100 text-neutral-600 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                      {recipe.prep_time_minutes} min
-                    </span>
+                    <h4 className="font-bold text-lg text-on-surface mb-2 group-hover:text-primary transition-colors line-clamp-1">
+                      {recipe.title}
+                    </h4>
+                    <div className="flex items-center gap-4 text-text-secondary text-[11px] font-medium">
+                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{getDifficultyLabel(recipe.difficulty_level)}</span>
+                      <span className="flex items-center gap-1"><PiggyBank className="h-3 w-3" />{getCostLabel(recipe.cost_level)}</span>
+                    </div>
                   </div>
-                  <h4 className="font-bold text-lg text-on-surface mb-2 group-hover:text-primary transition-colors line-clamp-1">
-                    {recipe.title}
-                  </h4>
-                  <div className="flex items-center gap-4 text-text-secondary text-[11px] font-medium">
-                    <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{getDifficultyLabel(recipe.difficulty_level)}</span>
-                    <span className="flex items-center gap-1"><PiggyBank className="h-3 w-3" />{getCostLabel(recipe.cost_level)}</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
       </section>
