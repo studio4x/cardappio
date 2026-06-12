@@ -30,6 +30,7 @@ import {
   EyeOff, 
   CheckCircle2, 
   XCircle,
+  RefreshCw,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -138,12 +139,31 @@ export function AdminEmailsPage() {
           <div className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h3 className="text-lg font-bold text-slate-800">Histórico de Disparos</h3>
-              <Input
-                placeholder="Pesquisar por destinatário ou assunto..."
-                className="max-w-xs"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    const toastId = toast.loading('Atualizando histórico...')
+                    try {
+                      await refetchLogs()
+                      toast.success('Histórico atualizado!', { id: toastId })
+                    } catch (e) {
+                      toast.error('Erro ao atualizar histórico.', { id: toastId })
+                    }
+                  }}
+                  className="rounded-full flex items-center gap-1.5 text-xs font-semibold h-9"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  Atualizar Logs
+                </Button>
+                <Input
+                  placeholder="Pesquisar por destinatário ou assunto..."
+                  className="max-w-xs"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
 
             <div className="rounded-2xl border bg-white overflow-hidden shadow-sm">
