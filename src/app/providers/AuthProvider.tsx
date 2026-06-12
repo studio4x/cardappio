@@ -51,11 +51,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.warn('Profile not found during recovery session — skipping signOut to preserve recovery flow.')
             return
           }
-          console.warn('Perfil órfão detectado (PGRST116). Destruindo sessão fantasma preventivamente.')
-          await supabase.auth.signOut()
-          setSession(null)
-          setSupabaseUser(null)
-          setProfile(null)
+
+          // Profile not found: the trigger may have failed silently.
+          // Attempt to auto-create the profile before giving up.
+          console.warn('Perfil não encontrado (PGRST116). Tentando auto-criar profile via upsert...')
+          try {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) {
+              console.error('Não foi possível obter dados do usuário para auto-criar o profile.')
+              await supabase.auth.signOut()
+              setSession(null)
+              setSupabaseUser(null)
+              setProfile(null)
+              return
+            }
+
+            const { data: newProfile, error: upsertError } = await supabase
+              .from('profiles')
+              .upsert({
+                id: user.id,
+                email: user.email ?? '',
+                full_name: (user.user_metadata?.full_name as string) ?? user.email?.split('@')[0] ?? '',
+                role: 'user',
+                status: 'active',
+              }, { onConflict: 'id' })
+              .select('*')
+              .single()
+
+            if (upsertError) {
+              console.error('Falha ao auto-criar profile:', upsertError)
+              await supabase.auth.signOut()
+              setSession(null)
+              setSupabaseUser(null)
+              setProfile(null)
+              return
+            }
+
+            // Also ensure user_preferences exist
+            await supabase
+              .from('user_preferences')
+              .upsert({ user_id: user.id }, { onConflict: 'user_id' })
+
+            console.info('Profile auto-criado com sucesso para o usuário:', user.id)
+            setProfile(newProfile as Profile)
+          } catch (autoCreateErr) {
+            console.error('Erro inesperado ao auto-criar profile:', autoCreateErr)
+            await supabase.auth.signOut()
+            setSession(null)
+            setSupabaseUser(null)
+            setProfile(null)
+          }
           return
         }
         console.error('Error fetching profile:', error)
