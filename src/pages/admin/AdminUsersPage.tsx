@@ -9,7 +9,8 @@ import {
   useResetUserPassword,
   useDeleteUser,
   useSendPasswordResetLink,
-  useUpdateUserPlan
+  useUpdateUserPlan,
+  useResendConfirmationEmail
 } from '@/hooks/admin/useAdminUsers'
 import { 
   MoreHorizontal, 
@@ -61,6 +62,7 @@ export function AdminUsersPage() {
   const deleteUser = useDeleteUser()
   const sendResetLink = useSendPasswordResetLink()
   const updatePlan = useUpdateUserPlan()
+  const resendConfirmation = useResendConfirmationEmail()
 
   // State for Update Plan Dialog
   const [isPlanOpen, setIsPlanOpen] = useState(false)
@@ -164,6 +166,16 @@ export function AdminUsersPage() {
       toast.success('E-mail de redefinição de senha enviado com sucesso!', { id: toastId })
     } catch (err: any) {
       toast.error(err.message || 'Erro ao enviar e-mail de redefinição', { id: toastId })
+    }
+  }
+
+  const handleResendConfirmation = async (email: string) => {
+    const toastId = toast.loading('Reenviando e-mail de confirmação...')
+    try {
+      await resendConfirmation.mutateAsync({ email })
+      toast.success('E-mail de confirmação enviado com sucesso!', { id: toastId })
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao reenviar e-mail de confirmação', { id: toastId })
     }
   }
 
@@ -274,6 +286,10 @@ export function AdminUsersPage() {
                       <DropdownMenuItem onClick={() => handleSendResetLink(user.email)}>
                         <Mail className="h-4 w-4 mr-2" />
                         Enviar Link de Redefinição
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleResendConfirmation(user.email)}>
+                        <Mail className="h-4 w-4 mr-2" />
+                        Reenviar Confirmação
                       </DropdownMenuItem>
                       <div className="h-px bg-slate-100 my-1" />
                       <DropdownMenuItem className="text-rose-600">

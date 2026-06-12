@@ -165,6 +165,22 @@ export function useSendPasswordResetLink() {
   })
 }
 
+export function useResendConfirmationEmail() {
+  return useMutation({
+    mutationFn: async ({ email }: { email: string }) => {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      })
+      if (error) throw error
+    }
+  })
+}
+
+
 export function useUpdateUserPlan() {
   const queryClient = useQueryClient()
 
