@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { Search, ChefHat, Sparkles, Star, Plus, Globe, ArrowRight, ListFilter, RefreshCw, Loader2, LayoutGrid, ArrowLeft, Crown, Lock } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -18,17 +18,47 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 
+const TAB_SLUGS: Record<string, string> = {
+  catalog: 'catalogo',
+  colecoes: 'colecoes',
+  food_type: 'tipo-alimento',
+  suggestions: 'sugestoes',
+  favorites: 'favoritos',
+  custom: 'importar',
+}
+
+const SLUG_TO_TAB = Object.fromEntries(
+  Object.entries(TAB_SLUGS).map(([key, val]) => [val, key])
+)
+
+type MethodType = 'catalog' | 'colecoes' | 'food_type' | 'suggestions' | 'favorites' | 'custom'
+
 export function RecipePickerPage() {
   const navigate = useNavigate()
   const { user, preferences } = useAuth()
   const isPremiumUser = !!(user?.subscription_tier && user.subscription_tier !== 'free' && user.subscription_tier !== 'plano-gratuito')
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const slotId = searchParams.get('slot')
   const weekId = searchParams.get('week')
   const isPickerMode = !!slotId && !!weekId
 
-  const [activeMethod, setActiveMethod] = useState<'catalog' | 'colecoes' | 'food_type' | 'suggestions' | 'favorites' | 'custom'>('catalog')
+  const rawTab = searchParams.get('tab')
+  const activeMethod = useMemo<MethodType>(() => {
+    if (!rawTab) return 'catalog'
+    const tabId = SLUG_TO_TAB[rawTab] || rawTab
+    const validTabs: MethodType[] = ['catalog', 'colecoes', 'food_type', 'suggestions', 'favorites', 'custom']
+    return validTabs.includes(tabId as MethodType) ? (tabId as MethodType) : 'catalog'
+  }, [rawTab])
+
   const [selectedCollectionSlug, setSelectedCollectionSlug] = useState<string | null>(null)
+
+  const setActiveMethod = (tabId: MethodType) => {
+    const newParams = new URLSearchParams(searchParams)
+    const slug = TAB_SLUGS[tabId] || tabId
+    newParams.set('tab', slug)
+    setSearchParams(newParams)
+    setSelectedCollectionSlug(null)
+  }
   
   // Method A: Food Type states
   const [selectedFoodType, setSelectedFoodType] = useState<string>('')
@@ -118,10 +148,12 @@ export function RecipePickerPage() {
     }
   }
 
-  // Reload favorites if tab changes
-  useState(() => {
-    loadFavoritesAndOwn()
-  })
+  // Reload favorites if active tab is favorites
+  useEffect(() => {
+    if (activeMethod === 'favorites') {
+      loadFavoritesAndOwn()
+    }
+  }, [activeMethod, user])
 
   const handleSelectRecipe = async (recipe: Recipe) => {
     if (recipe.is_premium && !isPremiumUser) {
@@ -210,8 +242,6 @@ export function RecipePickerPage() {
               key={method.id}
               onClick={() => {
                 setActiveMethod(method.id as any)
-                setSelectedCollectionSlug(null)
-                if (method.id === 'favorites') loadFavoritesAndOwn()
               }}
               className={cn(
                 'flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all border shrink-0 cursor-pointer',
