@@ -373,6 +373,18 @@ export function AdminRecipesPage() {
                             <Apple className="h-4 w-4 text-slate-200 hover:text-primary transition-colors cursor-pointer" />
                           </button>
                         )}
+                        {togglingPremiumId === recipe.id ? (
+                          <span title="Atualizando acesso..."><Loader2 className="h-4 w-4 animate-spin text-amber-500" /></span>
+                        ) : (
+                          <button 
+                            onClick={() => handleTogglePremium(recipe)}
+                            disabled={togglingPremiumId !== null}
+                            title={recipe.is_premium ? "Receita Premium (PRO). Clique para tornar gratuita." : "Receita gratuita. Clique para tornar Premium (PRO)."}
+                            className="focus:outline-none disabled:opacity-50"
+                          >
+                            <Crown className={cn("h-4 w-4 transition-colors cursor-pointer", recipe.is_premium ? "text-amber-500 fill-amber-500" : "text-slate-200 hover:text-amber-500")} />
+                          </button>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
