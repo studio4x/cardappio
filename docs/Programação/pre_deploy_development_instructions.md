@@ -225,6 +225,7 @@ Essa próxima etapa deve priorizar:
 - revisar separação frontend/backend
 - revisar contratos de função
 - revisar tratamento de erros
+- coordenar commits e versionamento em múltiplos chats concorrentes para evitar duplicidade de build (adiando a geração do `version.json` até a integração na branch `main`)
 
 ### D.3 Preparação para validação futura
 - checklist de conexão com Supabase

@@ -230,6 +230,23 @@ Para garantir que o número da versão (`v1.0.X`) e o hash do commit sejam exibi
      ```
      A Vercel utilizará o `version.json` gerado no Passo 2 e a versão em produção corresponderá de forma idêntica à versão local.
 
+#### Coordenação em Cenários de Múltiplos Chats Ativos
+
+Caso haja mais de um chat/agente aberto realizando alterações na plataforma de forma concorrente, siga o planejamento abaixo para evitar conflitos de versão e commits duplicados de build:
+
+1. **Desenvolvimento em Branches Isoladas**:
+   - Cada chat deve trabalhar em sua branch de funcionalidade dedicada (ex: `feature/nome-da-tarefa`). Nunca comite diretamente na branch de integração comum (`main`) se houver outros chats em andamento.
+2. **Postergamento do Versionamento (`version.json`)**:
+   - Durante a fase de desenvolvimento do chat, execute apenas o **Passo 1 (Ajuste o código e comite)**.
+   - **Não** comite ou envie alterações no arquivo `version.json` na sua branch de feature. Se o build de testes local alterar o arquivo, ignore ou descarte-o antes de realizar o commit de código.
+3. **Linearização e Atualização de Versão Sequencial**:
+   - O **Passo 2 (Gere e comite a versão atualizada)** só deve ser executado no momento da integração final:
+     1. Faça o checkout na branch de integração (`main`) e puxe as últimas atualizações (`git pull origin main`).
+     2. Mescle ou faça rebase da sua branch de funcionalidade (`git merge feature/nome-da-tarefa`).
+     3. No estado integrado e com o histórico linear consolidado, execute `npm run build` localmente para ler o número correto e sequencial de commits (`commitCount`).
+     4. Adicione e comite exclusivamente o arquivo `version.json` atualizado (`build: update version.json for build v1.0.X`).
+     5. Faça o push final (`git push origin main`).
+
 Não salvar tokens, senhas ou credenciais no repositório.
 
 ### Deploy Vercel via CLI
