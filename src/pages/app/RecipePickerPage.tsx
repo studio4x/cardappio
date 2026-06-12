@@ -254,14 +254,14 @@ export function RecipePickerPage() {
       />
 
       {/* Methods Navigation Tabs */}
-      <div className="flex gap-2 border-b overflow-x-auto no-scrollbar pb-2">
+      <div className="bg-slate-100/80 p-1.5 rounded-2xl flex gap-1 overflow-x-auto no-scrollbar border border-slate-200/50">
         {[
-          { id: 'catalog', label: 'Catálogo Geral', icon: ChefHat },
+          { id: 'catalog', label: 'Catálogo', icon: ChefHat },
           { id: 'colecoes', label: 'Coleções', icon: LayoutGrid },
-          { id: 'food_type', label: 'Tipo de Alimento (A)', icon: ListFilter, isPro: true },
-          { id: 'suggestions', label: 'Sugestões (B)', icon: Sparkles, isPro: true },
-          { id: 'favorites', label: 'Meus Favoritos (C)', icon: Star },
-          { id: 'custom', label: 'Importar / Nova (D)', icon: Globe },
+          { id: 'food_type', label: 'Tipo de Alimento', icon: ListFilter, isPro: true },
+          { id: 'suggestions', label: 'Sugestões', icon: Sparkles, isPro: true },
+          { id: 'favorites', label: 'Meus Favoritos', icon: Star },
+          { id: 'custom', label: 'Importar / Nova', icon: Globe },
         ].map(method => {
           const Icon = method.icon
           const showLockIcon = method.isPro && !isPremiumUser
@@ -272,14 +272,14 @@ export function RecipePickerPage() {
                 setActiveMethod(method.id as any)
               }}
               className={cn(
-                'flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all border shrink-0 cursor-pointer',
+                'flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition-all shrink-0 cursor-pointer border-none',
                 activeMethod === method.id 
-                  ? 'bg-primary border-primary text-white shadow-sm' 
-                  : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                  ? 'bg-white text-slate-800 shadow-sm' 
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-white/40'
               )}
             >
-              <Icon className="h-3.5 w-3.5" />
-              {method.label}
+              <Icon className={cn("h-4 w-4", activeMethod === method.id ? "text-primary" : "text-slate-400")} />
+              <span>{method.label}</span>
               {showLockIcon && <Lock className="h-3 w-3 text-amber-500" />}
             </button>
           )
@@ -291,80 +291,90 @@ export function RecipePickerPage() {
       {/* Method 1: General Catalog */}
       {activeMethod === 'catalog' && (
         <div className="space-y-6">
-          <div className="mb-6 space-y-3">
+          <div className="bg-white rounded-3xl border border-slate-200/60 p-5 space-y-4 shadow-sm">
             {/* Search */}
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar receitas..."
-                className="w-full rounded-2xl border border-slate-200 py-3 pl-10 pr-4 text-sm bg-white outline-none"
+                placeholder="Buscar receitas por nome ou ingrediente..."
+                className="w-full rounded-2xl border border-slate-200/80 py-2.5 pl-10 pr-4 text-sm bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
               />
             </div>
 
-            {/* Filters */}
-            <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-              <button
-                onClick={() => setCategoryFilter('')}
-                className={cn(
-                  'shrink-0 rounded-full border px-4 py-1.5 text-xs font-bold transition-all cursor-pointer',
-                  !categoryFilter ? 'bg-primary text-white border-primary' : 'bg-white border-slate-200 text-slate-500'
-                )}
-              >
-                Todas
-              </button>
-              {categories?.map((cat) => (
+            {/* Categories */}
+            <div className="space-y-1.5">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-1">Categorias</span>
+              <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
                 <button
-                  key={cat.id}
-                  onClick={() => setCategoryFilter(cat.id)}
+                  onClick={() => setCategoryFilter('')}
                   className={cn(
-                    'shrink-0 rounded-full border px-4 py-1.5 text-xs font-bold transition-all cursor-pointer',
-                    categoryFilter === cat.id ? 'bg-primary text-white border-primary' : 'bg-white border-slate-200 text-slate-500'
+                    'shrink-0 rounded-full border px-4.5 py-1.5 text-xs font-bold transition-all cursor-pointer',
+                    !categoryFilter 
+                      ? 'bg-primary border-primary text-white shadow-sm' 
+                      : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
                   )}
                 >
-                  {cat.name}
+                  Todas
                 </button>
-              ))}
+                {categories?.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setCategoryFilter(cat.id)}
+                    className={cn(
+                      'shrink-0 rounded-full border px-4.5 py-1.5 text-xs font-bold transition-all cursor-pointer',
+                      categoryFilter === cat.id 
+                        ? 'bg-primary border-primary text-white shadow-sm' 
+                        : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                    )}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Access Filters */}
-            <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar pt-1">
-              <button
-                onClick={() => setAccessFilter('all')}
-                className={cn(
-                  'shrink-0 rounded-full border px-4 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1',
-                  accessFilter === 'all' 
-                    ? 'bg-slate-900 border-slate-900 text-white' 
-                    : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
-                )}
-              >
-                Todos os acessos
-              </button>
-              <button
-                onClick={() => setAccessFilter('free')}
-                className={cn(
-                  'shrink-0 rounded-full border px-4 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1',
-                  accessFilter === 'free' 
-                    ? 'bg-slate-900 border-slate-900 text-white' 
-                    : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
-                )}
-              >
-                Apenas Gratuitas
-              </button>
-              <button
-                onClick={() => setAccessFilter('premium')}
-                className={cn(
-                  'shrink-0 rounded-full border px-4 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5',
-                  accessFilter === 'premium' 
-                    ? 'bg-amber-500 border-amber-500 text-white shadow-sm' 
-                    : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
-                )}
-              >
-                <Crown className="h-3 w-3" />
-                Apenas PRO (Premium)
-              </button>
+            <div className="space-y-1.5 border-t border-slate-100 pt-3">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-1">Tipo de Acesso</span>
+              <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                <button
+                  onClick={() => setAccessFilter('all')}
+                  className={cn(
+                    'shrink-0 rounded-full border px-4.5 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1',
+                    accessFilter === 'all' 
+                      ? 'bg-slate-800 border-slate-800 text-white shadow-sm' 
+                      : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                  )}
+                >
+                  Todos os acessos
+                </button>
+                <button
+                  onClick={() => setAccessFilter('free')}
+                  className={cn(
+                    'shrink-0 rounded-full border px-4.5 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1',
+                    accessFilter === 'free' 
+                      ? 'bg-slate-800 border-slate-800 text-white shadow-sm' 
+                      : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                  )}
+                >
+                  Apenas Gratuitas
+                </button>
+                <button
+                  onClick={() => setAccessFilter('premium')}
+                  className={cn(
+                    'shrink-0 rounded-full border px-4.5 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5',
+                    accessFilter === 'premium' 
+                      ? 'bg-amber-500 border-amber-500 text-white shadow-sm shadow-amber-500/10' 
+                      : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                  )}
+                >
+                  <Crown className="h-3.5 w-3.5" />
+                  Apenas PRO (Premium)
+                </button>
+              </div>
             </div>
           </div>
 
