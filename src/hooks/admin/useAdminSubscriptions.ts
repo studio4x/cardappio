@@ -6,7 +6,7 @@ export interface AdminSubscription {
   user_id: string
   plan_id: string
   status: 'active' | 'past_due' | 'canceled' | 'trialing' | 'incomplete'
-  tier: 'free' | 'premium' | 'gold' | 'plano-7-refeicoes' | 'plano-14-refeicoes'
+  tier: 'free' | 'premium' | 'gold' | 'plano-7-refeicoes' | 'plano-14-refeicoes' | 'plano-pro-7-dias' | 'plano-pro-14-dias'
   billing_cycle: 'monthly' | 'yearly' | 'lifetime'
   current_period_end: string | null
   cancel_at_period_end: boolean

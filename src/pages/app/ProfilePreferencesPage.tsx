@@ -9,7 +9,7 @@ import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useSubscription } from '@/hooks/subscription/useSubscription'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
@@ -34,7 +34,13 @@ export function ProfilePreferencesPage() {
   const navigate = useNavigate()
   const { subscription, checkoutMutation } = useSubscription()
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'notifications' | 'subscription'>('profile')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const rawTab = searchParams.get('tab')
+  const activeTab = (
+    rawTab === 'preferencias' || rawTab === 'notificacoes' || rawTab === 'assinatura'
+      ? rawTab
+      : 'dados'
+  )
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false)
   const [selectedPlanId, setSelectedPlanId] = useState<string>('')
   const [selectedInterval, setSelectedInterval] = useState<'monthly' | 'yearly'>('monthly')
@@ -253,14 +259,14 @@ export function ProfilePreferencesPage() {
       {/* Tab Switcher */}
       <div className="flex border-b" style={{ borderColor: 'var(--color-outline-variant)' }}>
         {[
-          { id: 'profile', label: 'Dados Pessoais', icon: User },
-          { id: 'preferences', label: 'Planejamento', icon: Settings },
-          { id: 'notifications', label: 'Notificações', icon: Bell },
-          { id: 'subscription', label: 'Assinatura', icon: CreditCard },
+          { id: 'dados', label: 'Dados Pessoais', icon: User },
+          { id: 'preferencias', label: 'Planejamento', icon: Settings },
+          { id: 'notificacoes', label: 'Notificações', icon: Bell },
+          { id: 'assinatura', label: 'Assinatura', icon: CreditCard },
         ].map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => setSearchParams({ tab: tab.id })}
             className={cn(
               "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all cursor-pointer",
               activeTab === tab.id 
@@ -280,7 +286,7 @@ export function ProfilePreferencesPage() {
 
       <div className="py-4">
         {/* PROFILE TAB */}
-        {activeTab === 'profile' && (
+        {activeTab === 'dados' && (
           <div className="space-y-6 animate-in fade-in duration-300">
             <div className="space-y-4 rounded-2xl border p-6 bg-white shadow-sm">
               <div className="space-y-2">
@@ -384,7 +390,7 @@ export function ProfilePreferencesPage() {
         )}
 
         {/* PREFERENCES TAB */}
-        {activeTab === 'preferences' && (
+        {activeTab === 'preferencias' && (
           <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
             <div className="rounded-2xl border p-6 bg-white shadow-sm space-y-6">
               <div className="space-y-4">
@@ -456,7 +462,7 @@ export function ProfilePreferencesPage() {
         )}
 
         {/* NOTIFICATIONS TAB */}
-        {activeTab === 'notifications' && (
+        {activeTab === 'notificacoes' && (
           <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
             <div className="rounded-2xl border p-6 bg-white shadow-sm space-y-6">
               <h3 className="font-bold flex items-center gap-2">Configurações de Notificações</h3>
@@ -544,7 +550,7 @@ export function ProfilePreferencesPage() {
         )}
 
         {/* SUBSCRIPTION TAB */}
-        {activeTab === 'subscription' && (() => {
+        {activeTab === 'assinatura' && (() => {
           const isPro = profile?.subscription_tier && 
                         profile.subscription_tier !== 'free' && 
                         profile.subscription_tier !== 'plano-gratuito';

@@ -181,7 +181,7 @@ export function useAssignRecipe() {
       if (fetchSlotError) throw fetchSlotError
 
       // 2. If on 7-meals plan, update all slots for that day (mandatory repetition)
-      if (user?.subscription_tier === 'plano-7-refeicoes') {
+      if (user?.subscription_tier === 'plano-7-refeicoes' || user?.subscription_tier === 'plano-pro-7-dias') {
         const { error: updateError } = await supabase
           .from('meal_plan_slots')
           .update({ recipe_id: recipeId })

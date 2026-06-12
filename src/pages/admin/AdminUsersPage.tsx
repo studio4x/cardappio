@@ -220,8 +220,8 @@ export function AdminUsersPage() {
                 <td className="px-6 py-4">
                   <div className="flex flex-col gap-0.5">
                     <span className="font-medium text-slate-700 capitalize">
-                      {user.subscription_tier === 'plano-7-refeicoes' ? '7 Refeições' : 
-                       user.subscription_tier === 'plano-14-refeicoes' ? '14 Refeições' : 
+                      {user.subscription_tier === 'plano-7-refeicoes' || user.subscription_tier === 'plano-pro-7-dias' ? 'PRO 7 Dias' : 
+                       user.subscription_tier === 'plano-14-refeicoes' || user.subscription_tier === 'plano-pro-14-dias' ? 'PRO 14 Dias' : 
                        user.subscription_tier === 'plano-gratuito' || user.subscription_tier === 'free' ? 'Gratuito' : 
                        user.subscription_tier || 'Gratuito'}
                     </span>
@@ -512,8 +512,10 @@ export function AdminUsersPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="free">Gratuito</SelectItem>
-                    <SelectItem value="plano-7-refeicoes">Plano 7 Refeições</SelectItem>
-                    <SelectItem value="plano-14-refeicoes">Plano 14 Refeições</SelectItem>
+                    <SelectItem value="plano-7-refeicoes">Plano 7 Refeições (Legado)</SelectItem>
+                    <SelectItem value="plano-pro-7-dias">Plano PRO 7 Dias</SelectItem>
+                    <SelectItem value="plano-14-refeicoes">Plano 14 Refeições (Legado)</SelectItem>
+                    <SelectItem value="plano-pro-14-dias">Plano PRO 14 Dias</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

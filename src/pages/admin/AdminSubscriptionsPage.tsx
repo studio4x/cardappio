@@ -268,8 +268,10 @@ export function AdminSubscriptionsPage() {
                   className="w-full rounded-xl border p-2.5 text-sm border-slate-200 outline-none bg-white"
                 >
                   <option value="free">Gratuito (Free)</option>
-                  <option value="plano-7-refeicoes">Plano 7 Refeições</option>
-                  <option value="plano-14-refeicoes">Plano 14 Refeições</option>
+                  <option value="plano-7-refeicoes">Plano 7 Refeições (Legado)</option>
+                  <option value="plano-pro-7-dias">Plano PRO 7 Dias</option>
+                  <option value="plano-14-refeicoes">Plano 14 Refeições (Legado)</option>
+                  <option value="plano-pro-14-dias">Plano PRO 14 Dias</option>
                   <option value="premium">Premium Geral (Pro)</option>
                 </select>
               </div>
