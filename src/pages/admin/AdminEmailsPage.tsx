@@ -18,7 +18,8 @@ import {
 import { 
   useEmailConfig, 
   useUpdateEmailConfig, 
-  useEmailLogs
+  useEmailLogs,
+  useSendTestEmail
 } from '@/hooks/admin/useAdminEmails'
 import type { EmailLog } from '@/hooks/admin/useAdminEmails'
 import { 
@@ -81,6 +82,23 @@ export function AdminEmailsPage() {
       toast.success('Configurações de e-mail SMTP salvas com sucesso!')
     } catch (err: any) {
       toast.error('Erro ao salvar configurações de e-mail.')
+    }
+  }
+
+  // State & Handler for SMTP Test Email
+  const sendTestEmail = useSendTestEmail()
+  const [testEmail, setTestEmail] = useState('')
+
+  const handleSendTestEmail = async () => {
+    if (!testEmail) return
+    try {
+      await sendTestEmail.mutateAsync({ toEmail: testEmail })
+      toast.success('E-mail de teste enviado com sucesso! Verifique a caixa de entrada.')
+      setTestEmail('')
+    } catch (err: any) {
+      toast.error('Erro ao enviar e-mail de teste', {
+        description: err.message || 'Verifique as configurações SMTP salvas e tente novamente.'
+      })
     }
   }
 
@@ -287,6 +305,35 @@ export function AdminEmailsPage() {
                 </Button>
               </div>
             </form>
+
+            {/* Test Email Form */}
+            <div className="mt-8 pt-8 border-t border-slate-100 space-y-4">
+              <h4 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                <Mail className="h-4.5 w-4.5 text-primary" />
+                Enviar E-mail de Teste
+              </h4>
+              <p className="text-xs text-slate-500">
+                Teste as configurações SMTP salvas enviando um e-mail de teste para o endereço informado.
+              </p>
+              
+              <div className="flex gap-2 max-w-md">
+                <Input
+                  type="email"
+                  placeholder="destinatario@exemplo.com"
+                  value={testEmail}
+                  onChange={(e) => setTestEmail(e.target.value)}
+                  className="rounded-xl"
+                />
+                <Button 
+                  onClick={handleSendTestEmail} 
+                  disabled={sendTestEmail.isPending || !testEmail}
+                  variant="outline"
+                  className="rounded-full shrink-0 font-semibold"
+                >
+                  {sendTestEmail.isPending ? 'Enviando...' : 'Enviar Teste'}
+                </Button>
+              </div>
+            </div>
           </div>
         </TabsContent>
       </Tabs>

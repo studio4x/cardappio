@@ -95,3 +95,30 @@ export function useEmailLogs() {
     }
   })
 }
+
+/**
+ * Mutation to send a test email via custom SMTP setup
+ */
+export function useSendTestEmail() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (params: { toEmail: string; testSubject?: string; testBody?: string }) => {
+      const { data, error } = await supabase.functions.invoke('admin-users', {
+        body: {
+          action: 'send_test_email',
+          toEmail: params.toEmail,
+          testSubject: params.testSubject,
+          testBody: params.testBody
+        }
+      })
+
+      if (error) throw error
+      if (data?.error) throw new Error(data.error)
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['email-logs'] })
+    }
+  })
+}

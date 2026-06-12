@@ -312,6 +312,39 @@ serve(async (req) => {
       return successResponse(null, 'Usuário excluído com sucesso.')
     }
 
+    if (action === 'send_test_email') {
+      const { toEmail, testSubject, testBody } = body
+      if (!toEmail) {
+        return errorResponse('E-mail do destinatário é obrigatório.', 400)
+      }
+
+      const subject = testSubject || 'E-mail de Teste do Cardappio'
+      const htmlContent = testBody || `
+        <h2 style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 22px; font-weight: 600; color: #171d16; margin-top: 0; margin-bottom: 16px;">
+          Teste de SMTP Realizado com Sucesso!
+        </h2>
+        <p style="margin-bottom: 16px; font-size: 16px;">
+          Este é um e-mail de teste enviado a partir das configurações SMTP da plataforma Cardappio.
+        </p>
+        <p style="margin-bottom: 16px; font-size: 16px;">
+          Se você recebeu esta mensagem, suas credenciais de servidor de e-mail SMTP estão funcionando perfeitamente.
+        </p>
+      `
+
+      const emailHtml = await getEmailTemplate(htmlContent, subject)
+      const emailResult = await sendEmail({
+        to: toEmail,
+        subject: subject,
+        html: emailHtml
+      })
+
+      if (!emailResult.success) {
+        return errorResponse(`Falha ao enviar e-mail de teste: ${emailResult.error}`, 400)
+      }
+
+      return successResponse(null, 'E-mail de teste enviado com sucesso!')
+    }
+
     return errorResponse('Ação inválida.', 400)
 
   } catch (error: any) {
