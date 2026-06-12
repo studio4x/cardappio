@@ -13,7 +13,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Trash2,
-  Link2
+  Link2,
+  Apple
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -39,6 +40,7 @@ export function AdminRecipesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [importUrl, setImportUrl] = useState('')
   const [isImporting, setIsImporting] = useState(false)
+  const [generatingNutritionId, setGeneratingNutritionId] = useState<string | null>(null)
   const pageSize = 10
   
   const { data, isLoading, refetch } = useRecipes({ 
@@ -84,6 +86,56 @@ export function AdminRecipesPage() {
       toast.error('Erro ao excluir receita. Tente novamente.')
     } finally {
       setDeletingId(null)
+    }
+  }
+
+  const handleGenerateNutrition = async (recipe: any) => {
+    if (generatingNutritionId) return
+
+    if (!recipe.ingredients || recipe.ingredients.length === 0) {
+      toast.error('Adicione ingredientes à receita primeiro!', {
+        description: 'É necessário ter ingredientes cadastrados para calcular as informações nutricionais.'
+      })
+      return
+    }
+
+    setGeneratingNutritionId(recipe.id)
+    toast.loading('Gerando tabela nutricional com IA...', { id: 'inline-nutrition' })
+
+    try {
+      const { data: result, error: nutritionError } = await supabase.functions.invoke('generate-nutrition', {
+        body: {
+          ingredients: recipe.ingredients.map((ing: any) => ({
+            name: ing.name,
+            quantity_label: ing.quantity_label || null,
+            unit: ing.unit || null
+          })),
+          servings: recipe.servings || 4
+        }
+      })
+
+      if (nutritionError) throw nutritionError
+      if (!result?.data) throw new Error(result?.error?.message || 'Erro ao gerar tabela nutricional')
+
+      const { error: updateError } = await supabase
+        .from('recipes')
+        .update({ nutrition_info: result.data })
+        .eq('id', recipe.id)
+
+      if (updateError) throw updateError
+
+      toast.success(`Tabela nutricional de "${recipe.title}" gerada com sucesso!`, {
+        id: 'inline-nutrition'
+      })
+      refetch()
+    } catch (err: any) {
+      console.error('Error generating inline nutrition:', err)
+      toast.error('Erro ao gerar tabela nutricional', {
+        id: 'inline-nutrition',
+        description: err.message || 'Tente novamente.'
+      })
+    } finally {
+      setGeneratingNutritionId(null)
     }
   }
 
@@ -272,10 +324,24 @@ export function AdminRecipesPage() {
                       </Badge>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex gap-2">
+                      <div className="flex items-center gap-2">
                         <span title="Foto"><ImageIcon className={cn("h-4 w-4", recipe.cover_image_url ? "text-primary" : "text-slate-200")} /></span>
                         <span title="Ingredientes"><Utensils className={cn("h-4 w-4", (recipe.ingredients?.length || 0) > 0 ? "text-primary" : "text-slate-200")} /></span>
                         <span title="Passos"><ListChecks className={cn("h-4 w-4", (recipe.steps?.length || 0) > 0 ? "text-primary" : "text-slate-200")} /></span>
+                        {generatingNutritionId === recipe.id ? (
+                          <span title="Gerando tabela nutricional..."><Loader2 className="h-4 w-4 animate-spin text-primary" /></span>
+                        ) : recipe.nutrition_info ? (
+                          <span title="Tabela nutricional preenchida"><Apple className="h-4 w-4 text-emerald-500" /></span>
+                        ) : (
+                          <button 
+                            onClick={() => handleGenerateNutrition(recipe)}
+                            disabled={generatingNutritionId !== null}
+                            title="Tabela nutricional vazia. Clique para gerar com IA"
+                            className="focus:outline-none disabled:opacity-50"
+                          >
+                            <Apple className="h-4 w-4 text-slate-200 hover:text-primary transition-colors cursor-pointer" />
+                          </button>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
