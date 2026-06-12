@@ -10,21 +10,38 @@ import { execSync } from 'child_process'
 let commitHash = 'unknown'
 let commitCount = '0'
 
+// 1. Tenta carregar os valores do version.json como base inicial
 try {
-  // Try to query git locally
-  commitHash = (process.env.VERCEL_GIT_COMMIT_SHA || execSync('git rev-parse --short HEAD').toString().trim()).slice(0, 7)
-  commitCount = execSync('git rev-list --count HEAD').toString().trim()
-  
-  // Write version.json so it gets uploaded to Vercel
-  fs.writeFileSync(path.resolve(__dirname, 'version.json'), JSON.stringify({ commitHash, commitCount }))
-} catch (e) {
-  // Fallback to reading the version.json uploaded from local machine
+  const versionData = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'version.json'), 'utf-8'))
+  commitHash = versionData.commitHash || 'unknown'
+  commitCount = versionData.commitCount || '0'
+} catch (err) {
+  // Ignora se não conseguir ler
+}
+
+const isVercel = !!process.env.VERCEL
+
+if (!isVercel) {
   try {
-    const versionData = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'version.json'), 'utf-8'))
-    commitHash = versionData.commitHash
-    commitCount = versionData.commitCount
-  } catch (err) {
-    commitHash = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || 'unknown'
+    const gitHash = execSync('git rev-parse --short HEAD').toString().trim().slice(0, 7)
+    const gitCount = execSync('git rev-list --count HEAD').toString().trim()
+    
+    // Atualiza se houver alguma diferença
+    if (gitHash !== commitHash || gitCount !== commitCount) {
+      commitHash = gitHash
+      commitCount = gitCount
+      fs.writeFileSync(
+        path.resolve(__dirname, 'version.json'),
+        JSON.stringify({ commitHash, commitCount })
+      )
+    }
+  } catch (e) {
+    // Mantém os valores lidos do version.json ou padrões
+  }
+} else {
+  // No Vercel, o hash do commit exato pode ser injetado da variável de ambiente se disponível
+  if (process.env.VERCEL_GIT_COMMIT_SHA) {
+    commitHash = process.env.VERCEL_GIT_COMMIT_SHA.slice(0, 7)
   }
 }
 

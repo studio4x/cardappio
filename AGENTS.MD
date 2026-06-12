@@ -196,14 +196,39 @@ Deploy deve ser considerado quando a mudança precisar refletir em ambiente remo
 
 ### Processo de Deploy e Versão de Build
 
-Para garantir que o número da versão (`v1.0.X`) e a hash do commit sejam atualizados na interface de usuário (Admin e Rodapé):
+Para garantir que o número da versão (`v1.0.X`) e o hash do commit sejam exibidos de forma 100% correta e idêntica entre os ambientes local e de produção (Vercel), deve-se seguir obrigatoriamente o **Fluxo de Dois Commits (Two-Commit Workflow)**. Esse fluxo resolve a limitação do ambiente de nuvem da Vercel (onde comandos Git não podem ser executados por falta de repositório Git local).
 
-1. Realize todos os ajustes de código necessários.
-2. Faça o commit preliminar das alterações de código (ex: `git commit -m "feat:..."`). Isso atualizará o `HEAD` e a contagem de commits no Git local.
-3. Execute obrigatoriamente `npm run build` localmente. A execução do build executará a configuração do Vite, a qual lerá o novo commit do Git e gerará/atualizará o arquivo `version.json` na raiz do projeto.
-4. Adicione e faça o commit do arquivo `version.json` atualizado.
-5. Faça o push final para o repositório remoto (`git push`).
-6. Execute o deploy da Vercel via CLI utilizando as credenciais corretas.
+#### Fluxo de Trabalho Recomendado (Dois Commits):
+
+1. **Ajuste o código e comite**:
+   - Faça todas as alterações necessárias no código da aplicação.
+   - Adicione os arquivos alterados e faça o primeiro commit (deixando o arquivo `version.json` de fora se houver alteração local nele):
+     ```bash
+     git add .
+     git commit -m "feat: descrição da nova funcionalidade"
+     ```
+   - *Isso garante que o HEAD local foi incrementado e um novo hash do commit foi gerado para as suas alterações de código.*
+
+2. **Gere e comite a versão atualizada (`version.json`)**:
+   - Execute o build localmente:
+     ```bash
+     npm run build
+     ```
+   - O processo de build local executará o script que lê o HEAD do Git (que agora é o commit feito no Passo 1) e atualizará/gravará as informações de `commitHash` e `commitCount` corretas no arquivo `version.json`.
+   - Adicione e comite exclusivamente o arquivo `version.json` atualizado:
+     ```bash
+     git add version.json
+     git commit -m "build: update version.json for build v1.0.X"
+     ```
+     *(Substitua `X` pelo número do commitCount gerado no `version.json`).*
+
+3. **Deploy final**:
+   - **Se usar Integração Automática GitHub**: Faça o push final para o repositório remoto (`git push`). A Vercel lerá o `version.json` contendo o número exato da versão do código-fonte e gerará o deploy perfeitamente alinhado.
+   - **Se usar Vercel CLI**: Execute o deploy de produção:
+     ```bash
+     npx vercel deploy --prod --token $VERCEL_TOKEN --scope $VERCEL_TEAM_ID --yes
+     ```
+     A Vercel utilizará o `version.json` gerado no Passo 2 e a versão em produção corresponderá de forma idêntica à versão local.
 
 Não salvar tokens, senhas ou credenciais no repositório.
 
