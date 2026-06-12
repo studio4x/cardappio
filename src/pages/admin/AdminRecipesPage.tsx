@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { 
   Plus, 
   Search, 
@@ -11,7 +11,8 @@ import {
   Sparkles, 
   Loader2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Trash2
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -34,6 +35,7 @@ export function AdminRecipesPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [seeding, setSeeding] = useState(false)
   const [page, setPage] = useState(1)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const pageSize = 10
   
   const { data, isLoading, refetch } = useRecipes({ 
@@ -58,6 +60,28 @@ export function AdminRecipesPage() {
     toast.success('Processo finalizado! Use o SQL Editor para a carga completa.')
     refetch()
     setSeeding(false)
+  }
+
+  const handleDeleteRecipe = async (id: string, title: string) => {
+    if (!confirm(`Tem certeza que deseja excluir definitivamente a receita "${title}"?\n\nEssa ação não pode ser desfeita.`)) return
+
+    setDeletingId(id)
+    try {
+      const { error } = await supabase
+        .from('recipes')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+
+      toast.success(`Receita "${title}" excluída com sucesso.`)
+      refetch()
+    } catch (err: any) {
+      console.error('Erro ao excluir receita:', err)
+      toast.error('Erro ao excluir receita. Tente novamente.')
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   if (isLoading) return <LoadingState message="Carregando receitas..." />
@@ -201,6 +225,18 @@ export function AdminRecipesPage() {
                           title="Ver no app"
                         >
                           <ExternalLink className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleDeleteRecipe(recipe.id, recipe.title)}
+                          title="Excluir definitivamente"
+                          disabled={deletingId === recipe.id}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          {deletingId === recipe.id
+                            ? <Loader2 className="h-4 w-4 animate-spin" />
+                            : <Trash2 className="h-4 w-4" />}
                         </Button>
                       </div>
                     </td>
