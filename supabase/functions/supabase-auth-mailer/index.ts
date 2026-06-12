@@ -19,6 +19,7 @@ serve(async (req) => {
     const tokenHash = email_data?.token_hash
     const siteUrl = email_data?.site_url || 'https://cardappio-mauve.vercel.app'
     const redirectTo = email_data?.redirect_to || `${siteUrl}/app`
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") || 'https://wkngjvsgafmdwejmckks.supabase.co'
 
     if (!toEmail) {
       console.warn('Destination email is missing in payload')
@@ -37,7 +38,7 @@ serve(async (req) => {
     else if (emailActionType === 'email_change') verificationType = 'email_change'
 
     const confirmationUrl = tokenHash 
-      ? `${siteUrl}/auth/v1/verify?token=${tokenHash}&type=${verificationType}&redirect_to=${encodeURIComponent(redirectTo)}`
+      ? `${supabaseUrl}/auth/v1/verify?token=${tokenHash}&type=${verificationType}&redirect_to=${encodeURIComponent(redirectTo)}`
       : null
 
     switch (emailActionType) {

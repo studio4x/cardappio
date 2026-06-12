@@ -3,132 +3,401 @@ import { getAuthenticatedUser, getServiceClient } from "../_shared/auth.ts"
 import { corsHeaders } from "../_shared/cors.ts"
 import { createResponse } from "../_shared/response.ts"
 
-/**
- * rebuild-external-recipe Edge Function
- * Receives a URL, scrapes/mocks recipe details, re-writes content to avoid copyright issues,
- * and saves it under the user's account.
- */
+interface Ingredient {
+  name: string
+  quantity_label: string | null
+  unit: string | null
+}
+
+interface ParsedRecipe {
+  title: string
+  subtitle?: string
+  difficulty_level?: 'easy' | 'medium' | 'hard'
+  prep_time_minutes?: number
+  servings?: number
+  category_id?: string | null
+  cover_image_url?: string | null
+  ingredients: Ingredient[]
+  steps: string[]
+}
+
+interface AIConfig {
+  openai_api_key: string
+  gemini_api_key: string
+  preferred_provider: 'openai' | 'gemini'
+}
+
+// ─── Fetch external page ──────────────────────────────────────────────────────
+async function fetchRecipePage(urlStr: string): Promise<string> {
+  const response = await fetch(urlStr, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+      'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Não foi possível acessar a página de receita. Status: ${response.status}`);
+  }
+
+  return await response.text();
+}
+
+// ─── Extrair metadados e JSON-LD ──────────────────────────────────────────────
+function extractMetadata(html: string): { ogImage: string | null; jsonLdRecipes: any[] } {
+  let ogImage: string | null = null;
+  
+  // Buscar og:image
+  const ogImageMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i) ||
+                        html.match(/<meta\s+content=["']([^"']+)["']\s+property=["']og:image["']/i);
+  if (ogImageMatch) {
+    ogImage = ogImageMatch[1];
+  }
+
+  const jsonLdRecipes: any[] = [];
+  const jsonLdRegex = /<script\s+[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  let match;
+
+  while ((match = jsonLdRegex.exec(html)) !== null) {
+    try {
+      const content = match[1].trim();
+      const parsed = JSON.parse(content);
+      
+      const items = Array.isArray(parsed) ? parsed : [parsed];
+      for (const item of items) {
+        if (item['@graph'] && Array.isArray(item['@graph'])) {
+          for (const graphItem of item['@graph']) {
+            if (graphItem['@type'] === 'Recipe' || (Array.isArray(graphItem['@type']) && graphItem['@type'].includes('Recipe'))) {
+              jsonLdRecipes.push(graphItem);
+            }
+          }
+        } else if (item['@type'] === 'Recipe' || (Array.isArray(item['@type']) && item['@type'].includes('Recipe'))) {
+          jsonLdRecipes.push(item);
+        }
+      }
+    } catch (e) {
+      // Ignorar erros de parse de JSON-LD inválido
+    }
+  }
+
+  return { ogImage, jsonLdRecipes };
+}
+
+// ─── Limpar HTML para economizar tokens ────────────────────────────────────────
+function cleanHtml(rawHtml: string): string {
+  let cleaned = rawHtml
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+    .replace(/<svg\b[^<]*(?:(?!<\/svg>)<[^<]*)*<\/svg>/gi, '')
+    .replace(/<nav\b[^<]*(?:(?!<\/nav>)<[^<]*)*<\/nav>/gi, '')
+    .replace(/<footer\b[^<]*(?:(?!<\/footer>)<[^<]*)*<\/footer>/gi, '')
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/\s+class=["'][^"']*["']/gi, '')
+    .replace(/\s+id=["'][^"']*["']/gi, '')
+    .replace(/\s+style=["'][^"']*["']/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  return cleaned.substring(0, 35000);
+}
+
+// ─── OpenAI call ───────────────────────────────────────────────────────────────
+async function callOpenAI(apiKey: string, prompt: string): Promise<ParsedRecipe> {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: 'Você é um assistente culinário especializado em extrair, estruturar e reescrever receitas de forma inteligente para evitar plágio de direitos autorais. Responda sempre com JSON puro, sem markdown.' },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.3,
+      max_tokens: 2000,
+      response_format: { type: 'json_object' }
+    }),
+  })
+
+  if (!response.ok) {
+    const errText = await response.text()
+    throw new Error(`OpenAI API error ${response.status}: ${errText}`)
+  }
+
+  const data = await response.json()
+  const content = data.choices?.[0]?.message?.content
+  if (!content) throw new Error('OpenAI returned empty content')
+
+  const jsonMatch = content.match(/\{[\s\S]*\}/)
+  if (!jsonMatch) throw new Error(`No JSON object found in OpenAI response: ${content}`)
+
+  return JSON.parse(jsonMatch[0]) as ParsedRecipe
+}
+
+// ─── Gemini call ───────────────────────────────────────────────────────────────
+async function callGemini(apiKey: string, prompt: string): Promise<ParsedRecipe> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      systemInstruction: {
+        parts: [{ text: 'Você é um assistente culinário especializado em extrair, estruturar e reescrever receitas de forma inteligente para evitar plágio de direitos autorais. Responda sempre APENAS com o JSON puro da receita estruturada, respeitando estritamente o esquema fornecido.' }]
+      },
+      generationConfig: {
+        temperature: 0.3,
+        maxOutputTokens: 8192,
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: 'object',
+          properties: {
+            title: { type: 'string', description: 'Título da receita reescrito de forma atraente e original' },
+            subtitle: { type: 'string', description: 'Uma breve descrição da receita de forma amigável e original' },
+            difficulty_level: { type: 'string', enum: ['easy', 'medium', 'hard'], description: 'Nível de dificuldade da receita' },
+            prep_time_minutes: { type: 'integer', description: 'Tempo total de preparo em minutos' },
+            servings: { type: 'integer', description: 'Quantidade de porções ou rendimento' },
+            category_id: { type: 'string', description: 'UUID da categoria mais adequada a partir da lista fornecida' },
+            cover_image_url: { type: 'string', description: 'A URL de imagem da receita mais apropriada se encontrada' },
+            ingredients: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', description: 'Nome do ingrediente' },
+                  quantity_label: { type: 'string', description: 'Quantidade, ex: 1, 1/2, a gosto' },
+                  unit: { type: 'string', description: 'Unidade de medida, ex: colher de sopa, xícara, g, ml, unidade' }
+                },
+                required: ['name']
+              }
+            },
+            steps: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Passos ordenados do modo de preparo, reescritos em tom amigável'
+            }
+          },
+          required: ['title', 'difficulty_level', 'prep_time_minutes', 'servings', 'ingredients', 'steps']
+        }
+      }
+    }),
+  })
+
+  if (!response.ok) {
+    const errText = await response.text()
+    throw new Error(`Gemini API error ${response.status}: ${errText}`)
+  }
+
+  const data = await response.json()
+  const candidate = data.candidates?.[0]
+  const rawText = candidate?.content?.parts?.[0]?.text
+  
+  if (!rawText) {
+    throw new Error('Gemini returned empty content')
+  }
+
+  const jsonMatch = rawText.match(/\{[\s\S]*\}/)
+  if (!jsonMatch) {
+    throw new Error(`No JSON object found in Gemini response: ${rawText}`)
+  }
+
+  return JSON.parse(jsonMatch[0]) as ParsedRecipe
+}
+
+// ─── Build prompt ─────────────────────────────────────────────────────────────
+function buildRecipeExtractionPrompt(
+  url: string,
+  categories: { id: string; name: string }[],
+  ogImage: string | null,
+  jsonLd: any | null,
+  cleanedHtml: string
+): string {
+  const categoriesList = categories.map(c => `- ID: "${c.id}" | Nome: "${c.name}"`).join('\n');
+  const imageInfo = ogImage ? `Imagem sugerida extraída dos metadados: "${ogImage}"` : 'Nenhuma imagem sugerida encontrada.';
+  
+  let sourceData = '';
+  if (jsonLd) {
+    sourceData = `Dados estruturados JSON-LD de Receita encontrados:\n${JSON.stringify(jsonLd, null, 2)}`;
+  } else {
+    sourceData = `HTML limpo da página:\n${cleanedHtml}`;
+  }
+
+  return `Você é um assistente culinário especializado em extrair, estruturar e reescrever receitas a partir do conteúdo de um site.
+URL da receita original: ${url}
+${imageInfo}
+
+Categorias válidas no banco de dados (escolha rigorosamente o ID da categoria culinária que melhor se encaixa, ou retorne null/não defina se nenhuma for apropriada):
+${categoriesList}
+
+DADOS DA PÁGINA FONTE:
+${sourceData}
+
+INSTRUÇÕES IMPORTANTES:
+1. Extraia o título da receita e reescreva-o de forma original, gourmet e atraente.
+2. Escreva uma breve descrição original (subtitle) em tom comercial.
+3. Estime o tempo de preparo (prep_time_minutes) e porções (servings) com base nas informações encontradas na página.
+4. Identifique o nível de dificuldade (difficulty_level): 'easy', 'medium' ou 'hard'.
+5. Selecione a melhor imagem para cover_image_url. Se você encontrar uma imagem de alta resolução nos dados, use-a. Se não, use a imagem sugerida fornecida acima.
+6. Extraia a lista de ingredientes. Normalize-os e separe em:
+   - "name": Nome do ingrediente (ex: "farinha de trigo", "leite integral").
+   - "quantity_label": Quantidade como string (ex: "1", "1/2", "200", "a gosto"). Pode ser null se não houver.
+   - "unit": Unidade de medida (ex: "xícara de chá", "g", "ml", "unidade", "colher de sopa", "dente", "colher de chá"). Pode ser null se não houver.
+7. Reescreva o modo de preparo (steps) como um array de etapas claras e sequenciais, mudando as palavras levemente para evitar direitos autorais/plágio, mas mantendo a técnica culinária perfeitamente precisa.
+8. Escolha o category_id mais apropriado dentre as categorias fornecidas.
+
+Responda APENAS com um JSON válido no formato exato:
+{
+  "title": "Nome da Receita",
+  "subtitle": "Breve descrição",
+  "difficulty_level": "easy",
+  "prep_time_minutes": 30,
+  "servings": 4,
+  "category_id": "UUID da categoria selecionada ou null",
+  "cover_image_url": "URL da Imagem ou null",
+  "ingredients": [
+    { "name": "Ingrediente", "quantity_label": "quantidade ou null", "unit": "unidade ou null" }
+  ],
+  "steps": [
+    "Passo 1...",
+    "Passo 2..."
+  ]
+}`;
+}
+
+// ─── Main serve handler ───────────────────────────────────────────────────────
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    // 1. Authenticate user
     const user = await getAuthenticatedUser(req)
     if (!user) {
       return createResponse(null, { code: 'UNAUTHORIZED', message: 'You must be logged in' }, 401)
     }
 
+    // 2. Validate input
     const { url } = await req.json()
     if (!url) {
       return createResponse(null, { code: 'BAD_REQUEST', message: 'URL is required' }, 400)
     }
 
-    // 1. Basic URL parsing to mock the scraper and rewriter
-    let title = "Receita Importada"
-    let subtitle = "Importada de " + new URL(url).hostname
-    let difficulty = "easy"
-    let prepTime = 30
-    let servings = 4
-    let ingredients = [
-      { name: "Ingrediente Principal", quantity_label: "500", unit: "g" },
-      { name: "Água", quantity_label: "200", unit: "ml" },
-      { name: "Sal", quantity_label: "1", unit: "colher de chá" },
-      { name: "Azeite de Oliva", quantity_label: "2", unit: "colher de sopa" }
-    ]
-    let steps = [
-      "Higienize e separe todos os ingredientes.",
-      "Misture o ingrediente principal com azeite de oliva e sal a gosto.",
-      "Leve ao forno pré-aquecido a 180°C por cerca de 25 minutos.",
-      "Sirva quente e aproveite sua refeição!"
-    ]
-
-    // Custom Mock Content based on common URL terms for realism
-    const lowerUrl = url.toLowerCase()
-    if (lowerUrl.includes("bolo") || lowerUrl.includes("cenoura") || lowerUrl.includes("chocolate")) {
-      title = "Bolo Caseiro de Cenoura com Chocolate"
-      subtitle = "Reescrita inteligente: Versão fofinha com calda de chocolate meio amargo."
-      difficulty = "medium"
-      prepTime = 45
-      servings = 8
-      ingredients = [
-        { name: "Cenouras médias", quantity_label: "3", unit: "unidade" },
-        { name: "Óleo de milho", quantity_label: "1/2", unit: "xícara" },
-        { name: "Ovos caipiras", quantity_label: "3", unit: "unidade" },
-        { name: "Açúcar demerara", quantity_label: "2", unit: "xícara" },
-        { name: "Farinha de trigo peneirada", quantity_label: "2", unit: "xícara" },
-        { name: "Fermento químico em pó", quantity_label: "1", unit: "colher de sopa" },
-        { name: "Chocolate em pó 50%", quantity_label: "1", unit: "xícara" },
-        { name: "Manteiga sem sal", quantity_label: "1", unit: "colher de sopa" }
-      ]
-      steps = [
-        "Bata no liquidificador as cenouras cortadas, o óleo e os ovos até obter um creme homogêneo.",
-        "Transfira para uma tigela e misture delicadamente o açúcar e a farinha de trigo peneirada.",
-        "Adicione o fermento e misture levemente com um batedor de arame.",
-        "Despeje em uma forma untada e asse em forno a 180°C por 40 minutos.",
-        "Para a cobertura, cozinhe o chocolate em pó, o açúcar restante e a manteiga em fogo baixo até engrossar, despejando morno sobre o bolo."
-      ]
-    } else if (lowerUrl.includes("frango") || lowerUrl.includes("grelhado") || lowerUrl.includes("peito")) {
-      title = "Filé de Frango Grelhado com Ervas Finas"
-      subtitle = "Reescrita inteligente: Peito de frango super macio marinado em ervas frescas e limão."
-      difficulty = "easy"
-      prepTime = 20
-      servings = 3
-      ingredients = [
-        { name: "Peito de frango limpo", quantity_label: "500", unit: "g" },
-        { name: "Limão tahiti", quantity_label: "1", unit: "unidade" },
-        { name: "Azeite de oliva extra virgem", quantity_label: "2", unit: "colher de sopa" },
-        { name: "Dentes de alho amassados", quantity_label: "2", unit: "dente" },
-        { name: "Alecrim fresco picado", quantity_label: "1", unit: "colher de sopa" },
-        { name: "Sal e pimenta do reino", quantity_label: null, unit: "a gosto" }
-      ]
-      steps = [
-        "Corte o peito de frango em filés de espessura uniforme.",
-        "Marine com o suco de limão, alho, alecrim, sal e pimenta por 15 minutos na geladeira.",
-        "Aqueça uma grelha ou frigideira antiaderente com o azeite de oliva.",
-        "Grelhe os filés por 4 minutos de cada lado ou até dourarem por igual.",
-        "Retire da grelha e descanse por 2 minutos antes de fatiar para manter a suculência."
-      ]
-    } else if (lowerUrl.includes("pasta") || lowerUrl.includes("macarrao") || lowerUrl.includes("tomate")) {
-      title = "Macarrão ao Molho Rústico de Tomate e Manjericão"
-      subtitle = "Reescrita inteligente: Massa al dente com molho de tomates frescos cozidos lentamente."
-      difficulty = "easy"
-      prepTime = 25
-      servings = 4
-      ingredients = [
-        { name: "Macarrão tipo Penne ou Spaguetti", quantity_label: "400", unit: "g" },
-        { name: "Tomates italianos maduros picados", quantity_label: "6", unit: "unidade" },
-        { name: "Cebola roxa picada", quantity_label: "1", unit: "unidade" },
-        { name: "Folhas frescas de manjericão", quantity_label: "1", unit: "xícara" },
-        { name: "Azeite de oliva extra virgem", quantity_label: "3", unit: "colher de sopa" },
-        { name: "Queijo parmesão ralado", quantity_label: "50", unit: "g" }
-      ]
-      steps = [
-        "Cozinhe o macarrão em abundante água salgada até atingir o point al dente.",
-        "Em uma panela paralela, doure a cebola no azeite de oliva.",
-        "Adicione os tomates picados e deixe cozinhar em fogo baixo até desmancharem e formarem um molho denso.",
-        "Incorpore a massa cozida diretamente no molho de tomates rústico.",
-        "Finalize com as folhas frescas de manjericão e sirva com parmesão ralado por cima."
-      ]
-    }
-
-    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.random().toString(36).substring(2, 7)
-
     const supabaseAdmin = getServiceClient()
 
-    // 2. Insert recipe metadata
+    // 3. Fetch AI configuration
+    const { data: settingsRow, error: settingsError } = await supabaseAdmin
+      .from('app_settings')
+      .select('value_json')
+      .eq('setting_key', 'ai_config')
+      .single()
+
+    if (settingsError || !settingsRow) {
+      return createResponse(null, { code: 'CONFIG_ERROR', message: 'Configuração de IA não encontrada. Configure as API keys.' }, 400)
+    }
+
+    const aiConfig = settingsRow.value_json as unknown as AIConfig
+
+    // 4. Fetch active recipe categories
+    const { data: categories, error: catError } = await supabaseAdmin
+      .from('recipe_categories')
+      .select('id, name, slug')
+      .eq('is_active', true)
+
+    if (catError) {
+      console.error('Error fetching categories:', catError)
+    }
+
+    // 5. Fetch page html & extract data
+    console.log(`Fetching recipe from: ${url}`)
+    const html = await fetchRecipePage(url)
+    const { ogImage, jsonLdRecipes } = extractMetadata(html)
+    
+    let sourceJsonLd: any = null;
+    let cleanedHtml = '';
+
+    if (jsonLdRecipes.length > 0) {
+      sourceJsonLd = jsonLdRecipes[0];
+      console.log('JSON-LD recipe data found and selected.');
+    } else {
+      cleanedHtml = cleanHtml(html);
+      console.log('No JSON-LD recipe found. Cleaned HTML size:', cleanedHtml.length);
+    }
+
+    // 6. Build prompt and invoke AI
+    const prompt = buildRecipeExtractionPrompt(
+      url, 
+      categories || [], 
+      ogImage, 
+      sourceJsonLd, 
+      cleanedHtml
+    );
+
+    let result: ParsedRecipe | null = null;
+    const errors: string[] = [];
+
+    const providers: Array<'openai' | 'gemini'> = aiConfig.preferred_provider === 'gemini'
+      ? ['gemini', 'openai']
+      : ['openai', 'gemini']
+
+    for (const provider of providers) {
+      try {
+        console.log(`Trying AI Provider: ${provider}`)
+        if (provider === 'openai') {
+          if (aiConfig.openai_api_key) {
+            result = await callOpenAI(aiConfig.openai_api_key, prompt)
+            break
+          } else {
+            errors.push('OpenAI: API Key not configured.')
+          }
+        } else if (provider === 'gemini') {
+          if (aiConfig.gemini_api_key) {
+            result = await callGemini(aiConfig.gemini_api_key, prompt)
+            break
+          } else {
+            errors.push('Gemini: API Key not configured.')
+          }
+        }
+      } catch (err: any) {
+        errors.push(`${provider}: ${err.message}`)
+        console.warn(`Provider ${provider} failed, trying fallback...`, err.message)
+      }
+    }
+
+    if (!result) {
+      return createResponse(null, {
+        code: 'AI_ERROR',
+        message: `Nenhum provedor de IA disponível para realizar a importação. Detalhes dos erros:\n${errors.join('\n')}`
+      }, 400)
+    }
+
+    // 7. Insert recipe
+    const slug = (result.title || "receita-importada")
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '') + '-' + Math.random().toString(36).substring(2, 7)
+
     const { data: recipe, error: recipeError } = await supabaseAdmin
       .from('recipes')
       .insert({
-        title,
-        subtitle,
+        title: result.title,
+        subtitle: result.subtitle || null,
         slug,
-        prep_time_minutes: prepTime,
-        servings,
-        difficulty_level: difficulty,
+        prep_time_minutes: result.prep_time_minutes || 30,
+        servings: result.servings || 4,
+        difficulty_level: result.difficulty_level || 'easy',
         status: 'published',
         created_by: user.id,
-        is_premium: false
+        is_premium: false,
+        cover_image_url: result.cover_image_url || ogImage || null,
+        category_id: result.category_id || null
       })
       .select()
       .single()
@@ -138,39 +407,43 @@ serve(async (req) => {
       return createResponse(null, { code: 'DATABASE_ERROR', message: recipeError.message }, 400)
     }
 
-    // 3. Insert ingredients
-    const ingredientsToInsert = ingredients.map((ing, idx) => ({
-      recipe_id: recipe.id,
-      name: ing.name,
-      quantity_label: ing.quantity_label,
-      unit: ing.unit,
-      normalized_name: ing.name.toLowerCase().trim(),
-      sort_order: idx
-    }))
+    // 8. Insert ingredients
+    if (result.ingredients && result.ingredients.length > 0) {
+      const ingredientsToInsert = result.ingredients.map((ing, idx) => ({
+        recipe_id: recipe.id,
+        name: ing.name,
+        quantity_label: ing.quantity_label || null,
+        unit: ing.unit || null,
+        normalized_name: ing.name.toLowerCase().trim(),
+        sort_order: idx
+      }))
 
-    const { error: ingError } = await supabaseAdmin
-      .from('recipe_ingredients')
-      .insert(ingredientsToInsert)
+      const { error: ingError } = await supabaseAdmin
+        .from('recipe_ingredients')
+        .insert(ingredientsToInsert)
 
-    if (ingError) {
-      console.error('Error inserting ingredients:', ingError)
-      return createResponse(null, { code: 'DATABASE_ERROR', message: ingError.message }, 400)
+      if (ingError) {
+        console.error('Error inserting ingredients:', ingError)
+        return createResponse(null, { code: 'DATABASE_ERROR', message: ingError.message }, 400)
+      }
     }
 
-    // 4. Insert steps
-    const stepsToInsert = steps.map((content, idx) => ({
-      recipe_id: recipe.id,
-      step_number: idx + 1,
-      content
-    }))
+    // 9. Insert steps
+    if (result.steps && result.steps.length > 0) {
+      const stepsToInsert = result.steps.map((content, idx) => ({
+        recipe_id: recipe.id,
+        step_number: idx + 1,
+        content
+      }))
 
-    const { error: stepsError } = await supabaseAdmin
-      .from('recipe_steps')
-      .insert(stepsToInsert)
+      const { error: stepsError } = await supabaseAdmin
+        .from('recipe_steps')
+        .insert(stepsToInsert)
 
-    if (stepsError) {
-      console.error('Error inserting steps:', stepsError)
-      return createResponse(null, { code: 'DATABASE_ERROR', message: stepsError.message }, 400)
+      if (stepsError) {
+        console.error('Error inserting steps:', stepsError)
+        return createResponse(null, { code: 'DATABASE_ERROR', message: stepsError.message }, 400)
+      }
     }
 
     return createResponse({
