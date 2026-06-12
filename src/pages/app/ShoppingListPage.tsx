@@ -11,6 +11,7 @@ import { toast } from 'sonner'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/app/providers/AuthProvider'
 
 export function ShoppingListPage() {
   const { weekId: routeWeekId } = useParams()
@@ -18,6 +19,7 @@ export function ShoppingListPage() {
   const { data: activeWeek } = useActiveWeek()
   const { data: weeks } = useWeeks()
   const [searchTerm, setSearchTerm] = useState('')
+  const { user: profile } = useAuth()
 
   const weekId = routeWeekId ?? activeWeek?.id
   const selectedWeek = weeks?.find(w => w.id === weekId)
@@ -56,7 +58,16 @@ export function ShoppingListPage() {
     return groups
   }, [items])
 
+  const isPro = profile?.subscription_tier && 
+                profile.subscription_tier !== 'free' && 
+                profile.subscription_tier !== 'plano-gratuito'
+
   const handleShare = async () => {
+    if (!isPro) {
+      toast.error('O compartilhamento de listas é um recurso exclusivo dos planos PRO. Faça upgrade agora!')
+      navigate('/app/assinatura')
+      return
+    }
     if (!shoppingList) return
     try {
       const data = await shareResource.mutateAsync({

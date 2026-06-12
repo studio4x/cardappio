@@ -1,9 +1,12 @@
+import { useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { RecipeCard } from '@/components/recipes/RecipeCard'
 import { useCollection } from '@/hooks/recipes/useCollections'
+import { useAuth } from '@/app/providers/AuthProvider'
+import { toast } from 'sonner'
 
 /**
  * CollectionDetailPage
@@ -14,10 +17,21 @@ export function CollectionDetailPage() {
   const { slug } = useParams()
   const navigate = useNavigate()
   const { data: collection, isLoading, error, refetch } = useCollection(slug)
+  const { user } = useAuth()
+  const isPro = user?.subscription_tier && 
+                user.subscription_tier !== 'free' && 
+                user.subscription_tier !== 'plano-gratuito'
+
+  useEffect(() => {
+    if (collection && collection.is_premium && !isPro) {
+      toast.error('Esta coleção é exclusiva para membros PRO. Redirecionando para a página de planos...')
+      navigate('/app/assinatura', { replace: true })
+    }
+  }, [collection, isPro, navigate])
 
   if (isLoading) return <LoadingState message="Carregando coleção..." />
   if (error) return <ErrorState onRetry={() => refetch()} />
-  if (!collection) return <ErrorState message="Coleção não encontrada." onRetry={() => navigate('/app/colecoes')} />
+  if (!collection || (collection.is_premium && !isPro)) return <ErrorState message="Coleção não encontrada ou acesso restrito." onRetry={() => navigate('/app/colecoes')} />
 
   return (
     <div className="space-y-6">

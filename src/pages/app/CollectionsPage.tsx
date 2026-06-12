@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom'
-import { LayoutGrid } from 'lucide-react'
+import { LayoutGrid, Crown } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { useCollections } from '@/hooks/recipes/useCollections'
+import { useAuth } from '@/app/providers/AuthProvider'
+import { toast } from 'sonner'
 
 /**
  * CollectionsPage (Screen 18/editorial)
@@ -14,6 +16,10 @@ import { useCollections } from '@/hooks/recipes/useCollections'
 export function CollectionsPage() {
   const navigate = useNavigate()
   const { data: collections, isLoading, error, refetch } = useCollections()
+  const { user } = useAuth()
+  const isPro = user?.subscription_tier && 
+                user.subscription_tier !== 'free' && 
+                user.subscription_tier !== 'plano-gratuito'
 
   if (isLoading) return <LoadingState message="Carregando coleções..." />
   if (error) return <ErrorState onRetry={() => refetch()} />
@@ -36,7 +42,14 @@ export function CollectionsPage() {
           {collections.map((coll) => (
             <button
               key={coll.id}
-              onClick={() => navigate(`/app/colecoes/${coll.slug}`)}
+              onClick={() => {
+                if (coll.is_premium && !isPro) {
+                  toast.error('Esta coleção é exclusiva para membros PRO. Faça upgrade agora para ter acesso!')
+                  navigate('/app/assinatura')
+                  return
+                }
+                navigate(`/app/colecoes/${coll.slug}`)
+              }}
               className="group relative aspect-[21/9] w-full overflow-hidden rounded-2xl border text-left transition-all hover:shadow-lg cursor-pointer"
               style={{ borderColor: 'var(--color-outline-variant)' }}
             >
@@ -55,8 +68,9 @@ export function CollectionsPage() {
                   <p className="text-sm text-gray-200 line-clamp-1">{coll.description}</p>
                 )}
                 {coll.is_premium && (
-                  <span className="absolute top-4 right-4 rounded-full bg-amber-400 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-950">
-                    Premium
+                  <span className="absolute top-4 right-4 rounded-full bg-amber-500 text-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shadow">
+                    <Crown className="h-3 w-3" />
+                    PRO
                   </span>
                 )}
               </div>

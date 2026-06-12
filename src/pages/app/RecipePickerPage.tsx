@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
-import { Search, ChefHat, Sparkles, Star, Plus, Globe, ArrowRight, ListFilter, RefreshCw, Loader2, LayoutGrid, ArrowLeft, Crown } from 'lucide-react'
+import { Search, ChefHat, Sparkles, Star, Plus, Globe, ArrowRight, ListFilter, RefreshCw, Loader2, LayoutGrid, ArrowLeft, Crown, Lock } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
@@ -143,8 +143,26 @@ export function RecipePickerPage() {
     }
   }
 
+  const ownRecipesCount = userFavorites.filter(r => r.created_by === user?.id).length
+
+  const handleCreateRecipeClick = () => {
+    if (!isPremiumUser && ownRecipesCount >= 10) {
+      toast.error('Limite atingido!', {
+        description: 'O Plano Gratuito permite criar no máximo 10 receitas. Faça upgrade para ter receitas ilimitadas!'
+      })
+      navigate('/app/assinatura')
+      return
+    }
+    navigate('/app/receitas/nova')
+  }
+
   const handleImportRecipe = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!isPremiumUser) {
+      toast.error('A importação e reescrita de receitas com IA é um recurso exclusivo dos planos PRO. Faça upgrade agora!')
+      navigate('/app/assinatura')
+      return
+    }
     if (!importUrl) return
     setIsImporting(true)
     try {
@@ -466,22 +484,35 @@ export function RecipePickerPage() {
       {activeMethod === 'custom' && (
         <div className="grid gap-6 md:grid-cols-2">
           {/* Create Custom Recipe Card */}
-          <div className="bg-white rounded-3xl border border-slate-200 p-8 flex flex-col justify-between shadow-sm">
+          <div className="bg-white rounded-3xl border border-slate-200 p-8 flex flex-col justify-between shadow-sm relative overflow-hidden">
+            {!isPremiumUser && (
+              <span className="absolute top-4 right-4 bg-slate-100 text-slate-500 text-[9px] font-black uppercase px-2.5 py-1 rounded-full border border-slate-200">
+                {ownRecipesCount}/10 Criadas
+              </span>
+            )}
             <div className="space-y-2">
               <ChefHat className="h-10 w-10 text-primary" />
               <h3 className="text-xl font-bold text-slate-900">Nova Receita Manual</h3>
               <p className="text-xs text-slate-500">Escreva o passo a passo e ingredientes de suas próprias receitas caseiras para planejar.</p>
             </div>
-            <Button onClick={() => navigate('/app/receitas/nova')} className="w-full mt-6 rounded-2xl py-5 font-bold flex items-center gap-2">
+            <Button onClick={handleCreateRecipeClick} className="w-full mt-6 rounded-2xl py-5 font-bold flex items-center gap-2">
               Escrever Receita <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
 
           {/* Import Recipe Card */}
-          <div className="bg-white rounded-3xl border border-slate-200 p-8 flex flex-col justify-between shadow-sm">
+          <div className="bg-white rounded-3xl border border-slate-200 p-8 flex flex-col justify-between shadow-sm relative overflow-hidden">
+            {!isPremiumUser && (
+              <div className="absolute top-0 right-0 bg-amber-500 text-white text-[9px] font-black uppercase px-3 py-1 rounded-bl-xl tracking-wider">
+                Exclusivo PRO
+              </div>
+            )}
             <form onSubmit={handleImportRecipe} className="space-y-4">
-              <Globe className="h-10 w-10 text-primary" />
-              <h3 className="text-xl font-bold text-slate-900">Importar da Internet</h3>
+              <Globe className={cn("h-10 w-10", isPremiumUser ? "text-primary" : "text-amber-500")} />
+              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-1.5">
+                Importar da Internet
+                {!isPremiumUser && <Lock className="h-4 w-4 text-amber-500" />}
+              </h3>
               <p className="text-xs text-slate-500">Cole o link de uma receita da internet. Nossa IA irá reescrever as instruções para o seu app.</p>
               
               <div className="space-y-1 pt-2">
