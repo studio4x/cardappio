@@ -303,7 +303,14 @@ export function RecipePickerPage() {
                 {collections.map((coll) => (
                   <button
                     key={coll.id}
-                    onClick={() => setSelectedCollectionSlug(coll.slug)}
+                    onClick={() => {
+                      if (coll.is_premium && !isPremiumUser) {
+                        toast.error('Esta coleção é exclusiva para membros PRO. Faça upgrade agora para ter acesso!')
+                        navigate('/app/assinatura')
+                        return
+                      }
+                      setSelectedCollectionSlug(coll.slug)
+                    }}
                     className="group relative aspect-[21/9] w-full overflow-hidden rounded-3xl border text-left transition-all hover:shadow-lg cursor-pointer"
                     style={{ borderColor: 'var(--color-outline-variant)' }}
                   >
@@ -322,8 +329,9 @@ export function RecipePickerPage() {
                         <p className="text-xs text-gray-200 line-clamp-1">{coll.description}</p>
                       )}
                       {coll.is_premium && (
-                        <span className="absolute top-4 right-4 rounded-full bg-amber-400 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-amber-950">
-                          Premium
+                        <span className="absolute top-4 right-4 rounded-full bg-amber-500 text-white px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider flex items-center gap-1 shadow">
+                          {!isPremiumUser ? <Lock className="h-2.5 w-2.5" /> : <Crown className="h-2.5 w-2.5" />}
+                          PRO
                         </span>
                       )}
                     </div>

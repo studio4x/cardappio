@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { LayoutGrid, Crown } from 'lucide-react'
+import { LayoutGrid, Crown, Lock } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
@@ -69,7 +69,7 @@ export function CollectionsPage() {
                 )}
                 {coll.is_premium && (
                   <span className="absolute top-4 right-4 rounded-full bg-amber-500 text-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shadow">
-                    <Crown className="h-3 w-3" />
+                    {!isPro ? <Lock className="h-3 w-3" /> : <Crown className="h-3 w-3" />}
                     PRO
                   </span>
                 )}
