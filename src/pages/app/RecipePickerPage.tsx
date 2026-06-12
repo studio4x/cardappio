@@ -198,12 +198,13 @@ export function RecipePickerPage() {
         {[
           { id: 'catalog', label: 'Catálogo Geral', icon: ChefHat },
           { id: 'colecoes', label: 'Coleções', icon: LayoutGrid },
-          { id: 'food_type', label: 'Tipo de Alimento (A)', icon: ListFilter },
-          { id: 'suggestions', label: 'Sugestões (B)', icon: Sparkles },
+          { id: 'food_type', label: 'Tipo de Alimento (A)', icon: ListFilter, isPro: true },
+          { id: 'suggestions', label: 'Sugestões (B)', icon: Sparkles, isPro: true },
           { id: 'favorites', label: 'Meus Favoritos (C)', icon: Star },
           { id: 'custom', label: 'Importar / Nova (D)', icon: Globe },
         ].map(method => {
           const Icon = method.icon
+          const showLockIcon = method.isPro && !isPremiumUser
           return (
             <button
               key={method.id}
@@ -219,8 +220,9 @@ export function RecipePickerPage() {
                   : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-3.5 w-3.5" />
               {method.label}
+              {showLockIcon && <Lock className="h-3 w-3 text-amber-500" />}
             </button>
           )
         })}
@@ -380,86 +382,138 @@ export function RecipePickerPage() {
       {/* Method A: Choose by Food Type */}
       {activeMethod === 'food_type' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-200 p-6">
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Escolha por tipos de alimento</h3>
-            <p className="text-xs text-slate-500 mb-6">Selecione uma base alimentar para receber 5 sugestões de receitas.</p>
-
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-6 mb-6">
-              {['Frango', 'Carne', 'Peixe', 'Massa', 'Legume', 'Salada'].map(food => (
-                <button
-                  key={food}
-                  onClick={() => {
-                    setSelectedFoodType(food)
-                    setFoodTypeOffset(0)
-                  }}
-                  className={cn(
-                    'py-3.5 px-4 rounded-2xl border text-xs font-bold transition-all cursor-pointer uppercase tracking-wider',
-                    selectedFoodType === food ? 'bg-primary text-white border-primary shadow-sm' : 'bg-slate-50 border-transparent text-slate-500 hover:bg-slate-100'
-                  )}
-                >
-                  {food}
-                </button>
-              ))}
-            </div>
-
-            {selectedFoodType && (
-              <div className="space-y-4 pt-4 border-t border-slate-100">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-bold text-slate-700">Sugestões de receitas com: <span className="text-primary">{selectedFoodType}</span></h4>
-                  <Button variant="outline" size="sm" onClick={() => setFoodTypeOffset(o => o + 1)} className="rounded-full flex items-center gap-1">
-                    <RefreshCw className="h-3 w-3" /> Novas Sugestões
-                  </Button>
-                </div>
-
-                {foodTypeRecipes.length === 0 ? (
-                  <p className="text-xs text-slate-400 py-4">Nenhuma sugestão encontrada para esta base alimentar.</p>
-                ) : (
-                  <div className="grid gap-3">
-                    {foodTypeRecipes.map(recipe => (
-                      <div key={recipe.id} className="flex items-center justify-between bg-slate-50 rounded-2xl p-4 border border-slate-100 hover:border-primary transition-all">
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <h5 className="font-bold text-sm text-slate-900">{recipe.title}</h5>
-                            {recipe.is_premium && (
-                              <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-400 px-1.5 py-0.5 text-[8px] font-black uppercase text-amber-950">
-                                <Crown className="h-2 w-2" />
-                                Pro
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-slate-500 mt-0.5">{recipe.prep_time_minutes} min | porções: {recipe.servings}</p>
-                        </div>
-                        <Button size="sm" onClick={() => handleSelectRecipe(recipe)} className="rounded-full">
-                          Escolher
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+          {!isPremiumUser ? (
+            <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 md:p-12 text-center max-w-2xl mx-auto space-y-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
+                <Crown className="h-24 w-24 text-amber-500 rotate-12" />
               </div>
-            )}
-          </div>
+              <div className="h-16 w-16 mx-auto rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500 shadow-inner">
+                <Lock className="h-8 w-8" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-slate-900">Escolha por tipos de alimento</h3>
+                <p className="text-slate-500 text-sm max-w-md mx-auto">
+                  A filtragem rápida por base alimentar (Frango, Carne, Peixe, etc.) é um recurso exclusivo dos planos PRO.
+                </p>
+              </div>
+              <div className="pt-2">
+                <Button 
+                  onClick={() => navigate('/app/assinatura')}
+                  className="rounded-2xl px-8 py-5 font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-200 border-none active:scale-95 transition-all text-xs"
+                >
+                  Fazer Upgrade para PRO
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-3xl border border-slate-200 p-6">
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Escolha por tipos de alimento</h3>
+              <p className="text-xs text-slate-500 mb-6">Selecione uma base alimentar para receber 5 sugestões de receitas.</p>
+
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-6 mb-6">
+                {['Frango', 'Carne', 'Peixe', 'Massa', 'Legume', 'Salada'].map(food => (
+                  <button
+                    key={food}
+                    onClick={() => {
+                      setSelectedFoodType(food)
+                      setFoodTypeOffset(0)
+                    }}
+                    className={cn(
+                      'py-3.5 px-4 rounded-2xl border text-xs font-bold transition-all cursor-pointer uppercase tracking-wider',
+                      selectedFoodType === food ? 'bg-primary text-white border-primary shadow-sm' : 'bg-slate-50 border-transparent text-slate-500 hover:bg-slate-100'
+                    )}
+                  >
+                    {food}
+                  </button>
+                ))}
+              </div>
+
+              {selectedFoodType && (
+                <div className="space-y-4 pt-4 border-t border-slate-100">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-bold text-slate-700">Sugestões de receitas com: <span className="text-primary">{selectedFoodType}</span></h4>
+                    <Button variant="outline" size="sm" onClick={() => setFoodTypeOffset(o => o + 1)} className="rounded-full flex items-center gap-1">
+                      <RefreshCw className="h-3 w-3" /> Novas Sugestões
+                    </Button>
+                  </div>
+
+                  {foodTypeRecipes.length === 0 ? (
+                    <p className="text-xs text-slate-400 py-4">Nenhuma sugestão encontrada para esta base alimentar.</p>
+                  ) : (
+                    <div className="grid gap-3">
+                      {foodTypeRecipes.map(recipe => (
+                        <div key={recipe.id} className="flex items-center justify-between bg-slate-50 rounded-2xl p-4 border border-slate-100 hover:border-primary transition-all">
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <h5 className="font-bold text-sm text-slate-900">{recipe.title}</h5>
+                              {recipe.is_premium && (
+                                <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-400 px-1.5 py-0.5 text-[8px] font-black uppercase text-amber-950">
+                                  <Crown className="h-2 w-2" />
+                                  Pro
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-500 mt-0.5">{recipe.prep_time_minutes} min | porções: {recipe.servings}</p>
+                          </div>
+                          <Button size="sm" onClick={() => handleSelectRecipe(recipe)} className="rounded-full">
+                            Escolher
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
       {/* Method B: Smart Suggestions based on preferences */}
       {activeMethod === 'suggestions' && (
         <div className="space-y-6">
-          <div className="bg-slate-900 text-white rounded-[2.5rem] p-8 relative overflow-hidden">
-            <div className="relative z-10 max-w-md">
-              <h3 className="text-2xl font-black">Cardápios Sugeridos</h3>
-              <p className="text-sm text-slate-300 mt-2">
-                Sugestões automatizadas criadas com base nas preferências coletadas no seu onboarding alimentício.
-              </p>
+          {!isPremiumUser ? (
+            <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 md:p-12 text-center max-w-2xl mx-auto space-y-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
+                <Crown className="h-24 w-24 text-amber-500 rotate-12" />
+              </div>
+              <div className="h-16 w-16 mx-auto rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500 shadow-inner">
+                <Lock className="h-8 w-8" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-slate-900">Cardápios Sugeridos</h3>
+                <p className="text-slate-500 text-sm max-w-md mx-auto">
+                  As sugestões automatizadas com base no seu perfil nutricional e onboarding são um recurso exclusivo dos planos PRO.
+                </p>
+              </div>
+              <div className="pt-2">
+                <Button 
+                  onClick={() => navigate('/app/assinatura')}
+                  className="rounded-2xl px-8 py-5 font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-200 border-none active:scale-95 transition-all text-xs"
+                >
+                  Fazer Upgrade para PRO
+                </Button>
+              </div>
             </div>
-            <Sparkles className="absolute right-6 bottom-6 h-24 w-24 text-white/5" />
-          </div>
+          ) : (
+            <>
+              <div className="bg-slate-900 text-white rounded-[2.5rem] p-8 relative overflow-hidden">
+                <div className="relative z-10 max-w-md">
+                  <h3 className="text-2xl font-black">Cardápios Sugeridos</h3>
+                  <p className="text-sm text-slate-300 mt-2">
+                    Sugestões automatizadas criadas com base nas preferências coletadas no seu onboarding alimentício.
+                  </p>
+                </div>
+                <Sparkles className="absolute right-6 bottom-6 h-24 w-24 text-white/5" />
+              </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {suggestedRecipes.map((recipe) => (
-              <RecipeCard key={recipe.id} recipe={recipe} onClick={() => handleSelectRecipe(recipe)} isPickerMode={isPickerMode} isUserPremium={isPremiumUser} />
-            ))}
-          </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {suggestedRecipes.map((recipe) => (
+                  <RecipeCard key={recipe.id} recipe={recipe} onClick={() => handleSelectRecipe(recipe)} isPickerMode={isPickerMode} isUserPremium={isPremiumUser} />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
 
