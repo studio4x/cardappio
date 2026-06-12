@@ -358,13 +358,42 @@ async function generateNutritionInternal(
         const match = content?.match(/\{[\s\S]*\}/)
         if (match) return formatNutritionData(JSON.parse(match[0]) as AISchema)
       } else if (provider === 'gemini' && aiConfig.gemini_api_key) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${aiConfig.gemini_api_key}`
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${aiConfig.gemini_api_key}`
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.3, maxOutputTokens: 400 }
+            systemInstruction: {
+              parts: [{ text: 'Você é um nutricionista especializado. Responda sempre APENAS com o JSON puro da tabela nutricional, respeitando estritamente o esquema fornecido.' }]
+            },
+            generationConfig: {
+              temperature: 0.3,
+              maxOutputTokens: 8192,
+              responseMimeType: 'application/json',
+              responseSchema: {
+                type: 'object',
+                properties: {
+                  serving_size_g_ml: { type: 'integer', description: 'Peso ou volume estimado de uma porção em g ou ml' },
+                  serving_size_household: { type: 'string', description: 'Medida caseira correspondente à porção' },
+                  calories: { type: 'number', description: 'Calorias por porção em kcal' },
+                  carbs: { type: 'number', description: 'Carboidratos por porção em gramas' },
+                  total_sugars: { type: 'number', description: 'Açúcares totais por porção em gramas' },
+                  added_sugars: { type: 'number', description: 'Açúcares adicionados por porção em gramas' },
+                  protein: { type: 'number', description: 'Proteínas por porção em gramas' },
+                  fat: { type: 'number', description: 'Gorduras totais por porção em gramas' },
+                  saturated_fat: { type: 'number', description: 'Gorduras saturadas por porção em gramas' },
+                  trans_fat: { type: 'number', description: 'Gorduras trans por porção em gramas' },
+                  fiber: { type: 'number', description: 'Fibra alimentar por porção em gramas' },
+                  sodium: { type: 'number', description: 'Sódio por porção em miligramas' }
+                },
+                required: [
+                  "serving_size_g_ml", "serving_size_household", "calories", "carbs", 
+                  "total_sugars", "added_sugars", "protein", "fat", "saturated_fat", 
+                  "trans_fat", "fiber", "sodium"
+                ]
+              }
+            }
           })
         })
         if (!res.ok) throw new Error(`Gemini ${res.status}`)

@@ -92,13 +92,17 @@ export function AdminRecipesPage() {
     const trimmed = importUrl.trim()
     if (!trimmed) return
     setIsImporting(true)
+
     try {
+      toast.loading('Importando receita com IA...', { id: 'import-progress' })
       const { data, error } = await supabase.functions.invoke('rebuild-external-recipe', {
         body: { url: trimmed }
       })
       if (error) throw error
       if (data?.error) throw new Error(data.error.message || 'Erro ao importar receita')
+      
       toast.success(`Receita "${data?.data?.title || 'importada'}" criada com sucesso!`, {
+        id: 'import-progress',
         description: 'A tabela nutricional foi gerada automaticamente pela IA.'
       })
       setImportUrl('')
@@ -106,6 +110,7 @@ export function AdminRecipesPage() {
     } catch (err: any) {
       console.error('Import error:', err)
       toast.error('Erro ao importar receita', {
+        id: 'import-progress',
         description: err.message || 'Verifique o link e tente novamente.'
       })
     } finally {
