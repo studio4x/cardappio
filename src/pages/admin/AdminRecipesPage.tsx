@@ -43,11 +43,13 @@ export function AdminRecipesPage() {
   const [isImporting, setIsImporting] = useState(false)
   const [generatingNutritionId, setGeneratingNutritionId] = useState<string | null>(null)
   const [togglingPremiumId, setTogglingPremiumId] = useState<string | null>(null)
+  const [premiumFilter, setPremiumFilter] = useState<'all' | 'premium' | 'free'>('all')
   const pageSize = 10
   
   const { data, isLoading, refetch } = useRecipes({ 
     search: searchTerm || undefined,
     categoryId: categoryFilter === 'all' ? undefined : categoryFilter,
+    isPremium: premiumFilter === 'all' ? undefined : premiumFilter === 'premium',
     status: 'all',
     page,
     pageSize
@@ -271,7 +273,7 @@ export function AdminRecipesPage() {
       </div>
 
       {/* Filters & search */}
-      <div className="flex flex-col gap-4 md:flex-row">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
@@ -287,22 +289,41 @@ export function AdminRecipesPage() {
           />
         </div>
         
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <select
-            value={categoryFilter}
-            onChange={(e) => {
-              setCategoryFilter(e.target.value)
-              setPage(1)
-            }}
-            className="rounded-xl border p-2.5 focus:outline-none focus:ring-2 focus:ring-primary min-w-[180px]"
-            style={{ borderColor: 'var(--color-outline-variant)' }}
-          >
-            <option value="all">Todas as categorias</option>
-            {categories?.map(cat => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
-            ))}
-          </select>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <select
+              value={categoryFilter}
+              onChange={(e) => {
+                setCategoryFilter(e.target.value)
+                setPage(1)
+              }}
+              className="rounded-xl border p-2.5 focus:outline-none focus:ring-2 focus:ring-primary min-w-[180px]"
+              style={{ borderColor: 'var(--color-outline-variant)' }}
+            >
+              <option value="all">Todas as categorias</option>
+              {categories?.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Crown className="h-4 w-4 text-muted-foreground" />
+            <select
+              value={premiumFilter}
+              onChange={(e) => {
+                setPremiumFilter(e.target.value as 'all' | 'premium' | 'free')
+                setPage(1)
+              }}
+              className="rounded-xl border p-2.5 focus:outline-none focus:ring-2 focus:ring-primary min-w-[150px]"
+              style={{ borderColor: 'var(--color-outline-variant)' }}
+            >
+              <option value="all">Todos os acessos</option>
+              <option value="premium">Apenas PRO (Premium)</option>
+              <option value="free">Apenas Gratuitas</option>
+            </select>
+          </div>
         </div>
       </div>
 

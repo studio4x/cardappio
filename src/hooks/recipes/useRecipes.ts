@@ -13,6 +13,7 @@ export function useRecipes(filters?: {
   status?: 'published' | 'draft' | 'archived' | 'all'
   page?: number
   pageSize?: number
+  isPremium?: boolean
 }) {
   return useQuery({
     queryKey: ['recipes', filters],
@@ -52,6 +53,10 @@ export function useRecipes(filters?: {
 
       if (filters?.search) {
         query = query.ilike('title', `%${filters.search}%`)
+      }
+
+      if (filters?.isPremium !== undefined) {
+        query = query.eq('is_premium', filters.isPremium)
       }
 
       // Pagination
