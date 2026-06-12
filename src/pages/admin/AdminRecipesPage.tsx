@@ -12,7 +12,8 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
-  Trash2
+  Trash2,
+  Link2
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -36,6 +37,8 @@ export function AdminRecipesPage() {
   const [seeding, setSeeding] = useState(false)
   const [page, setPage] = useState(1)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [importUrl, setImportUrl] = useState('')
+  const [isImporting, setIsImporting] = useState(false)
   const pageSize = 10
   
   const { data, isLoading, refetch } = useRecipes({ 
@@ -84,6 +87,32 @@ export function AdminRecipesPage() {
     }
   }
 
+  const handleImportRecipe = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const trimmed = importUrl.trim()
+    if (!trimmed) return
+    setIsImporting(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('rebuild-external-recipe', {
+        body: { url: trimmed }
+      })
+      if (error) throw error
+      if (data?.error) throw new Error(data.error.message || 'Erro ao importar receita')
+      toast.success(`Receita "${data?.data?.title || 'importada'}" criada com sucesso!`, {
+        description: 'A tabela nutricional foi gerada automaticamente pela IA.'
+      })
+      setImportUrl('')
+      refetch()
+    } catch (err: any) {
+      console.error('Import error:', err)
+      toast.error('Erro ao importar receita', {
+        description: err.message || 'Verifique o link e tente novamente.'
+      })
+    } finally {
+      setIsImporting(false)
+    }
+  }
+
   if (isLoading) return <LoadingState message="Carregando receitas..." />
 
   return (
@@ -115,6 +144,42 @@ export function AdminRecipesPage() {
             Nova Receita
           </Button>
         </div>
+      </div>
+
+      {/* URL Importer */}
+      <div className="rounded-2xl border bg-white p-5" style={{ borderColor: 'var(--color-outline-variant)' }}>
+        <div className="flex items-center gap-2 mb-3">
+          <Link2 className="h-4 w-4 text-primary" />
+          <span className="text-sm font-semibold text-foreground">Importar receita via URL</span>
+          <span className="text-xs text-muted-foreground ml-1">— a IA extrai, reescreve e gera a tabela nutricional automaticamente</span>
+        </div>
+        <form onSubmit={handleImportRecipe} className="flex gap-3">
+          <div className="relative flex-1">
+            <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="url"
+              placeholder="https://www.tudogostoso.com.br/receita/..."
+              value={importUrl}
+              onChange={(e) => setImportUrl(e.target.value)}
+              disabled={isImporting}
+              className="w-full rounded-xl border p-2.5 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+              style={{ borderColor: 'var(--color-outline-variant)' }}
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={isImporting || !importUrl.trim()}
+            className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-opacity"
+          >
+            {isImporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            {isImporting ? 'Importando...' : 'Importar com IA'}
+          </button>
+        </form>
+        {isImporting && (
+          <p className="mt-2 text-xs text-muted-foreground animate-pulse">
+            Buscando a página, processando com IA e gerando tabela nutricional... isso pode levar até 30 segundos.
+          </p>
+        )}
       </div>
 
       {/* Filters & search */}

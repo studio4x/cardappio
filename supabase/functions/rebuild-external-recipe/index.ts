@@ -27,6 +27,56 @@ interface AIConfig {
   preferred_provider: 'openai' | 'gemini'
 }
 
+// ─── Nutrition types & ANVISA constants ──────────────────────────────────────
+interface NutrientValue {
+  per_100g: number
+  per_serving: number
+  vd_percent: number | null
+}
+
+interface NutritionInfo {
+  serving_size_g_ml: number
+  serving_size_household: string
+  nutrients: {
+    energy_kcal: NutrientValue
+    energy_kj: NutrientValue
+    carbs: NutrientValue
+    total_sugars: NutrientValue
+    added_sugars: NutrientValue
+    protein: NutrientValue
+    fat: NutrientValue
+    saturated_fat: NutrientValue
+    trans_fat: NutrientValue
+    fiber: NutrientValue
+    sodium: NutrientValue
+  }
+}
+
+interface AISchema {
+  serving_size_g_ml: number
+  serving_size_household: string
+  calories: number
+  carbs: number
+  total_sugars: number
+  added_sugars: number
+  protein: number
+  fat: number
+  saturated_fat: number
+  trans_fat: number
+  fiber: number
+  sodium: number
+}
+
+const REF_ENERGY_KCAL = 2000
+const REF_ENERGY_KJ = 8400
+const REF_CARBS = 300
+const REF_ADDED_SUGARS = 50
+const REF_PROTEIN = 50
+const REF_FAT = 65
+const REF_SATURATED_FAT = 22
+const REF_FIBER = 25
+const REF_SODIUM = 2000
+
 // ─── Fetch external page ──────────────────────────────────────────────────────
 async function fetchRecipePage(urlStr: string): Promise<string> {
   const response = await fetch(urlStr, {
@@ -208,6 +258,126 @@ async function callGemini(apiKey: string, prompt: string): Promise<ParsedRecipe>
   }
 
   return JSON.parse(jsonMatch[0]) as ParsedRecipe
+}
+
+// ─── Nutrition helpers (inline from generate-nutrition) ──────────────────────
+function buildNutritionPrompt(ingredients: Ingredient[], servings: number): string {
+  const ingredientList = ingredients
+    .map(i => {
+      const qty = i.quantity_label ? i.quantity_label : ''
+      const unit = i.unit ? i.unit : ''
+      return `- ${i.name}${qty || unit ? `: ${qty} ${unit}`.trim() : ''}`
+    })
+    .join('\n')
+
+  return `Você é um nutricionista especializado. Analise a lista de ingredientes abaixo de uma receita que rende ${servings} porção(ões) e estime a tabela nutricional POR PORÇÃO.
+
+Ingredientes:
+${ingredientList}
+
+Responda APENAS com um JSON válido, sem texto extra, no formato exato:
+{
+  "serving_size_g_ml": <número inteiro>,
+  "serving_size_household": "<medida caseira>",
+  "calories": <número>,
+  "carbs": <número>,
+  "total_sugars": <número>,
+  "added_sugars": <número>,
+  "protein": <número>,
+  "fat": <número>,
+  "saturated_fat": <número>,
+  "trans_fat": <número>,
+  "fiber": <número>,
+  "sodium": <número>
+}
+
+Forneça estimativas realistas baseadas em composição média de alimentos.`
+}
+
+function formatNutritionData(parsed: AISchema): NutritionInfo {
+  const size = parsed.serving_size_g_ml || 100
+  const calc = (val: number, ref: number | null, isEnergy = false): NutrientValue => {
+    const per_serving = isEnergy ? Math.round(val) : Math.round(val * 10) / 10
+    const per_100g = isEnergy
+      ? Math.round((val / size) * 100)
+      : Math.round(((val / size) * 100) * 10) / 10
+    const vd_percent = ref ? Math.round((val / ref) * 100) : null
+    return { per_100g, per_serving, vd_percent }
+  }
+  const kcalVal = parsed.calories || 0
+  const kjVal = kcalVal * 4.184
+  return {
+    serving_size_g_ml: size,
+    serving_size_household: parsed.serving_size_household || '1 porção',
+    nutrients: {
+      energy_kcal: calc(kcalVal, REF_ENERGY_KCAL, true),
+      energy_kj: calc(kjVal, REF_ENERGY_KJ, true),
+      carbs: calc(parsed.carbs || 0, REF_CARBS),
+      total_sugars: calc(parsed.total_sugars || 0, null),
+      added_sugars: calc(parsed.added_sugars || 0, REF_ADDED_SUGARS),
+      protein: calc(parsed.protein || 0, REF_PROTEIN),
+      fat: calc(parsed.fat || 0, REF_FAT),
+      saturated_fat: calc(parsed.saturated_fat || 0, REF_SATURATED_FAT),
+      trans_fat: calc(parsed.trans_fat || 0, null),
+      fiber: calc(parsed.fiber || 0, REF_FIBER),
+      sodium: calc(parsed.sodium || 0, REF_SODIUM)
+    }
+  }
+}
+
+async function generateNutritionInternal(
+  ingredients: Ingredient[],
+  servings: number,
+  aiConfig: AIConfig
+): Promise<NutritionInfo | null> {
+  const prompt = buildNutritionPrompt(ingredients, servings)
+  const providers: Array<'openai' | 'gemini'> = aiConfig.preferred_provider === 'gemini'
+    ? ['gemini', 'openai']
+    : ['openai', 'gemini']
+
+  for (const provider of providers) {
+    try {
+      if (provider === 'openai' && aiConfig.openai_api_key) {
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${aiConfig.openai_api_key}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: 'Você é um nutricionista especializado. Responda sempre com JSON puro, sem markdown.' },
+              { role: 'user', content: prompt }
+            ],
+            temperature: 0.3,
+            max_tokens: 400,
+            response_format: { type: 'json_object' }
+          })
+        })
+        if (!res.ok) throw new Error(`OpenAI ${res.status}`)
+        const d = await res.json()
+        const content = d.choices?.[0]?.message?.content
+        const match = content?.match(/\{[\s\S]*\}/)
+        if (match) return formatNutritionData(JSON.parse(match[0]) as AISchema)
+      } else if (provider === 'gemini' && aiConfig.gemini_api_key) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${aiConfig.gemini_api_key}`
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.3, maxOutputTokens: 400 }
+          })
+        })
+        if (!res.ok) throw new Error(`Gemini ${res.status}`)
+        const d = await res.json()
+        const rawText = d.candidates?.[0]?.content?.parts?.[0]?.text
+        const match = rawText?.match(/\{[\s\S]*\}/)
+        if (match) return formatNutritionData(JSON.parse(match[0]) as AISchema)
+      }
+    } catch (err) {
+      console.warn(`Nutrition provider ${provider} failed:`, err)
+    }
+  }
+  return null
 }
 
 // ─── Build prompt ─────────────────────────────────────────────────────────────
@@ -443,6 +613,27 @@ serve(async (req) => {
       if (stepsError) {
         console.error('Error inserting steps:', stepsError)
         return createResponse(null, { code: 'DATABASE_ERROR', message: stepsError.message }, 400)
+      }
+    }
+
+    // 10. Auto-generate nutrition (best-effort — does not block the response)
+    if (result.ingredients && result.ingredients.length > 0) {
+      try {
+        console.log('Generating nutrition for imported recipe...')
+        const nutritionInfo = await generateNutritionInternal(
+          result.ingredients,
+          result.servings || 4,
+          aiConfig
+        )
+        if (nutritionInfo) {
+          await supabaseAdmin
+            .from('recipes')
+            .update({ nutrition_info: nutritionInfo })
+            .eq('id', recipe.id)
+          console.log('Nutrition saved successfully for recipe:', recipe.id)
+        }
+      } catch (nutritionErr) {
+        console.warn('Auto-nutrition failed (non-blocking):', nutritionErr)
       }
     }
 
