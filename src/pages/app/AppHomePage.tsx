@@ -31,17 +31,84 @@ export function AppHomePage() {
   const { data: recommendedRecipesData, isLoading: recsLoading } = useRecipes({ pageSize: 12 }) // Load more to allow filtering
   const toggleFavorite = useToggleFavorite()
 
-  const [selectedRecipeForPortions, setSelectedRecipeForPortions] = useState<string>('')
+  // Planning Assistant calculations
+  const plannedDaysCount = useMemo(() => {
+    if (!activeWeek?.days) return 0
+    return activeWeek.days.filter(day => 
+      day.slots?.some(slot => slot.recipe_id)
+    ).length
+  }, [activeWeek?.days])
 
-  const targetRecipe = useMemo(() => {
-    return recommendedRecipesData?.recipes?.find(r => r.id === selectedRecipeForPortions)
-  }, [recommendedRecipesData?.recipes, selectedRecipeForPortions])
+  const targetPlanDays = preferences?.default_plan_days || 5
 
-  useEffect(() => {
-    if (recommendedRecipesData?.recipes?.length && !selectedRecipeForPortions) {
-      setSelectedRecipeForPortions(recommendedRecipesData.recipes[0].id)
+  const dietaryWarnings = useMemo(() => {
+    if (!activeWeek?.days || !preferences?.dietary_restrictions?.length) return []
+
+    const warnings: { recipeId: string; recipeTitle: string; recipeSlug: string; restriction: string }[] = []
+    
+    activeWeek.days.forEach(day => {
+      day.slots?.forEach(slot => {
+        const recipe = slot.recipe
+        if (!recipe) return
+        
+        const textToSearch = [
+          recipe.title,
+          recipe.notes || '',
+          recipe.usage_context || '',
+          recipe.category?.name || ''
+        ].join(' ').toLowerCase()
+
+        preferences.dietary_restrictions.forEach(restriction => {
+          let complies = true
+          if (restriction === 'sem_gluten') {
+            complies = textToSearch.includes('glúten') || textToSearch.includes('gluten') || textToSearch.includes('fit') || textToSearch.includes('saudável') || textToSearch.includes('sem glúten') || textToSearch.includes('sem gluten')
+          } else if (restriction === 'sem_lactose') {
+            complies = textToSearch.includes('lactose') || textToSearch.includes('zero lactose') || textToSearch.includes('sem lactose') || textToSearch.includes('vegano')
+          } else if (restriction === 'vegetariano') {
+            complies = textToSearch.includes('vegetariano') || textToSearch.includes('veggie') || textToSearch.includes('salada') || textToSearch.includes('vegano')
+          } else if (restriction === 'vegano') {
+            complies = textToSearch.includes('vegano') || textToSearch.includes('vegan')
+          } else if (restriction === 'low_carb') {
+            complies = textToSearch.includes('low carb') || textToSearch.includes('proteico') || textToSearch.includes('salada')
+          }
+
+          if (!complies) {
+            const alreadyAdded = warnings.some(w => w.recipeId === recipe.id && w.restriction === restriction)
+            if (!alreadyAdded) {
+              warnings.push({
+                recipeId: recipe.id,
+                recipeTitle: recipe.title,
+                recipeSlug: recipe.slug,
+                restriction
+              })
+            }
+          }
+        })
+      })
+    })
+
+    return warnings
+  }, [activeWeek?.days, preferences?.dietary_restrictions])
+
+  const getRestrictionLabel = (restriction: string) => {
+    const map: Record<string, string> = {
+      sem_gluten: 'Sem Glúten',
+      sem_lactose: 'Sem Lactose',
+      vegetariano: 'Vegetariano',
+      vegano: 'Vegano',
+      low_carb: 'Low Carb'
     }
-  }, [recommendedRecipesData?.recipes, selectedRecipeForPortions])
+    return map[restriction] || restriction
+  }
+
+  const totalMealsCount = useMemo(() => {
+    if (!activeWeek?.days) return 0
+    return activeWeek.days.reduce((acc, day) => 
+      acc + (day.slots?.filter(s => s.recipe_id).length || 0), 0
+    )
+  }, [activeWeek?.days])
+
+  const estimatedPortions = totalMealsCount * (preferences?.household_size || 1)
 
   const greetingName = user?.full_name ? user.full_name.split(' ')[0] : 'usuário'
   const greeting = `Olá, ${greetingName}! 👋`
@@ -394,21 +461,128 @@ export function AppHomePage() {
           )}
         </div>
 
-        {/* Preferences / Goal Assistant Card */}
+        {/* Planning Assistant Card */}
         <div 
           className="col-span-12 lg:col-span-4 bg-white border rounded-3xl p-6 shadow-sm flex flex-col justify-between"
           style={{ borderColor: 'var(--color-outline-variant)' }}
         >
-          <div>
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary animate-pulse" />
-              Metas & Porções
+          <div className="space-y-5">
+            <h3 className="text-lg font-bold flex items-center gap-2 text-on-surface">
+              <ListChecks className="h-5 w-5 text-primary" />
+              Assistente de Planejamento
             </h3>
-            
-            {/* Goal-based Tip */}
+
+            {/* 1. Planning Progress */}
+            {activeWeek ? (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-xs font-bold text-slate-500">
+                  <span>Progresso do Cardápio</span>
+                  <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full font-bold">
+                    {plannedDaysCount} de {targetPlanDays} {targetPlanDays === 1 ? 'dia' : 'dias'}
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                  <div 
+                    className="bg-primary h-full rounded-full transition-all duration-500" 
+                    style={{ width: `${Math.min(100, (plannedDaysCount / targetPlanDays) * 100)}%` }} 
+                  />
+                </div>
+                <p className="text-[11px] text-text-secondary font-medium">
+                  {plannedDaysCount === 0 ? (
+                    "Monte seu cardápio semanal para organizar suas refeições."
+                  ) : plannedDaysCount >= targetPlanDays ? (
+                    "🎉 Meta semanal atingida com sucesso!"
+                  ) : (
+                    `Falta planejar mais ${targetPlanDays - plannedDaysCount} ${targetPlanDays - plannedDaysCount === 1 ? 'dia' : 'dias'} para atingir sua meta.`
+                  )}
+                </p>
+              </div>
+            ) : (
+              <div className="p-4 bg-slate-50 border rounded-2xl text-center space-y-2">
+                <CalendarDays className="h-8 w-8 text-slate-400 mx-auto" />
+                <p className="text-xs font-bold text-slate-700">Sem semana ativa</p>
+                <p className="text-[11px] text-slate-500">Crie uma nova semana no planejador para começar.</p>
+                <Link 
+                  to="/app/semana" 
+                  className="inline-block text-xs font-bold bg-primary text-white px-4 py-2 rounded-xl no-underline"
+                >
+                  Criar Semana
+                </Link>
+              </div>
+            )}
+
+            {/* 2. Dietary Auditor */}
+            {activeWeek && preferences && (
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-slate-500 block">Auditoria de Dieta</span>
+                {preferences.dietary_restrictions && preferences.dietary_restrictions.length > 0 ? (
+                  dietaryWarnings.length > 0 ? (
+                    <div className="bg-amber-50 border border-amber-100 rounded-2xl p-3.5 space-y-2 max-h-[140px] overflow-y-auto">
+                      <div className="flex items-center gap-1.5 text-amber-800">
+                        <span className="text-xs font-bold">⚠️ Conflito de Restrições</span>
+                      </div>
+                      <ul className="space-y-1.5">
+                        {dietaryWarnings.map((warning, idx) => (
+                          <li key={idx} className="text-[11px] text-amber-900 leading-relaxed font-semibold">
+                            A receita{' '}
+                            <Link 
+                              to={`/app/receitas/${warning.recipeSlug}`} 
+                              className="underline hover:text-amber-950 font-bold"
+                            >
+                              {warning.recipeTitle}
+                            </Link>{' '}
+                            pode conter ingredientes não recomendados para{' '}
+                            <span className="bg-amber-100 px-1 py-0.5 rounded text-[10px] text-amber-800">
+                              {getRestrictionLabel(warning.restriction)}
+                            </span>.
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <div className="bg-green-50 border border-green-100 rounded-2xl p-3 flex items-center gap-2">
+                      <span className="text-lg">🥗</span>
+                      <p className="text-xs text-green-800 font-bold leading-relaxed">
+                        Cardápio 100% alinhado com suas restrições alimentares!
+                      </p>
+                    </div>
+                  )
+                ) : (
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3 text-center">
+                    <p className="text-xs text-slate-500 font-medium">
+                      Nenhuma restrição alimentar ativa.{' '}
+                      <Link to="/app/perfil?tab=preferencias" className="text-primary font-bold hover:underline">
+                        Adicionar restrições
+                      </Link>
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 3. Portions & Meals Statistics */}
+            {activeWeek && preferences && totalMealsCount > 0 && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-slate-50/60 border border-slate-100 rounded-2xl p-3 text-center">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Refeições</span>
+                  <span className="text-lg font-extrabold text-slate-800">{totalMealsCount}</span>
+                  <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">no cardápio</span>
+                </div>
+                <div className="bg-slate-50/60 border border-slate-100 rounded-2xl p-3 text-center">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Porções Totais</span>
+                  <span className="text-lg font-extrabold text-slate-800">{estimatedPortions}</span>
+                  <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">para {preferences.household_size} {preferences.household_size === 1 ? 'pessoa' : 'pess.'}</span>
+                </div>
+              </div>
+            )}
+
+            {/* 4. Goal-based Tip */}
             {preferences?.primary_goal && (
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 mb-4">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-primary block mb-1">Dica de Objetivo</span>
+              <div className="p-3.5 rounded-2xl bg-orange-50/40 border border-orange-100/60">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-primary block mb-1 flex items-center gap-1">
+                  <Sparkles className="h-3 w-3" />
+                  Dica de Objetivo
+                </span>
                 {preferences.primary_goal === 'save_time' && (
                   <p className="text-xs text-slate-700 leading-relaxed font-semibold">
                     ⏱️ Poupar Tempo: Priorize receitas de uma panela (one-pot) ou pratos rápidos para otimizar seu dia.
@@ -436,69 +610,26 @@ export function AppHomePage() {
                 )}
               </div>
             )}
-
-            {/* Portions Adjuster Calculator */}
-            {preferences && (
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-slate-500">Calculadora de Porções</span>
-                  <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">
-                    {preferences.household_size} {preferences.household_size === 1 ? 'pessoa' : 'pessoas'}
-                  </span>
-                </div>
-                
-                {recommendedRecipesData?.recipes && recommendedRecipesData.recipes.length > 0 ? (
-                  <div className="space-y-2.5">
-                    <select
-                      value={selectedRecipeForPortions}
-                      onChange={e => setSelectedRecipeForPortions(e.target.value)}
-                      className="w-full text-xs font-bold p-3 rounded-xl border bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 text-slate-700 cursor-pointer"
-                      style={{ borderColor: 'var(--color-outline-variant)' }}
-                    >
-                      {recommendedRecipesData.recipes.map(r => (
-                        <option key={r.id} value={r.id}>{r.title}</option>
-                      ))}
-                    </select>
-
-                    {targetRecipe && (
-                      <div className="bg-slate-50/50 border border-slate-100/85 rounded-2xl p-3 max-h-[140px] overflow-y-auto">
-                        <p className="text-[10px] font-bold text-slate-400 mb-1.5 uppercase">
-                          Ingredientes escalados (porção original: {targetRecipe.servings}):
-                        </p>
-                        <ul className="space-y-1">
-                          {targetRecipe.ingredients && targetRecipe.ingredients.length > 0 ? (
-                            targetRecipe.ingredients.map(ing => {
-                              const multiplier = preferences.household_size / (targetRecipe.servings || 2)
-                              return (
-                                <li key={ing.id} className="text-xs text-slate-600 flex justify-between gap-2">
-                                  <span className="truncate">{ing.name}</span>
-                                  <span className="font-semibold text-primary shrink-0">
-                                    {Math.round(multiplier * 100) / 100}x {ing.quantity_label || 'unidade'}
-                                  </span>
-                                </li>
-                              )
-                            })
-                          ) : (
-                            <li className="text-xs text-slate-400 italic">Nenhum ingrediente cadastrado.</li>
-                          )}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-400 italic">Nenhuma receita para cálculo.</p>
-                )}
-              </div>
-            )}
           </div>
 
-          <Link 
-            to="/app/perfil?tab=preferencias"
-            className="w-full mt-6 bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-sm py-3 px-4 rounded-xl text-center no-underline transition-all flex items-center justify-center gap-1.5"
-          >
-            Ajustar Metas no Perfil
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          <div className="flex flex-col gap-2 mt-6">
+            {activeWeek && (
+              <Link 
+                to={`/app/semana/${activeWeek.id}`}
+                className="w-full bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 px-4 rounded-xl text-center no-underline transition-all flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                <CalendarDays className="h-4 w-4" />
+                Ver Cardápio Semanal
+              </Link>
+            )}
+            <Link 
+              to="/app/perfil?tab=preferencias"
+              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm py-2.5 px-4 rounded-xl text-center no-underline transition-all flex items-center justify-center gap-1.5"
+            >
+              Ajustar Preferências
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
       </div>
 

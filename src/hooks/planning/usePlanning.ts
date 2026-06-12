@@ -25,7 +25,18 @@ export function useActiveWeek() {
             *,
             slots:meal_plan_slots(
               *,
-              recipe:recipes(id, slug, title, cover_image_url, prep_time_minutes, difficulty_level, servings)
+              recipe:recipes(
+                id, 
+                slug, 
+                title, 
+                cover_image_url, 
+                prep_time_minutes, 
+                difficulty_level, 
+                servings,
+                notes,
+                usage_context,
+                category:recipe_categories(name)
+              )
             )
           )
         `)
@@ -59,7 +70,18 @@ export function useWeek(weekId: string | undefined) {
             *,
             slots:meal_plan_slots(
               *,
-              recipe:recipes(id, slug, title, cover_image_url, prep_time_minutes, difficulty_level, servings)
+              recipe:recipes(
+                id, 
+                slug, 
+                title, 
+                cover_image_url, 
+                prep_time_minutes, 
+                difficulty_level, 
+                servings,
+                notes,
+                usage_context,
+                category:recipe_categories(name)
+              )
             )
           )
         `)
