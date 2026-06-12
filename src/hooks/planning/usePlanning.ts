@@ -397,5 +397,95 @@ export function useDeleteWeek() {
   })
 }
 
+/**
+ * Create a new active week pre-populated with recipe suggestions.
+ */
+export function useCreateWeekWithRecipes() {
+  const queryClient = useQueryClient()
+  const { supabaseUser } = useAuth()
+
+  return useMutation({
+    mutationFn: async ({
+      startDate,
+      endDate,
+      title,
+      daysWithSlots,
+    }: {
+      startDate: string
+      endDate: string
+      title?: string
+      daysWithSlots: {
+        day_of_week: DayOfWeek
+        slots: {
+          meal_type: string
+          recipe_id: string | null
+        }[]
+      }[]
+    }) => {
+      if (!supabaseUser) throw new Error('Not authenticated')
+
+      // 1. Archive any existing active week
+      await supabase
+        .from('meal_plan_weeks')
+        .update({ status: 'archived' })
+        .eq('user_id', supabaseUser.id)
+        .eq('status', 'active')
+
+      // 2. Create the week
+      const { data: week, error: weekError } = await supabase
+        .from('meal_plan_weeks')
+        .insert({
+          user_id: supabaseUser.id,
+          title: title || null,
+          week_start_date: startDate,
+          week_end_date: endDate,
+          status: 'active',
+        })
+        .select()
+        .single()
+
+      if (weekError) throw weekError
+
+      // 3. Create days and slots sequentially
+      for (const dayData of daysWithSlots) {
+        const { data: day, error: dayError } = await supabase
+          .from('meal_plan_days')
+          .insert({
+            week_id: week.id,
+            day_of_week: dayData.day_of_week,
+            sort_order: DAYS_ORDER.indexOf(dayData.day_of_week),
+          })
+          .select()
+          .single()
+
+        if (dayError) throw dayError
+
+        const slotsToInsert = dayData.slots.map((slot, idx) => ({
+          day_id: day.id,
+          meal_type: slot.meal_type as any,
+          recipe_id: slot.recipe_id,
+          sort_order: idx,
+        }))
+
+        if (slotsToInsert.length > 0) {
+          const { error: slotsError } = await supabase
+            .from('meal_plan_slots')
+            .insert(slotsToInsert)
+
+          if (slotsError) throw slotsError
+        }
+      }
+
+      return week as MealPlanWeek
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['active-week'] })
+      queryClient.invalidateQueries({ queryKey: ['weeks'] })
+      queryClient.invalidateQueries({ queryKey: ['meal-weeks-history'] })
+    },
+  })
+}
+
+
 
 

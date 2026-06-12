@@ -98,12 +98,14 @@ export function RecipePickerPage() {
 
   const [search, setSearch] = useState('')
   const [difficultyFilter, setDifficultyFilter] = useState<string>('')
+  const [accessFilter, setAccessFilter] = useState<'all' | 'free' | 'premium'>('all')
 
   // Query recipes
   const { data, isLoading, error, refetch } = useRecipes({
     search: search || undefined,
     categoryId: categoryFilter || undefined,
     difficulty: difficultyFilter || undefined,
+    isPremium: accessFilter === 'all' ? undefined : accessFilter === 'premium',
   })
   
   const allRecipes = data?.recipes || []
@@ -325,6 +327,44 @@ export function RecipePickerPage() {
                   {cat.name}
                 </button>
               ))}
+            </div>
+
+            {/* Access Filters */}
+            <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar pt-1">
+              <button
+                onClick={() => setAccessFilter('all')}
+                className={cn(
+                  'shrink-0 rounded-full border px-4 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1',
+                  accessFilter === 'all' 
+                    ? 'bg-slate-900 border-slate-900 text-white' 
+                    : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                )}
+              >
+                Todos os acessos
+              </button>
+              <button
+                onClick={() => setAccessFilter('free')}
+                className={cn(
+                  'shrink-0 rounded-full border px-4 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1',
+                  accessFilter === 'free' 
+                    ? 'bg-slate-900 border-slate-900 text-white' 
+                    : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                )}
+              >
+                Apenas Gratuitas
+              </button>
+              <button
+                onClick={() => setAccessFilter('premium')}
+                className={cn(
+                  'shrink-0 rounded-full border px-4 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5',
+                  accessFilter === 'premium' 
+                    ? 'bg-amber-500 border-amber-500 text-white shadow-sm' 
+                    : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                )}
+              >
+                <Crown className="h-3 w-3" />
+                Apenas PRO (Premium)
+              </button>
             </div>
           </div>
 

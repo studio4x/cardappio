@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { useAuth } from '@/app/providers/AuthProvider'
-import { useActiveWeek } from '@/hooks/planning/usePlanning'
+import { useActiveWeek, useCreateWeekWithRecipes } from '@/hooks/planning/usePlanning'
 import { useCollections, useEditorialNotices } from '@/hooks/recipes/useCollections'
 import { DAY_LABELS, type DayOfWeek } from '@/lib/constants/calendar'
 import { useShoppingList, useToggleShoppingItem, useGenerateShoppingList } from '@/hooks/shopping/useShopping'
@@ -14,6 +14,7 @@ import { useFavorites, useToggleFavorite } from '@/hooks/recipes/useFavorites'
 import { useRecipes } from '@/hooks/recipes/useRecipes'
 import { toast } from 'sonner'
 import type { Recipe } from '@/types/recipes'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 
 export function AppHomePage() {
   const { user, preferences } = useAuth()
@@ -28,7 +29,7 @@ export function AppHomePage() {
 
   // Favorites & Recommended hooks
   const { data: favorites, isLoading: favsLoading } = useFavorites()
-  const { data: recommendedRecipesData, isLoading: recsLoading } = useRecipes({ pageSize: 12 }) // Load more to allow filtering
+  const { data: recommendedRecipesData, isLoading: recsLoading } = useRecipes({ pageSize: 100 }) // Load more to allow filtering
   const toggleFavorite = useToggleFavorite()
 
   // Planning Assistant calculations
@@ -109,6 +110,156 @@ export function AppHomePage() {
   }, [activeWeek?.days])
 
   const estimatedPortions = totalMealsCount * (preferences?.household_size || 1)
+
+  const createWeekWithRecipes = useCreateWeekWithRecipes()
+
+  // Suggested plan state
+  const [suggestedPlan, setSuggestedPlan] = useState<{
+    day_of_week: DayOfWeek
+    slots: {
+      meal_type: string
+      recipe_id: string | null
+      recipe: Recipe | null
+    }[]
+  }[]>([])
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
+
+  // Start Date logic
+  const defaultMondayStr = useMemo(() => {
+    const today = new Date()
+    const dayOfWeek = today.getDay()
+    const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
+    const monday = new Date(today.setDate(diff))
+    return monday.toISOString().split('T')[0]
+  }, [])
+
+  const [customStartDate, setCustomStartDate] = useState(defaultMondayStr)
+
+  const customEndDate = useMemo(() => {
+    if (!customStartDate) return ''
+    const start = new Date(customStartDate + 'T12:00:00')
+    const end = new Date(start.getTime() + 6 * 24 * 60 * 60 * 1000)
+    return end.toISOString().split('T')[0]
+  }, [customStartDate])
+
+  // Generator Suggestions logic
+  const generateSuggestions = () => {
+    if (!recommendedRecipesData?.recipes) {
+      toast.error('Nenhuma receita carregada ainda.')
+      return
+    }
+
+    const availableRecipes = [...filteredRecipes]
+    if (availableRecipes.length === 0) {
+      availableRecipes.push(...recommendedRecipesData.recipes)
+    }
+
+    if (availableRecipes.length === 0) {
+      toast.error('Nenhuma receita disponível na plataforma.')
+      return
+    }
+
+    // Shuffle recipes to get variety
+    const shuffled = [...availableRecipes].sort(() => 0.5 - Math.random())
+
+    const daysToGen: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].slice(0, preferences?.default_plan_days || 5) as DayOfWeek[]
+    const mealsToGen = preferences?.default_meal_modes || ['lunch', 'dinner']
+
+    let recipeIdx = 0
+    const newPlan = daysToGen.map(day => {
+      const slots = mealsToGen.map(mealType => {
+        const recipe = shuffled[recipeIdx % shuffled.length] || null
+        recipeIdx++
+        return {
+          meal_type: mealType,
+          recipe_id: recipe ? recipe.id : null,
+          recipe: recipe,
+        }
+      })
+
+      return {
+        day_of_week: day,
+        slots,
+      }
+    })
+
+    setSuggestedPlan(newPlan)
+    setIsReviewModalOpen(true)
+  }
+
+  // Update a single slot's recipe locally
+  const handleUpdateSlotRecipe = (dayIndex: number, slotIndex: number, recipeId: string) => {
+    const targetRecipe = recommendedRecipesData?.recipes?.find(r => r.id === recipeId) || null
+    setSuggestedPlan(prev => {
+      const updated = [...prev]
+      updated[dayIndex] = {
+        ...updated[dayIndex],
+        slots: [...updated[dayIndex].slots]
+      }
+      updated[dayIndex].slots[slotIndex] = {
+        ...updated[dayIndex].slots[slotIndex],
+        recipe_id: recipeId || null,
+        recipe: targetRecipe
+      }
+      return updated
+    })
+  }
+
+  // Save the weekly plan to database
+  const handleSaveSuggestedPlan = async () => {
+    if (!customStartDate) {
+      toast.error('Por favor, selecione a data de início.')
+      return
+    }
+
+    try {
+      const daysWithSlots = suggestedPlan.map(day => ({
+        day_of_week: day.day_of_week,
+        slots: day.slots.map(slot => ({
+          meal_type: slot.meal_type,
+          recipe_id: slot.recipe_id
+        }))
+      }))
+
+      await createWeekWithRecipes.mutateAsync({
+        startDate: customStartDate,
+        endDate: customEndDate,
+        daysWithSlots,
+      })
+
+      toast.success('Planejamento semanal criado com sucesso!')
+      setIsReviewModalOpen(false)
+      
+      // Invalidate query and let UI update, then window.location.reload()
+      setTimeout(() => {
+        window.location.reload()
+      }, 500)
+    } catch (err: any) {
+      toast.error('Erro ao salvar planejamento: ' + (err.message || 'Erro desconhecido'))
+    }
+  }
+
+  // Translate Day of Week
+  const getDayOfWeekName = (day: DayOfWeek) => {
+    const map: Record<DayOfWeek, string> = {
+      monday: 'Segunda-feira',
+      tuesday: 'Terça-feira',
+      wednesday: 'Quarta-feira',
+      thursday: 'Quinta-feira',
+      friday: 'Sexta-feira',
+      saturday: 'Sábado',
+      sunday: 'Domingo',
+    }
+    return map[day] || day
+  }
+
+  const mealTypeLabel = (mealType: string) => {
+    const map: Record<string, string> = {
+      lunch: 'Almoço',
+      dinner: 'Jantar',
+    }
+    return map[mealType] || mealType
+  }
 
   const greetingName = user?.full_name ? user.full_name.split(' ')[0] : 'usuário'
   const greeting = `Olá, ${greetingName}! 👋`
@@ -461,126 +612,53 @@ export function AppHomePage() {
           )}
         </div>
 
-        {/* Planning Assistant Card */}
+        {/* Intelligent Menu Generator Card */}
         <div 
           className="col-span-12 lg:col-span-4 bg-white border rounded-3xl p-6 shadow-sm flex flex-col justify-between"
           style={{ borderColor: 'var(--color-outline-variant)' }}
         >
-          <div className="space-y-5">
+          <div className="space-y-4">
             <h3 className="text-lg font-bold flex items-center gap-2 text-on-surface">
-              <ListChecks className="h-5 w-5 text-primary" />
-              Assistente de Planejamento
+              <Sparkles className="h-5 w-5 text-primary animate-pulse" />
+              Cardápio Inteligente
             </h3>
+            
+            <p className="text-xs text-text-secondary leading-relaxed">
+              Gere sugestões de cardápio semanal personalizado baseado nas suas preferências de dieta e agregado familiar.
+            </p>
 
-            {/* 1. Planning Progress */}
-            {activeWeek ? (
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs font-bold text-slate-500">
-                  <span>Progresso do Cardápio</span>
-                  <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full font-bold">
-                    {plannedDaysCount} de {targetPlanDays} {targetPlanDays === 1 ? 'dia' : 'dias'}
+            {preferences && (
+              <div className="space-y-2 bg-slate-50/60 p-3.5 rounded-2xl border border-slate-100">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
+                  Preferências Ativas:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="bg-primary/5 text-primary text-[10px] px-2.5 py-1 rounded-full font-bold">
+                    👥 {preferences.household_size} {preferences.household_size === 1 ? 'pessoa' : 'pessoas'}
                   </span>
-                </div>
-                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                  <div 
-                    className="bg-primary h-full rounded-full transition-all duration-500" 
-                    style={{ width: `${Math.min(100, (plannedDaysCount / targetPlanDays) * 100)}%` }} 
-                  />
-                </div>
-                <p className="text-[11px] text-text-secondary font-medium">
-                  {plannedDaysCount === 0 ? (
-                    "Monte seu cardápio semanal para organizar suas refeições."
-                  ) : plannedDaysCount >= targetPlanDays ? (
-                    "🎉 Meta semanal atingida com sucesso!"
+                  <span className="bg-primary/5 text-primary text-[10px] px-2.5 py-1 rounded-full font-bold">
+                    📅 {targetPlanDays} dias
+                  </span>
+                  {restrictions.length > 0 ? (
+                    restrictions.map(r => (
+                      <span key={r} className="bg-orange-50 text-orange-700 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">
+                        🥗 {getRestrictionLabel(r)}
+                      </span>
+                    ))
                   ) : (
-                    `Falta planejar mais ${targetPlanDays - plannedDaysCount} ${targetPlanDays - plannedDaysCount === 1 ? 'dia' : 'dias'} para atingir sua meta.`
+                    <span className="bg-neutral-100 text-neutral-600 text-[10px] px-2.5 py-1 rounded-full font-bold">
+                      Sem restrições
+                    </span>
                   )}
-                </p>
-              </div>
-            ) : (
-              <div className="p-4 bg-slate-50 border rounded-2xl text-center space-y-2">
-                <CalendarDays className="h-8 w-8 text-slate-400 mx-auto" />
-                <p className="text-xs font-bold text-slate-700">Sem semana ativa</p>
-                <p className="text-[11px] text-slate-500">Crie uma nova semana no planejador para começar.</p>
-                <Link 
-                  to="/app/semana" 
-                  className="inline-block text-xs font-bold bg-primary text-white px-4 py-2 rounded-xl no-underline"
-                >
-                  Criar Semana
-                </Link>
-              </div>
-            )}
-
-            {/* 2. Dietary Auditor */}
-            {activeWeek && preferences && (
-              <div className="space-y-2">
-                <span className="text-xs font-bold text-slate-500 block">Auditoria de Dieta</span>
-                {preferences.dietary_restrictions && preferences.dietary_restrictions.length > 0 ? (
-                  dietaryWarnings.length > 0 ? (
-                    <div className="bg-amber-50 border border-amber-100 rounded-2xl p-3.5 space-y-2 max-h-[140px] overflow-y-auto">
-                      <div className="flex items-center gap-1.5 text-amber-800">
-                        <span className="text-xs font-bold">⚠️ Conflito de Restrições</span>
-                      </div>
-                      <ul className="space-y-1.5">
-                        {dietaryWarnings.map((warning, idx) => (
-                          <li key={idx} className="text-[11px] text-amber-900 leading-relaxed font-semibold">
-                            A receita{' '}
-                            <Link 
-                              to={`/app/receitas/${warning.recipeSlug}`} 
-                              className="underline hover:text-amber-950 font-bold"
-                            >
-                              {warning.recipeTitle}
-                            </Link>{' '}
-                            pode conter ingredientes não recomendados para{' '}
-                            <span className="bg-amber-100 px-1 py-0.5 rounded text-[10px] text-amber-800">
-                              {getRestrictionLabel(warning.restriction)}
-                            </span>.
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : (
-                    <div className="bg-green-50 border border-green-100 rounded-2xl p-3 flex items-center gap-2">
-                      <span className="text-lg">🥗</span>
-                      <p className="text-xs text-green-800 font-bold leading-relaxed">
-                        Cardápio 100% alinhado com suas restrições alimentares!
-                      </p>
-                    </div>
-                  )
-                ) : (
-                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3 text-center">
-                    <p className="text-xs text-slate-500 font-medium">
-                      Nenhuma restrição alimentar ativa.{' '}
-                      <Link to="/app/perfil?tab=preferencias" className="text-primary font-bold hover:underline">
-                        Adicionar restrições
-                      </Link>
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* 3. Portions & Meals Statistics */}
-            {activeWeek && preferences && totalMealsCount > 0 && (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-slate-50/60 border border-slate-100 rounded-2xl p-3 text-center">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Refeições</span>
-                  <span className="text-lg font-extrabold text-slate-800">{totalMealsCount}</span>
-                  <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">no cardápio</span>
-                </div>
-                <div className="bg-slate-50/60 border border-slate-100 rounded-2xl p-3 text-center">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Porções Totais</span>
-                  <span className="text-lg font-extrabold text-slate-800">{estimatedPortions}</span>
-                  <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">para {preferences.household_size} {preferences.household_size === 1 ? 'pessoa' : 'pess.'}</span>
                 </div>
               </div>
             )}
-
-            {/* 4. Goal-based Tip */}
+            
+            {/* Goal-based Tip */}
             {preferences?.primary_goal && (
-              <div className="p-3.5 rounded-2xl bg-orange-50/40 border border-orange-100/60">
+              <div className="p-3.5 rounded-2xl bg-orange-50/30 border border-orange-100/40">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-primary block mb-1 flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" />
+                  <ChefHat className="h-3.5 w-3.5" />
                   Dica de Objetivo
                 </span>
                 {preferences.primary_goal === 'save_time' && (
@@ -613,15 +691,13 @@ export function AppHomePage() {
           </div>
 
           <div className="flex flex-col gap-2 mt-6">
-            {activeWeek && (
-              <Link 
-                to={`/app/semana/${activeWeek.id}`}
-                className="w-full bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 px-4 rounded-xl text-center no-underline transition-all flex items-center justify-center gap-1.5 shadow-sm"
-              >
-                <CalendarDays className="h-4 w-4" />
-                Ver Cardápio Semanal
-              </Link>
-            )}
+            <button
+              onClick={generateSuggestions}
+              className="w-full bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 px-4 rounded-xl text-center transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95 cursor-pointer border-none"
+            >
+              <Sparkles className="h-4 w-4 text-amber-200 fill-amber-200" />
+              Gerar Cardápio Sugerido
+            </button>
             <Link 
               to="/app/perfil?tab=preferencias"
               className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm py-2.5 px-4 rounded-xl text-center no-underline transition-all flex items-center justify-center gap-1.5"
@@ -631,6 +707,114 @@ export function AppHomePage() {
             </Link>
           </div>
         </div>
+
+      {/* Modal Dialog for Reviewing Suggested Menu */}
+      <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen}>
+        <DialogContent className="sm:max-w-2xl rounded-3xl p-6 bg-white max-w-[95vw] max-h-[90vh] overflow-y-auto flex flex-col">
+          <DialogHeader className="space-y-2 text-left">
+            <DialogTitle className="text-xl font-black text-on-surface flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Revisar Sugestões de Cardápio
+            </DialogTitle>
+            <DialogDescription className="text-xs text-neutral-500">
+              Personalize o menu sugerido. Você pode substituir pratos, excluir refeições ou manter como sugerido pelo sistema.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Date Picker Section */}
+          <div className="my-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700 block">Data de Início da Semana</label>
+              <p className="text-[10px] text-slate-500">O cardápio planejado começará nesta data e terá 7 dias de duração.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+                className="text-xs font-bold p-2.5 rounded-xl border bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 text-slate-700 cursor-pointer"
+              />
+            </div>
+          </div>
+
+          {/* Suggested Plan List */}
+          <div className="flex-1 overflow-y-auto space-y-4 pr-1 py-1 max-h-[45vh]">
+            {suggestedPlan.map((day, dayIdx) => (
+              <div key={day.day_of_week} className="space-y-2 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+                <span className="text-xs font-extrabold text-primary uppercase tracking-wider block">
+                  📅 {getDayOfWeekName(day.day_of_week)}
+                </span>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {day.slots.map((slot, slotIdx) => (
+                    <div 
+                      key={slotIdx}
+                      className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between gap-2.5"
+                    >
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">
+                            {mealTypeLabel(slot.meal_type)}
+                          </span>
+                          <span className="text-xs font-bold text-slate-800 line-clamp-2 mt-0.5">
+                            {slot.recipe ? slot.recipe.title : 'Vazio / Refeição Removida'}
+                          </span>
+                        </div>
+                        {slot.recipe && (
+                          <span className="bg-slate-100 text-slate-600 text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                            ⏱ {slot.recipe.prep_time_minutes} min
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Selector dropdown for edit/replace/delete/add actions */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-slate-400 shrink-0">Prato:</span>
+                        <select
+                          value={slot.recipe_id || ''}
+                          onChange={(e) => handleUpdateSlotRecipe(dayIdx, slotIdx, e.target.value)}
+                          className="w-full text-[11px] font-bold p-2 rounded-lg border bg-slate-50 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/20 text-slate-700 cursor-pointer"
+                        >
+                          <option value="">-- Vazio / Excluir --</option>
+                          {recommendedRecipesData?.recipes?.map(r => (
+                            <option key={r.id} value={r.id}>{r.title}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-6 border-t pt-4">
+            <button
+              onClick={() => setIsReviewModalOpen(false)}
+              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors border-none bg-transparent cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleSaveSuggestedPlan}
+              disabled={createWeekWithRecipes.isPending}
+              className="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 border-none cursor-pointer"
+            >
+              {createWeekWithRecipes.isPending ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Salvando planejamento...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Salvar e Criar Planejamento
+                </>
+              )}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       </div>
 
       {/* Editorial Notices */}
