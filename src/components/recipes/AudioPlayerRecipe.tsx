@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
-import { Play, Pause, Square, SkipForward, SkipBack, Volume2, VolumeX } from 'lucide-react'
+import { Play, Pause, Square, SkipForward, SkipBack, Volume2, VolumeX, Crown, Lock, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/app/providers/AuthProvider'
+import { useNavigate } from 'react-router-dom'
 
 interface AudioPlayerRecipeProps {
   title: string
@@ -9,6 +11,10 @@ interface AudioPlayerRecipeProps {
 }
 
 export function AudioPlayerRecipe({ title, steps }: AudioPlayerRecipeProps) {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const hasVoiceAccess = user?.subscription_tier === 'plano-pro-14-dias'
+
   const [isPlaying, setIsPlaying] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [currentStepIndex, setCurrentStepIndex] = useState(-1) // -1 means intro/title
@@ -29,6 +35,47 @@ export function AudioPlayerRecipe({ title, steps }: AudioPlayerRecipeProps) {
       }
     }
   }, [])
+
+  if (!steps || steps.length === 0) return null
+
+  if (!hasVoiceAccess) {
+    return (
+      <div className="bg-slate-900 text-white rounded-3xl p-5 border border-slate-800 space-y-4 shadow-xl relative overflow-hidden">
+        {/* Background decoration or subtle gradient */}
+        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+          <Crown className="h-20 w-20 text-amber-400 rotate-12" />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Volume2 className="h-5 w-5 text-slate-400" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Modo Cozinha Falada</h3>
+          </div>
+          <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] font-black uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+            <Lock className="h-2.5 w-2.5" />
+            PRO 14 Dias
+          </span>
+        </div>
+
+        <div className="py-2 space-y-2">
+          <p className="text-xs font-bold text-slate-200">Ouça o passo a passo da receita enquanto cozinha</p>
+          <p className="text-[11px] text-slate-400 leading-relaxed">
+            A narração por voz guia você em cada etapa da receita para que você possa cozinhar com as mãos livres, sem precisar tocar no celular.
+          </p>
+        </div>
+
+        <div className="pt-2">
+          <Button 
+            onClick={() => navigate('/app/assinatura')}
+            className="w-full rounded-2xl py-4 font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-950/20 flex items-center justify-center gap-2 border-none active:scale-95 transition-all text-xs"
+          >
+            Quero o Plano PRO 14 Dias
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   const speakText = (text: string, onEndCallback: () => void) => {
     if (!synthRef.current) return
@@ -144,8 +191,6 @@ export function AudioPlayerRecipe({ title, steps }: AudioPlayerRecipeProps) {
       setCurrentStepIndex(prev => prev - 1)
     }
   }
-
-  if (!steps || steps.length === 0) return null
 
   return (
     <div className="bg-slate-900 text-white rounded-3xl p-5 border border-slate-800 space-y-4 shadow-xl">

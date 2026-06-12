@@ -149,7 +149,7 @@ export function SubscriptionPage() {
                  { title: 'Lista de Compras Inteligente', desc: 'Gerada automaticamente com base nas receitas do cardápio.' },
                  { title: 'Filtros Avançados e Preferências', desc: 'Opções ajustadas de acordo com sua dieta ou ingredientes.' },
                  { title: 'Orientação por Voz (IA Cozinheira)', desc: 'Cozinhe acompanhando as instruções por áudio.' },
-                 { title: 'Multi-dispositivo (PWA)', desc: 'Instale no celular e acesse de qualquer lugar.' }
+                 { title: 'Suporte Prioritário', desc: 'Atendimento rápido e exclusivo para tirar dúvidas.' }
                ].map((item, idx) => (
                  <div key={idx} className="flex gap-3 items-start" id={`benefit-${idx}`}>
                    <div className="h-6 w-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">

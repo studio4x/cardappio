@@ -42,8 +42,7 @@ export function AdminPlansPage() {
     setFeaturesList([
       "7 refeições por semana",
       "Repetição obrigatória almoço/jantar",
-      "Lista de compras inteligente",
-      "Acesso PWA completo"
+      "Lista de compras inteligente"
     ])
     setIsActive(true)
     setStripePriceIdMonthly('')
