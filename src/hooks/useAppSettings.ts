@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
+import { useEffect } from 'react'
 
 export interface VisualIdentity {
   logo_dark_url: string
@@ -8,44 +9,33 @@ export interface VisualIdentity {
 }
 
 export function useAppSettings() {
-  const [visualIdentity, setVisualIdentity] = useState<VisualIdentity | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { data: visualIdentity, isLoading: loading } = useQuery({
+    queryKey: ['app_settings', 'visual_identity'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('app_settings')
+        .select('value_json')
+        .eq('setting_key', 'visual_identity')
+        .single()
+
+      if (error) throw error
+      
+      return data?.value_json as unknown as VisualIdentity
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
+  })
 
   useEffect(() => {
-    async function fetchSettings() {
-      try {
-        const { data, error } = await supabase
-          .from('app_settings')
-          .select('value_json')
-          .eq('setting_key', 'visual_identity')
-          .single()
-
-        if (error) throw error
-
-        if (data?.value_json) {
-          const settings = data.value_json as unknown as VisualIdentity
-          setVisualIdentity(settings)
-          
-          // Dynamically update favicon if present
-          if (settings.favicon_url) {
-            let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement
-            if (!link) {
-              link = document.createElement('link')
-              link.rel = 'icon'
-              document.getElementsByTagName('head')[0].appendChild(link)
-            }
-            link.href = settings.favicon_url
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching app settings:', err)
-      } finally {
-        setLoading(false)
+    if (visualIdentity?.favicon_url) {
+      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement
+      if (!link) {
+        link = document.createElement('link')
+        link.rel = 'icon'
+        document.getElementsByTagName('head')[0].appendChild(link)
       }
+      link.href = visualIdentity.favicon_url
     }
+  }, [visualIdentity?.favicon_url])
 
-    fetchSettings()
-  }, [])
-
-  return { visualIdentity, loading }
+  return { visualIdentity: visualIdentity || null, loading }
 }

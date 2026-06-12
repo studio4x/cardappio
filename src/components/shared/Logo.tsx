@@ -27,7 +27,13 @@ export function Logo({
     ? visualIdentity?.logo_dark_url 
     : visualIdentity?.logo_light_url
 
-  if (!loading && logoUrl) {
+  if (loading) {
+    return (
+      <div className={cn("flex items-center gap-2 h-10", className)} />
+    )
+  }
+
+  if (logoUrl) {
     return (
       <Link to={to} className={cn("flex items-center gap-2 no-underline group active:scale-95 transition-transform", className)}>
         <img 
