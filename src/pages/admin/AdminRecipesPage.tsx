@@ -14,7 +14,8 @@ import {
   ChevronRight,
   Trash2,
   Link2,
-  Apple
+  Apple,
+  Crown
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -41,6 +42,7 @@ export function AdminRecipesPage() {
   const [importUrl, setImportUrl] = useState('')
   const [isImporting, setIsImporting] = useState(false)
   const [generatingNutritionId, setGeneratingNutritionId] = useState<string | null>(null)
+  const [togglingPremiumId, setTogglingPremiumId] = useState<string | null>(null)
   const pageSize = 10
   
   const { data, isLoading, refetch } = useRecipes({ 
@@ -136,6 +138,35 @@ export function AdminRecipesPage() {
       })
     } finally {
       setGeneratingNutritionId(null)
+    }
+  }
+
+  const handleTogglePremium = async (recipe: any) => {
+    if (togglingPremiumId) return
+
+    setTogglingPremiumId(recipe.id)
+    const newPremiumState = !recipe.is_premium
+
+    try {
+      const { error } = await supabase
+        .from('recipes')
+        .update({ is_premium: newPremiumState })
+        .eq('id', recipe.id)
+
+      if (error) throw error
+
+      toast.success(
+        newPremiumState 
+          ? `Receita "${recipe.title}" marcada como Premium.`
+          : `Receita "${recipe.title}" marcada como Gratuita.`,
+        { description: 'O acesso dos usuários foi atualizado.' }
+      )
+      refetch()
+    } catch (err: any) {
+      console.error('Error toggling premium:', err)
+      toast.error('Erro ao atualizar status Premium')
+    } finally {
+      setTogglingPremiumId(null)
     }
   }
 

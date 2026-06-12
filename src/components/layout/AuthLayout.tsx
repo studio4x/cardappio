@@ -1,8 +1,12 @@
 import { Outlet, Link } from 'react-router-dom'
-import { Utensils, Calendar, ShoppingBasket, Sparkles } from 'lucide-react'
+import { Utensils, Calendar, ShoppingBasket, ArrowLeft } from 'lucide-react'
 import { config } from '@/config'
+import { useAppSettings } from '@/hooks/useAppSettings'
+import { Logo } from '@/components/shared/Logo'
 
 export function AuthLayout() {
+  const { visualIdentity, loading } = useAppSettings()
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-off-white">
       {/* Visual Section (Desktop Only) */}
@@ -16,11 +20,28 @@ export function AuthLayout() {
         </div>
         
         <div className="relative z-10 text-center space-y-8 max-w-md">
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-white rounded-[2rem] shadow-2xl mb-4 rotate-3">
-            <Utensils className="h-10 w-10 text-primary" style={{ color: 'var(--color-primary)' }} />
-          </div>
+          {loading ? (
+            <div className="h-36" />
+          ) : visualIdentity?.logo_light_url ? (
+            <div className="flex justify-center mb-4">
+              <img 
+                src={visualIdentity.logo_light_url} 
+                alt={config.app.name} 
+                className="h-20 w-auto object-contain" 
+              />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="inline-flex items-center justify-center w-24 h-24 bg-white rounded-[2rem] shadow-2xl mb-4 rotate-3">
+                <Utensils className="h-10 w-10 text-primary" style={{ color: 'var(--color-primary)' }} />
+              </div>
+              <div>
+                <h1 className="text-5xl font-extrabold text-white tracking-tighter mb-4">Cardappio</h1>
+              </div>
+            </div>
+          )}
+          
           <div>
-            <h1 className="text-5xl font-extrabold text-white tracking-tighter mb-4">Cardappio</h1>
             <p className="text-xl text-white/90 leading-relaxed">Sua rotina organizada, sua alimentação saudável e seu dia a dia com menos estresse.</p>
           </div>
           
@@ -41,25 +62,22 @@ export function AuthLayout() {
       <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-24 bg-surface relative">
         {/* Mobile Header */}
         <div className="md:hidden absolute top-10 left-10 flex items-center gap-2">
-          <Utensils className="h-6 w-6 text-primary" />
-          <span className="text-xl font-extrabold text-primary tracking-tighter">Cardappio</span>
+          <Logo variant="dark" />
         </div>
 
         <div className="max-w-md w-full mx-auto">
-          <Outlet />
-
-          {/* Tips Widget (Desktop Floating) */}
-          <div className="hidden lg:block fixed top-10 right-10 z-50">
-            <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-primary/10 flex items-center gap-4 max-w-xs animate-in slide-in-from-right duration-500">
-              <div className="w-10 h-10 bg-success-green/10 rounded-full flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-success-green" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-on-surface leading-tight">Dica da Estação</p>
-                <p className="text-xs text-text-secondary">Abóbora e Brócolis em alta agora.</p>
-              </div>
-            </div>
+          {/* Voltar para Home */}
+          <div className="mb-6 flex justify-start">
+            <Link 
+              to="/" 
+              className="inline-flex items-center gap-2 text-sm font-bold text-warm-gray-medium hover:text-on-surface transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Voltar para o início
+            </Link>
           </div>
+
+          <Outlet />
         </div>
       </div>
     </div>
