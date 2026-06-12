@@ -98,7 +98,34 @@ export function RecipePickerPage() {
 
   const [search, setSearch] = useState('')
   const [difficultyFilter, setDifficultyFilter] = useState<string>('')
-  const [accessFilter, setAccessFilter] = useState<'all' | 'free' | 'premium'>('all')
+
+  // Access filter via URL slug: 'acesso=todos|gratuitas|pro'
+  const ACCESS_SLUGS: Record<string, 'all' | 'free' | 'premium'> = {
+    todos: 'all',
+    gratuitas: 'free',
+    pro: 'premium',
+  }
+  const ACCESS_TO_SLUG: Record<string, string> = {
+    all: 'todos',
+    free: 'gratuitas',
+    premium: 'pro',
+  }
+
+  const rawAccess = searchParams.get('acesso')
+  const accessFilter = useMemo<'all' | 'free' | 'premium'>(() => {
+    if (!rawAccess) return 'all'
+    return ACCESS_SLUGS[rawAccess] || 'all'
+  }, [rawAccess])
+
+  const setAccessFilter = (value: 'all' | 'free' | 'premium') => {
+    const newParams = new URLSearchParams(searchParams)
+    if (value === 'all') {
+      newParams.delete('acesso')
+    } else {
+      newParams.set('acesso', ACCESS_TO_SLUG[value])
+    }
+    setSearchParams(newParams)
+  }
 
   // Query recipes
   const { data, isLoading, error, refetch } = useRecipes({
