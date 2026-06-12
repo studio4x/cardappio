@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
-import { Utensils } from 'lucide-react'
 import { config } from '@/config'
+import { Logo } from '@/components/shared/Logo'
 
 export function PublicFooter() {
   return (
@@ -8,13 +8,8 @@ export function PublicFooter() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-16">
           <div className="col-span-2">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Utensils className="text-white h-5 w-5" />
-              </div>
-              <span className="text-xl font-black tracking-tighter text-on-surface">
-                {config.app.name}
-              </span>
+            <div className="mb-6">
+              <Logo variant="dark" />
             </div>
             <p className="text-text-secondary max-w-xs leading-relaxed">
               {config.app.tagline || 'A plataforma inteligente que devolve seu tempo livre e organiza sua vida na cozinha.'}
