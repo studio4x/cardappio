@@ -56,10 +56,38 @@ export function RecipePickerPage() {
     const newParams = new URLSearchParams(searchParams)
     const slug = TAB_SLUGS[tabId] || tabId
     newParams.set('tab', slug)
+    if (tabId !== 'catalog') {
+      newParams.delete('categoria')
+    }
     setSearchParams(newParams)
     setSelectedCollectionSlug(null)
   }
   
+  // Categories query & filtering via URL
+  const { data: categories } = useRecipeCategories()
+  const categorySlug = searchParams.get('categoria')
+
+  const categoryFilter = useMemo(() => {
+    if (!categorySlug || !categories) return ''
+    const matched = categories.find(c => c.slug === categorySlug)
+    return matched ? matched.id : ''
+  }, [categorySlug, categories])
+
+  const setCategoryFilter = (categoryId: string) => {
+    const newParams = new URLSearchParams(searchParams)
+    if (!categoryId) {
+      newParams.delete('categoria')
+    } else {
+      const matched = categories?.find(c => c.id === categoryId)
+      if (matched?.slug) {
+        newParams.set('categoria', matched.slug)
+      } else {
+        newParams.delete('categoria')
+      }
+    }
+    setSearchParams(newParams)
+  }
+
   // Method A: Food Type states
   const [selectedFoodType, setSelectedFoodType] = useState<string>('')
   const [foodTypeOffset, setFoodTypeOffset] = useState(0)
@@ -69,7 +97,6 @@ export function RecipePickerPage() {
   const [isImporting, setIsImporting] = useState(false)
 
   const [search, setSearch] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState<string>('')
   const [difficultyFilter, setDifficultyFilter] = useState<string>('')
 
   // Query recipes
@@ -80,7 +107,6 @@ export function RecipePickerPage() {
   })
   
   const allRecipes = data?.recipes || []
-  const { data: categories } = useRecipeCategories()
   const assignRecipe = useAssignRecipe()
 
   const { data: collections, isLoading: isLoadingCollections } = useCollections()
