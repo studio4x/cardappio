@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Sparkles, Loader2, Crown } from 'lucide-react'
+import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Sparkles, Loader2, Crown, UserCheck } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { useRecipe, useRecipeCategories } from '@/hooks/recipes/useRecipes'
@@ -51,6 +51,7 @@ export function AdminRecipeEditorPage() {
   const [selectedCollections, setSelectedCollections] = useState<string[]>([])
 
   const { data: categories } = useRecipeCategories()
+  const [creatorProfile, setCreatorProfile] = useState<{ full_name: string | null; role: string | null } | null>(null)
 
   useEffect(() => {
     const loadData = async () => {
@@ -65,11 +66,17 @@ export function AdminRecipeEditorPage() {
         setLoading(true)
         const { data } = await supabase
           .from('recipes')
-          .select('*, ingredients:recipe_ingredients(*), steps:recipe_steps(*)')
+          .select('*, ingredients:recipe_ingredients(*), steps:recipe_steps(*), creator:profiles!created_by(id, full_name, role)')
           .eq('id', id)
           .single()
         
-        if (data) setRecipeData(data)
+        if (data) {
+          const { creator, ...rest } = data as any
+          setRecipeData(rest)
+          if (creator && creator.role !== 'admin' && creator.role !== 'super_admin') {
+            setCreatorProfile(creator)
+          }
+        }
 
         // Fetch current collection associations
         const { data: items } = await supabase
@@ -147,6 +154,37 @@ export function AdminRecipeEditorPage() {
         if (collInsertError) throw collInsertError
       }
 
+      // 5. Auto-generate nutrition for NEW recipes with ingredients
+      if (isNew && ingredients && ingredients.length > 0) {
+        toast.info('Gerando tabela nutricional com IA...', { id: 'auto-nutrition' })
+        try {
+          const { data: nutritionResult, error: nutritionError } = await supabase.functions.invoke('generate-nutrition', {
+            body: {
+              ingredients: ingredients.map((ing: any) => ({
+                name: ing.name,
+                quantity_label: ing.quantity_label || null,
+                unit: ing.unit || null
+              })),
+              servings: recipeData.servings || 1
+            }
+          })
+
+          if (!nutritionError && nutritionResult?.data) {
+            await supabase
+              .from('recipes')
+              .update({ nutrition_info: nutritionResult.data })
+              .eq('id', recipeId)
+            toast.success('Tabela nutricional gerada automaticamente!', { id: 'auto-nutrition' })
+          } else {
+            console.warn('Auto-nutrition skipped:', nutritionError || nutritionResult?.error)
+            toast.dismiss('auto-nutrition')
+          }
+        } catch (nutritionErr) {
+          console.warn('Auto-nutrition failed (non-blocking):', nutritionErr)
+          toast.dismiss('auto-nutrition')
+        }
+      }
+
       queryClient.invalidateQueries({ queryKey: ['recipes'] })
       queryClient.invalidateQueries({ queryKey: ['recipe'] })
       queryClient.invalidateQueries({ queryKey: ['recipe-collections'] })
@@ -183,6 +221,14 @@ export function AdminRecipeEditorPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-6 rounded-2xl border bg-white p-6 shadow-sm">
           <h3 className="font-bold border-b pb-2 mb-4">Informações Básicas</h3>
+
+          {/* Importer badge */}
+          {creatorProfile && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-sky-50 border border-sky-100 rounded-xl text-sky-700 mb-2">
+              <UserCheck className="h-4 w-4 shrink-0 text-sky-500" />
+              <span className="text-xs font-semibold">Importada por: <span className="font-bold">{creatorProfile.full_name || 'Usuário'}</span></span>
+            </div>
+          )}
           
           <div className="space-y-2">
             <label className="text-sm font-medium">Título da Receita</label>

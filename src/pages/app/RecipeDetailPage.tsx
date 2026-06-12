@@ -264,6 +264,21 @@ export function RecipeDetailPage() {
               </div>
             </section>
 
+            {/* Importer badge — only for non-admin users */}
+            {(() => {
+              const creator = (recipe as any).creator
+              if (!creator) return null
+              const role = creator.role as string
+              if (role === 'admin' || role === 'super_admin') return null
+              const name = creator.full_name || 'Usuário'
+              return (
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-sky-50 border border-sky-100 rounded-2xl text-sky-700">
+                  <Sparkles className="h-3.5 w-3.5 shrink-0 text-sky-500" />
+                  <span className="text-xs font-semibold">Importada pela comunidade · <span className="font-bold">{name}</span></span>
+                </div>
+              )
+            })()}
+
             {/* Nutrition Info */}
             {recipe.nutrition_info && recipe.nutrition_info.nutrients ? (
               <div className="bg-white rounded-2xl p-5 border shadow-sm text-slate-900 border-slate-200" style={{ borderColor: 'var(--color-outline-variant)' }}>

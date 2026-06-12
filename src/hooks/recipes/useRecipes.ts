@@ -29,7 +29,8 @@ export function useRecipes(filters?: {
           category:recipe_categories(*),
           ingredients:recipe_ingredients(*),
           steps:recipe_steps(*),
-          tags:recipe_tag_links(tag:recipe_tags(*))
+          tags:recipe_tag_links(tag:recipe_tags(*)),
+          creator:profiles!created_by(id, full_name, role)
         `, { count: 'exact' })
         .order('created_at', { ascending: false }) // Novas primeiro
         .order('sort_order', { foreignTable: 'recipe_ingredients' })
@@ -86,7 +87,8 @@ export function useRecipe(slug: string | undefined) {
           ingredients:recipe_ingredients(*),
           steps:recipe_steps(*),
           tags:recipe_tag_links(tag:recipe_tags(*)),
-          variations:recipe_variations!parent_recipe_id(*)
+          variations:recipe_variations!parent_recipe_id(*),
+          creator:profiles!created_by(id, full_name, role)
         `)
         .eq('slug', slug)
         .eq('status', 'published')
