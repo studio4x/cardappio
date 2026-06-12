@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Mail, Lock, User, Loader2, ArrowRight } from 'lucide-react'
+import { Mail, Lock, User, Loader2, ArrowRight, Eye, EyeOff, MailCheck } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useEffect } from 'react'
@@ -14,6 +14,8 @@ export function SignupPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState('')
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -55,40 +57,10 @@ export function SignupPage() {
         return
       }
 
+      setRegisteredEmail(email)
       setSuccess(true)
 
-      const planSlug = new URLSearchParams(window.location.search).get('plan')
-      let targetRoute = planSlug && planSlug !== 'plano-gratuito'
-        ? `/app/assinatura?checkout_immediate=true&plan=${planSlug}`
-        : '/app/onboarding'
-
-      if (data?.user) {
-        try {
-          const profilePromise = supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', data.user.id)
-            .single()
-            
-          const fetchTimeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('FETCH_TIMEOUT')), 5000)
-          );
-
-          // @ts-ignore
-          const profileResult = await Promise.race([profilePromise, fetchTimeoutPromise]) as any;
-          const profile = profileResult?.data;
-
-          if (profile?.role === 'admin' || profile?.role === 'super_admin') {
-            targetRoute = '/admin'
-          }
-        } catch (e) {
-          console.error("Failed to query role after signup", e)
-        }
-      }
-
-      setTimeout(() => {
-        navigate(targetRoute, { replace: true })
-      }, 500)
+      // Don't redirect — user must confirm email first
     } catch (err: any) {
       if (err.message === 'TIMEOUT') {
         setError('Conexão bloqueada pelo navegador. Desative bloqueadores ou antivírus (ex: Kaspersky) ou tente novamente.')
@@ -102,12 +74,27 @@ export function SignupPage() {
 
   if (success) {
     return (
-      <div className="text-center py-10 animate-in zoom-in duration-300">
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[2rem] bg-emerald-100 text-emerald-600 shadow-xl shadow-emerald-600/10">
-          <ArrowRight className="h-10 w-10 rotate-[-45deg]" />
+      <div className="text-center py-10 animate-in zoom-in duration-300 space-y-6">
+        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-[2rem] bg-emerald-100 text-emerald-600 shadow-xl shadow-emerald-600/10">
+          <MailCheck className="h-12 w-12" />
         </div>
-        <h2 className="text-3xl font-extrabold text-on-surface tracking-tight mb-3">Bem-vindo!</h2>
-        <p className="text-text-secondary">Sua conta foi criada com sucesso. Redirecionando...</p>
+        <div className="space-y-2">
+          <h2 className="text-3xl font-extrabold text-on-surface tracking-tight">Conta criada! 🎉</h2>
+          <p className="text-text-secondary leading-relaxed">
+            Enviamos um e-mail de confirmação para<br />
+            <span className="font-bold text-on-surface">{registeredEmail}</span>
+          </p>
+          <p className="text-sm text-text-secondary">
+            Abra o e-mail e clique no link de confirmação para ativar sua conta.
+          </p>
+        </div>
+        <div className="rounded-xl px-4 py-3 text-xs bg-amber-50 text-amber-700 border border-amber-100 text-left space-y-1">
+          <p className="font-bold">Não recebeu o e-mail?</p>
+          <p>Verifique sua caixa de spam ou lixo eletrônico. O e-mail pode levar alguns minutos.</p>
+        </div>
+        <p className="text-center font-medium text-text-secondary">
+          Já confirmou? <a href="/auth/login" className="text-primary font-bold hover:underline">Faça login agora</a>
+        </p>
       </div>
     )
   }
@@ -165,14 +152,22 @@ export function SignupPage() {
               <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-warm-gray-medium group-focus-within:text-primary transition-colors" />
               <input
                 id="signup-password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mínimo 6 caracteres"
                 required
                 minLength={6}
-                className="w-full bg-neutral-100 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all text-on-surface placeholder:text-warm-gray-medium"
+                className="w-full bg-neutral-100 border-none rounded-2xl py-4 pl-12 pr-12 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all text-on-surface placeholder:text-warm-gray-medium"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(prev => !prev)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-warm-gray-medium hover:text-primary transition-colors"
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
             </div>
           </div>
         </div>
