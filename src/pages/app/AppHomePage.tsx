@@ -1,3 +1,4 @@
+import { useState, useMemo, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { CalendarDays, Plus, ShoppingCart, ChefHat, Sparkles, BookOpen, Heart, ArrowRight, ChevronRight, Star, Utensils, Clock, PiggyBank, CheckSquare as ListChecks, Loader2, Crown, Lock } from 'lucide-react'
@@ -27,8 +28,20 @@ export function AppHomePage() {
 
   // Favorites & Recommended hooks
   const { data: favorites, isLoading: favsLoading } = useFavorites()
-  const { data: recommendedRecipesData, isLoading: recsLoading } = useRecipes({ pageSize: 3 })
+  const { data: recommendedRecipesData, isLoading: recsLoading } = useRecipes({ pageSize: 12 }) // Load more to allow filtering
   const toggleFavorite = useToggleFavorite()
+
+  const [selectedRecipeForPortions, setSelectedRecipeForPortions] = useState<string>('')
+
+  const targetRecipe = useMemo(() => {
+    return recommendedRecipesData?.recipes?.find(r => r.id === selectedRecipeForPortions)
+  }, [recommendedRecipesData?.recipes, selectedRecipeForPortions])
+
+  useEffect(() => {
+    if (recommendedRecipesData?.recipes?.length && !selectedRecipeForPortions) {
+      setSelectedRecipeForPortions(recommendedRecipesData.recipes[0].id)
+    }
+  }, [recommendedRecipesData?.recipes, selectedRecipeForPortions])
 
   const greetingName = user?.full_name ? user.full_name.split(' ')[0] : 'usuário'
   const greeting = `Olá, ${greetingName}! 👋`
@@ -39,11 +52,51 @@ export function AppHomePage() {
   const daysOfWeekMap: DayOfWeek[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
   const todayName = daysOfWeekMap[new Date().getDay()]
 
+  const restrictions = useMemo(() => preferences?.dietary_restrictions || [], [preferences])
+
+  const filteredRecipes = useMemo(() => {
+    if (!recommendedRecipesData?.recipes) return []
+    if (restrictions.length === 0) return recommendedRecipesData.recipes
+    
+    return recommendedRecipesData.recipes.filter(recipe => {
+      const textToSearch = [
+        recipe.title,
+        recipe.notes,
+        recipe.usage_context,
+        recipe.category?.name
+      ].join(' ').toLowerCase()
+
+      return restrictions.every(restriction => {
+        if (restriction === 'sem_gluten') {
+          return textToSearch.includes('glúten') || textToSearch.includes('gluten') || textToSearch.includes('fit') || textToSearch.includes('saudável')
+        }
+        if (restriction === 'sem_lactose') {
+          return textToSearch.includes('lactose') || textToSearch.includes('zero lactose')
+        }
+        if (restriction === 'vegetariano') {
+          return textToSearch.includes('vegetariano') || textToSearch.includes('veggie') || textToSearch.includes('salada')
+        }
+        if (restriction === 'vegano') {
+          return textToSearch.includes('vegano') || textToSearch.includes('vegan')
+        }
+        if (restriction === 'low_carb') {
+          return textToSearch.includes('low carb') || textToSearch.includes('proteico')
+        }
+        return true
+      })
+    })
+  }, [recommendedRecipesData?.recipes, restrictions])
+
   const hasFavorites = favorites && favorites.length > 0
   const displayRecipes: Recipe[] = hasFavorites 
     ? (favorites.slice(0, 3) as Recipe[]) 
-    : (recommendedRecipesData?.recipes?.slice(0, 3) ?? [])
-  const sectionTitle = hasFavorites ? "Inspirado nos seus Favoritos" : "Receitas Recomendadas"
+    : (filteredRecipes.slice(0, 3))
+
+  const sectionTitle = hasFavorites 
+    ? "Inspirado nos seus Favoritos" 
+    : restrictions.length > 0
+      ? `Recomendadas para Dieta ${restrictions.map(r => r === 'sem_gluten' ? 'Sem Glúten' : r === 'sem_lactose' ? 'Sem Lactose' : r.replace('_', ' ')).join(', ')}`
+      : "Receitas Recomendadas"
 
   const getDifficultyLabel = (difficulty?: string) => {
     if (!difficulty) return 'Fácil'
@@ -176,10 +229,8 @@ export function AppHomePage() {
             </div>
           )}
         </div>
-
-        {/* Card do Cardápio */}
         <div 
-          className="col-span-12 md:col-span-6 bg-white border rounded-3xl p-6 shadow-sm flex flex-col justify-between"
+          className="col-span-12 lg:col-span-4 bg-white border rounded-3xl p-6 shadow-sm flex flex-col justify-between"
           style={{ borderColor: 'var(--color-outline-variant)' }}
         >
           <div>
@@ -248,7 +299,7 @@ export function AppHomePage() {
 
         {/* Quick Shopping List Card */}
         <div 
-          className="col-span-12 md:col-span-6 bg-white border rounded-3xl p-6 shadow-sm relative overflow-hidden flex flex-col justify-between"
+          className="col-span-12 lg:col-span-4 bg-white border rounded-3xl p-6 shadow-sm relative overflow-hidden flex flex-col justify-between"
           style={{ backgroundColor: 'var(--color-surface-container-highest)', borderColor: 'var(--color-outline-variant)' }}
         >
           <div className="absolute top-0 right-0 p-4 opacity-10">
@@ -314,7 +365,7 @@ export function AppHomePage() {
                       className="focus:outline-none flex items-center gap-3 w-full text-left cursor-pointer disabled:opacity-60"
                     >
                       <div className={`w-5 h-5 rounded-full border-2 transition-colors flex items-center justify-center shrink-0 ${
-                        item.is_checked 
+                         item.is_checked 
                           ? 'bg-primary border-primary' 
                           : 'border-primary hover:bg-primary/10'
                       }`}>
@@ -341,6 +392,113 @@ export function AppHomePage() {
               Ver lista completa
             </Link>
           )}
+        </div>
+
+        {/* Preferences / Goal Assistant Card */}
+        <div 
+          className="col-span-12 lg:col-span-4 bg-white border rounded-3xl p-6 shadow-sm flex flex-col justify-between"
+          style={{ borderColor: 'var(--color-outline-variant)' }}
+        >
+          <div>
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary animate-pulse" />
+              Metas & Porções
+            </h3>
+            
+            {/* Goal-based Tip */}
+            {preferences?.primary_goal && (
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 mb-4">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-primary block mb-1">Dica de Objetivo</span>
+                {preferences.primary_goal === 'save_time' && (
+                  <p className="text-xs text-slate-700 leading-relaxed font-semibold">
+                    ⏱️ Poupar Tempo: Priorize receitas de uma panela (one-pot) ou pratos rápidos para otimizar seu dia.
+                  </p>
+                )}
+                {preferences.primary_goal === 'save_money' && (
+                  <p className="text-xs text-slate-700 leading-relaxed font-semibold">
+                    💰 Economizar: Compre a granel e planeje pratos compartilhando ingredientes frescos para reduzir o desperdício.
+                  </p>
+                )}
+                {preferences.primary_goal === 'eat_better' && (
+                  <p className="text-xs text-slate-700 leading-relaxed font-semibold">
+                    🥗 Comer Melhor: Adicione mais cores ao seu prato! Vegetais ricos em fibras aumentam a saciedade.
+                  </p>
+                )}
+                {preferences.primary_goal === 'family_meals' && (
+                  <p className="text-xs text-slate-700 leading-relaxed font-semibold">
+                    👨‍👩‍👧‍👦 Refeições Familiares: Cozinhe porções extras e congele para alimentar a família nos dias corridos.
+                  </p>
+                )}
+                {preferences.primary_goal === 'variety' && (
+                  <p className="text-xs text-slate-700 leading-relaxed font-semibold">
+                    🔄 Variar Menu: Experimente incluir uma categoria de receita totalmente nova nas suas compras da semana.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Portions Adjuster Calculator */}
+            {preferences && (
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-slate-500">Calculadora de Porções</span>
+                  <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">
+                    {preferences.household_size} {preferences.household_size === 1 ? 'pessoa' : 'pessoas'}
+                  </span>
+                </div>
+                
+                {recommendedRecipesData?.recipes && recommendedRecipesData.recipes.length > 0 ? (
+                  <div className="space-y-2.5">
+                    <select
+                      value={selectedRecipeForPortions}
+                      onChange={e => setSelectedRecipeForPortions(e.target.value)}
+                      className="w-full text-xs font-bold p-3 rounded-xl border bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 text-slate-700 cursor-pointer"
+                      style={{ borderColor: 'var(--color-outline-variant)' }}
+                    >
+                      {recommendedRecipesData.recipes.map(r => (
+                        <option key={r.id} value={r.id}>{r.title}</option>
+                      ))}
+                    </select>
+
+                    {targetRecipe && (
+                      <div className="bg-slate-50/50 border border-slate-100/85 rounded-2xl p-3 max-h-[140px] overflow-y-auto">
+                        <p className="text-[10px] font-bold text-slate-400 mb-1.5 uppercase">
+                          Ingredientes escalados (porção original: {targetRecipe.servings}):
+                        </p>
+                        <ul className="space-y-1">
+                          {targetRecipe.ingredients && targetRecipe.ingredients.length > 0 ? (
+                            targetRecipe.ingredients.map(ing => {
+                              const multiplier = preferences.household_size / (targetRecipe.servings || 2)
+                              return (
+                                <li key={ing.id} className="text-xs text-slate-600 flex justify-between gap-2">
+                                  <span className="truncate">{ing.name}</span>
+                                  <span className="font-semibold text-primary shrink-0">
+                                    {Math.round(multiplier * 100) / 100}x {ing.quantity_label || 'unidade'}
+                                  </span>
+                                </li>
+                              )
+                            })
+                          ) : (
+                            <li className="text-xs text-slate-400 italic">Nenhum ingrediente cadastrado.</li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 italic">Nenhuma receita para cálculo.</p>
+                )}
+              </div>
+            )}
+          </div>
+
+          <Link 
+            to="/app/perfil?tab=preferencias"
+            className="w-full mt-6 bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-sm py-3 px-4 rounded-xl text-center no-underline transition-all flex items-center justify-center gap-1.5"
+          >
+            Ajustar Metas no Perfil
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </div>
 

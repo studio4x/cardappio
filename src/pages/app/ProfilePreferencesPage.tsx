@@ -30,8 +30,36 @@ export function ProfilePreferencesPage() {
   const updateProfile = useUpdateProfile()
   const updatePreferences = useUpdatePreferences()
   const updateNotifPrefs = useUpdateNotificationPreferences()
-  const { signOut } = useAuth()
+  const { signOut, refreshProfile } = useAuth()
   const navigate = useNavigate()
+  const [isResettingOnboarding, setIsResettingOnboarding] = useState(false)
+
+  const handleResetOnboarding = async () => {
+    if (!profile?.id) return
+    
+    const confirm = window.confirm('Deseja realmente reiniciar o assistente de configuração? Suas preferências atuais serão mantidas até que você preencha o assistente novamente.')
+    if (!confirm) return
+
+    setIsResettingOnboarding(true)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ onboarding_completed_at: null })
+        .eq('id', profile.id)
+
+      if (error) throw error
+
+      toast.success('Assistente de configuração reiniciado!')
+      await refreshProfile()
+      navigate('/app/onboarding', { replace: true })
+    } catch (err: any) {
+      console.error(err)
+      toast.error('Erro ao reiniciar o assistente. Tente novamente.')
+    } finally {
+      setIsResettingOnboarding(false)
+    }
+  }
+
   const { subscription, checkoutMutation } = useSubscription()
 
   const [searchParams, setSearchParams] = useSearchParams()
@@ -456,6 +484,28 @@ export function ProfilePreferencesPage() {
                 disabled={updatePreferences.isPending}
               >
                 {updatePreferences.isPending ? 'Salvando...' : 'Salvar Preferências'}
+              </Button>
+            </div>
+
+            {/* Reset Onboarding Card */}
+            <div className="rounded-2xl border border-red-100 p-6 bg-red-50/10 shadow-sm space-y-4">
+              <div>
+                <h4 className="font-bold text-red-600 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  Reiniciar Assistente de Configuração
+                </h4>
+                <p className="text-xs text-slate-500 mt-1">
+                  Redefina suas restrições alimentares, objetivos de saúde e preferências preenchendo o assistente de introdução novamente.
+                </p>
+              </div>
+
+              <Button
+                variant="destructive"
+                onClick={handleResetOnboarding}
+                disabled={isResettingOnboarding}
+                className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white"
+              >
+                {isResettingOnboarding ? 'Reiniciando...' : 'Reiniciar Assistente'}
               </Button>
             </div>
           </div>
