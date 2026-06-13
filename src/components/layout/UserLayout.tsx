@@ -26,8 +26,7 @@ export function UserLayout() {
       <header
         className="sticky top-0 z-40 border-b"
         style={{
-          backgroundColor: 'color-mix(in srgb, var(--color-surface-container-lowest) 95%, transparent)',
-          backdropFilter: 'blur(12px)',
+          backgroundColor: '#ffffff',
           borderColor: 'var(--color-outline-variant)',
         }}
       >

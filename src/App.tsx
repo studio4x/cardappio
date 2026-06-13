@@ -3,6 +3,7 @@ import { AuthProvider } from '@/app/providers/AuthProvider'
 import { QueryProvider } from '@/app/providers/QueryProvider'
 import { router } from '@/app/router'
 import { Toaster } from '@/components/ui/sonner'
+import { PWAInstallPrompt } from '@/components/shared/PWAInstallPrompt'
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
       <AuthProvider>
         <RouterProvider router={router} />
         <Toaster position="top-right" richColors />
+        <PWAInstallPrompt />
       </AuthProvider>
     </QueryProvider>
   )

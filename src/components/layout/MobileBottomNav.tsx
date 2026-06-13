@@ -15,7 +15,7 @@ export function MobileBottomNav() {
     <nav
       className="fixed bottom-0 left-0 right-0 z-40 border-t md:hidden"
       style={{
-        backgroundColor: 'var(--color-surface)',
+        backgroundColor: '#ffffff',
         borderColor: 'var(--color-outline-variant)',
         boxShadow: '0 -8px 30px rgba(0,0,0,0.06)',
       }}

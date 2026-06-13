@@ -56,12 +56,16 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icons.svg'],
+      includeAssets: ['favicon.svg', 'icons.svg', 'pwa-192.png', 'pwa-512.png', 'apple-touch-icon.png'],
       manifest: {
         name: 'Cardappio',
         short_name: 'Cardappio',
         description: 'Seu planejador semanal de refeições inteligente',
-        theme_color: '#10b981',
+        lang: 'pt-BR',
+        theme_color: '#f76f25',
+        background_color: '#f8fafc',
+        display: 'standalone',
+        orientation: 'portrait',
         icons: [
           {
             src: 'favicon.svg',
@@ -74,9 +78,19 @@ export default defineConfig({
             type: 'image/svg+xml'
           },
           {
-            src: 'favicon.svg',
+            src: 'pwa-192.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: 'pwa-512.png',
             sizes: '512x512',
-            type: 'image/svg+xml',
+            type: 'image/png'
+          },
+          {
+            src: 'pwa-512.png',
+            sizes: '512x512',
+            type: 'image/png',
             purpose: 'any maskable'
           }
         ]
