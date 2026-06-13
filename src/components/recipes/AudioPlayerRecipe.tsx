@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Play, Pause, Square, SkipForward, SkipBack, Volume2, VolumeX, Crown, Lock, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useNavigate } from 'react-router-dom'
@@ -20,6 +21,7 @@ export function AudioPlayerRecipe({ title, steps }: AudioPlayerRecipeProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(-1) // -1 means intro/title
   const [rate, setRate] = useState(1.0) // Speach speed
   const [isMuted, setIsMuted] = useState(false)
+  const [autoPlayNext, setAutoPlayNext] = useState(true)
   
   const synthRef = useRef<SpeechSynthesis | null>(null)
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
@@ -140,7 +142,12 @@ export function AudioPlayerRecipe({ title, steps }: AudioPlayerRecipeProps) {
       // Speak title and intro
       speakText(`Iniciando receita: ${title}. Vamos aos passos de preparo.`, () => {
         if (steps.length > 0) {
-          setCurrentStepIndex(0)
+          if (autoPlayNext) {
+            setCurrentStepIndex(0)
+          } else {
+            setIsPlaying(false)
+            setCurrentStepIndex(0)
+          }
         }
       })
     } else {
@@ -149,15 +156,29 @@ export function AudioPlayerRecipe({ title, steps }: AudioPlayerRecipeProps) {
       if (step) {
         const cleanContent = stripHtml(step.content)
         speakText(`Passo ${step.step_number}. ${cleanContent}`, () => {
-          if (currentStepIndex < steps.length - 1) {
-            setCurrentStepIndex(prev => prev + 1)
+          if (autoPlayNext) {
+            if (currentStepIndex < steps.length - 1) {
+              setCurrentStepIndex(prev => prev + 1)
+            } else {
+              // End of recipe
+              speakText("Receita finalizada! Bom apetite.", () => {
+                setCurrentStepIndex(-1)
+                setIsPlaying(false)
+                setIsPaused(false)
+              })
+            }
           } else {
-            // End of recipe
-            speakText("Receita finalizada! Bom apetite.", () => {
-              setCurrentStepIndex(-1)
-              setIsPlaying(false)
-              setIsPaused(false)
-            })
+            setIsPlaying(false)
+            if (currentStepIndex < steps.length - 1) {
+              setCurrentStepIndex(prev => prev + 1)
+            } else {
+              // End of recipe
+              speakText("Receita finalizada! Bom apetite.", () => {
+                setCurrentStepIndex(-1)
+                setIsPlaying(false)
+                setIsPaused(false)
+              })
+            }
           }
         })
       }
@@ -231,6 +252,15 @@ export function AudioPlayerRecipe({ title, steps }: AudioPlayerRecipeProps) {
             </span>
           )}
         </p>
+      </div>
+
+      <div className="flex items-center justify-between px-1 text-xs text-slate-400 border-t border-slate-800/30 pt-3">
+        <span className="font-medium text-slate-300">Reprodução contínua (sem pausar)</span>
+        <Switch 
+          checked={autoPlayNext} 
+          onCheckedChange={setAutoPlayNext}
+          className="data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-slate-800"
+        />
       </div>
 
       <div className="flex items-center justify-center gap-2">
