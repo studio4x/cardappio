@@ -204,7 +204,7 @@ export function RecipeDetailPage() {
   }
 
   return (
-    <div className="bg-off-white min-h-screen pb-40 p-6 md:p-10">
+    <div className="bg-off-white min-h-screen pb-[180px] md:pb-28 p-6 md:p-10">
       {/* Back navigation & favorite button row */}
       <div className="flex items-center justify-between mb-6 w-full">
         <button 
@@ -471,8 +471,11 @@ export function RecipeDetailPage() {
 
       {/* Bottom Action Bar */}
       <div 
-        className="fixed bottom-0 left-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1280px] bg-white/95 backdrop-blur-md border-t md:border-x p-5 pb-8 md:pb-6 z-50 flex gap-4 transition-all md:rounded-t-3xl md:shadow-lg" 
-        style={{ borderColor: 'var(--color-outline-variant)' }}
+        className="fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1280px] bg-white/95 backdrop-blur-md border-t md:border-x z-50 flex gap-4 transition-all md:rounded-t-3xl md:shadow-lg px-5 pt-4" 
+        style={{
+          borderColor: 'var(--color-outline-variant)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 72px)',
+        }}
       >
         <button 
           onClick={() => {

@@ -89,7 +89,7 @@ serve(async (req) => {
 
       // 3. Send welcome email with credentials
       try {
-        const origin = req.headers.get('origin') || 'https://cardappio-mauve.vercel.app'
+        const origin = req.headers.get('origin') || 'https://cardappio.app.br'
         const isUserAdmin = role === 'admin' || role === 'super_admin'
         
         let bodyHtml = ''

@@ -229,33 +229,35 @@ export function ShoppingListPage() {
             </div>
             
             {/* Action Bar */}
-            <div className="flex gap-2 pt-4 border-t" style={{ borderColor: 'var(--color-outline-variant)' }}>
+            <div className="flex flex-wrap gap-2 pt-4 border-t" style={{ borderColor: 'var(--color-outline-variant)' }}>
                <button 
                   onClick={handleShare}
-                  className="flex-1 flex items-center justify-center gap-2 bg-neutral-100 hover:bg-neutral-200 py-2.5 rounded-xl text-xs font-bold transition-all"
+                  className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-neutral-100 hover:bg-neutral-200 active:scale-95 py-3 rounded-xl text-xs font-bold transition-all"
                >
-                 <Share2 className="h-4 w-4" /> Compartilhar
+                 <Share2 className="h-4 w-4 shrink-0" /> Compartilhar
                </button>
                <button 
                   onClick={() => window.print()}
-                  className="flex-1 flex items-center justify-center gap-2 bg-neutral-100 hover:bg-neutral-200 py-2.5 rounded-xl text-xs font-bold transition-all"
+                  className="flex-1 min-w-[90px] flex items-center justify-center gap-2 bg-neutral-100 hover:bg-neutral-200 active:scale-95 py-3 rounded-xl text-xs font-bold transition-all"
                >
-                 <Printer className="h-4 w-4" /> Imprimir
+                 <Printer className="h-4 w-4 shrink-0" /> Imprimir
                </button>
                <button 
                   onClick={handleGenerate}
-                  className="flex items-center justify-center gap-2 bg-neutral-100 hover:bg-neutral-200 p-2.5 rounded-xl text-xs font-bold transition-all"
-                  title="Regenerar"
+                  className="flex items-center justify-center gap-1.5 bg-neutral-100 hover:bg-neutral-200 active:scale-95 px-3 py-3 rounded-xl text-xs font-bold transition-all"
+                  title="Regenerar lista"
                >
-                 <RefreshCw className={cn("h-4 w-4", generateList.isPending && "animate-spin")} />
+                 <RefreshCw className={cn("h-4 w-4 shrink-0", generateList.isPending && "animate-spin")} />
+                 <span className="sm:inline">Gerar</span>
                </button>
                <button 
                   onClick={handleDeleteList}
                   disabled={deleteList.isPending}
-                  className="flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 p-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                  className="flex items-center justify-center gap-1.5 bg-red-50 hover:bg-red-100 active:scale-95 text-red-600 px-3 py-3 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
                   title="Excluir lista inteira"
                >
-                 <Trash2 className={cn("h-4 w-4", deleteList.isPending && "animate-pulse")} />
+                 <Trash2 className={cn("h-4 w-4 shrink-0", deleteList.isPending && "animate-pulse")} />
+                 <span className="sm:inline">Excluir</span>
                </button>
             </div>
           </div>

@@ -195,7 +195,7 @@ Exemplos esperados:
 ### Vercel — Projeto
 
 - **Project Name:** `cardappio`
-- **Production URL:** `https://cardappio-mauve.vercel.app/`
+- **Production URL:** `https://cardappio.app.br/`
 - **Token Account:** `[REMOVIDO_POR_SEGURANÇA]`
 
 ### Vercel — Build

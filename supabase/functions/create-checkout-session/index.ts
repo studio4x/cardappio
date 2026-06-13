@@ -63,7 +63,7 @@ serve(async (req) => {
       apiVersion: "2024-06-20",
     })
 
-    const appUrl = req.headers.get('origin') || "https://cardappio-mauve.vercel.app"
+    const appUrl = req.headers.get('origin') || "https://cardappio.app.br"
 
     // 4. Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({

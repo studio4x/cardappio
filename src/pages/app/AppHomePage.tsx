@@ -351,26 +351,26 @@ export function AppHomePage() {
   }
 
   return (
-    <div className="pb-8">
+    <div className="pb-6 md:pb-8">
       {/* Welcome Section */}
-      <section className="mb-10">
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-          <div>
+      <section className="mb-6 md:mb-10">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
+          <div className="min-w-0">
             <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1 block">Dashboard</span>
-            <h2 className="text-3xl font-bold text-on-surface">{greeting}</h2>
-            <p className="text-text-secondary mt-1">Organize seu cardápio da semana de forma rápida e prática.</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-on-surface">{greeting}</h2>
+            <p className="text-text-secondary mt-1 text-sm md:text-base">Organize seu cardápio da semana de forma rápida e prática.</p>
             
             {preferences && (
-              <div className="mt-4 flex flex-wrap gap-2 text-[11px] font-bold">
-                <span className="bg-orange-50/80 text-orange-700 px-3 py-1.5 rounded-xl border border-orange-100/60 flex items-center gap-1.5 shadow-sm">
+              <div className="mt-2.5 flex flex-wrap gap-1.5 text-[10px] md:text-[11px] font-bold">
+                <span className="bg-orange-50/80 text-orange-700 px-2.5 py-1 md:px-3 md:py-1.5 rounded-xl border border-orange-100/60 flex items-center gap-1.5 shadow-sm">
                   <Utensils className="h-3.5 w-3.5" />
                   Cozinhando para {preferences.household_size} {preferences.household_size === 1 ? 'pessoa' : 'pessoas'}
                 </span>
-                <span className="bg-emerald-50/80 text-emerald-700 px-3 py-1.5 rounded-xl border border-emerald-100/60 flex items-center gap-1.5 shadow-sm">
+                <span className="bg-emerald-50/80 text-emerald-700 px-2.5 py-1 md:px-3 md:py-1.5 rounded-xl border border-emerald-100/60 flex items-center gap-1.5 shadow-sm">
                   <CalendarDays className="h-3.5 w-3.5" />
                   Planejando {preferences.default_plan_days} dias/semana
                 </span>
-                <span className="bg-blue-50/80 text-blue-700 px-3 py-1.5 rounded-xl border border-blue-100/60 flex items-center gap-1.5 shadow-sm">
+                <span className="bg-blue-50/80 text-blue-700 px-2.5 py-1 md:px-3 md:py-1.5 rounded-xl border border-blue-100/60 flex items-center gap-1.5 shadow-sm">
                   <ChefHat className="h-3.5 w-3.5" />
                   Refeições: {preferences.default_meal_modes?.map(m => m === 'lunch' ? 'Almoço' : m === 'dinner' ? 'Jantar' : m).join(' e ')}
                 </span>
@@ -379,7 +379,7 @@ export function AppHomePage() {
           </div>
           <Link
             to={activeWeek ? `/app/semana/${activeWeek.id}` : "/app/semana/nova"}
-            className="bg-fresh-green text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-fresh-green/20 flex items-center gap-2 active:scale-95 transition-transform duration-200 no-underline whitespace-nowrap self-start"
+            className="bg-fresh-green text-white px-4 py-2.5 md:px-5 md:py-3 rounded-xl font-bold shadow-lg shadow-fresh-green/20 flex items-center justify-center gap-2 active:scale-95 transition-transform duration-200 no-underline whitespace-nowrap self-start md:self-auto w-full md:w-auto text-sm md:text-base"
             style={{ backgroundColor: 'var(--color-fresh-green)' }}
           >
             <CalendarDays className="h-5 w-5" />
@@ -389,14 +389,14 @@ export function AppHomePage() {
       </section>
 
       {/* Bento Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-6 mb-6 md:mb-10">
         {/* Week Summary Card */}
         <div 
-          className="col-span-12 bg-white border rounded-3xl p-6 shadow-sm overflow-hidden"
+          className="col-span-12 bg-white border rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm overflow-hidden"
           style={{ borderColor: 'var(--color-outline-variant)' }}
         >
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold flex items-center gap-2">
+          <div className="flex items-center justify-between mb-4 md:mb-6">
+            <h3 className="text-base md:text-lg font-bold flex items-center gap-2">
               <CalendarDays className="h-5 w-5 text-primary" />
               Resumo da Semana
             </h3>
@@ -415,7 +415,7 @@ export function AppHomePage() {
           ) : weekLoading ? (
             <div className="h-24 animate-pulse bg-slate-100 rounded-2xl" />
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
+            <div className="flex overflow-x-auto no-scrollbar gap-2.5 pb-1 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-7 md:gap-3">
               {[...(activeWeek?.days ?? [])]
                 .sort((a, b) => a.sort_order - b.sort_order)
                 .slice(0, 7)
@@ -425,8 +425,8 @@ export function AppHomePage() {
                   return (
                     <div 
                       key={day.id} 
-                      className={`p-4 rounded-2xl border flex flex-col gap-2 transition-all hover:bg-surface-container-low ${
-                        isToday ? 'ring-2 ring-primary ring-offset-2' : ''
+                      className={`p-3 rounded-xl md:rounded-2xl border flex flex-col gap-1.5 transition-all hover:bg-surface-container-low shrink-0 w-[84px] md:w-auto md:shrink ${
+                        isToday ? 'ring-2 ring-primary ring-offset-1 md:ring-offset-2' : ''
                       }`}
                       style={{ 
                         backgroundColor: 'var(--color-surface)',
@@ -448,11 +448,11 @@ export function AppHomePage() {
           )}
         </div>
         <div 
-          className="col-span-12 lg:col-span-4 bg-white border rounded-3xl p-6 shadow-sm flex flex-col justify-between"
+          className="col-span-12 lg:col-span-4 bg-white border rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm flex flex-col justify-between"
           style={{ borderColor: 'var(--color-outline-variant)' }}
         >
           <div>
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <h3 className="text-base md:text-lg font-bold mb-4 flex items-center gap-2">
               <ChefHat className="h-5 w-5 text-primary" />
               Explorar Cardápio
             </h3>
@@ -508,7 +508,7 @@ export function AppHomePage() {
           
           <Link 
             to="/app/receitas"
-            className="w-full mt-6 bg-primary text-white font-bold text-sm py-3 px-4 rounded-xl text-center no-underline shadow-md shadow-primary/10 hover:bg-primary/95 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+            className="w-full mt-4 md:mt-6 bg-primary text-white font-bold text-sm py-2.5 md:py-3 px-4 rounded-xl text-center no-underline shadow-md shadow-primary/10 hover:bg-primary/95 active:scale-95 transition-all flex items-center justify-center gap-1.5"
           >
             Acessar Cardápio Completo
             <ArrowRight className="h-4 w-4" />
@@ -517,14 +517,14 @@ export function AppHomePage() {
 
         {/* Quick Shopping List Card */}
         <div 
-          className="col-span-12 lg:col-span-4 bg-white border rounded-3xl p-6 shadow-sm relative overflow-hidden flex flex-col justify-between"
+          className="col-span-12 lg:col-span-4 bg-white border rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm relative overflow-hidden flex flex-col justify-between"
           style={{ backgroundColor: 'var(--color-surface-container-highest)', borderColor: 'var(--color-outline-variant)' }}
         >
           <div className="absolute top-0 right-0 p-4 opacity-10">
              <ShoppingCart className="h-24 w-24 text-secondary rotate-12" />
           </div>
           <div>
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 relative z-10">
+            <h3 className="text-base md:text-lg font-bold mb-3 md:mb-4 flex items-center gap-2 relative z-10">
               <ListChecks className="h-5 w-5 text-secondary" />
               Lista de Compras
             </h3>
@@ -576,7 +576,7 @@ export function AppHomePage() {
             ) : (
               <ul className="space-y-3 relative z-10">
                 {shoppingList.items.slice(0, 3).map((item) => (
-                  <li key={item.id} className="bg-white/50 p-2.5 rounded-xl border border-white/50">
+                  <li key={item.id} className="bg-white/50 p-2 md:p-2.5 rounded-xl border border-white/50">
                     <button
                       onClick={() => toggleShoppingItem.mutate({ itemId: item.id, isChecked: !item.is_checked })}
                       disabled={toggleShoppingItem.isPending}
@@ -605,7 +605,7 @@ export function AppHomePage() {
           {activeWeek && shoppingList && (
             <Link 
               to={`/app/semana/${activeWeek.id}/compras`}
-              className="w-full mt-6 text-primary font-bold text-sm py-2 block text-center no-underline border-b-2 border-transparent hover:border-primary transition-all relative z-10"
+              className="w-full mt-4 md:mt-6 text-primary font-bold text-sm py-2 block text-center no-underline border-b-2 border-transparent hover:border-primary transition-all relative z-10"
             >
               Ver lista completa
             </Link>
@@ -614,11 +614,11 @@ export function AppHomePage() {
 
         {/* Intelligent Menu Generator Card */}
         <div 
-          className="col-span-12 lg:col-span-4 bg-white border rounded-3xl p-6 shadow-sm flex flex-col justify-between"
+          className="col-span-12 lg:col-span-4 bg-white border rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm flex flex-col justify-between"
           style={{ borderColor: 'var(--color-outline-variant)' }}
         >
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold flex items-center gap-2 text-on-surface">
+          <div className="space-y-3 md:space-y-4">
+            <h3 className="text-base md:text-lg font-bold flex items-center gap-2 text-on-surface">
               <Sparkles className="h-5 w-5 text-primary animate-pulse" />
               Cardápio Inteligente
             </h3>
@@ -628,7 +628,7 @@ export function AppHomePage() {
             </p>
 
             {preferences && (
-              <div className="space-y-2 bg-slate-50/60 p-3.5 rounded-2xl border border-slate-100">
+              <div className="space-y-2 bg-slate-50/60 p-3 md:p-3.5 rounded-xl md:rounded-2xl border border-slate-100">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
                   Preferências Ativas:
                 </span>
@@ -656,7 +656,7 @@ export function AppHomePage() {
             
             {/* Goal-based Tip */}
             {preferences?.primary_goal && (
-              <div className="p-3.5 rounded-2xl bg-orange-50/30 border border-orange-100/40">
+              <div className="p-3 md:p-3.5 rounded-xl md:rounded-2xl bg-orange-50/30 border border-orange-100/40">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-primary block mb-1 flex items-center gap-1">
                   <ChefHat className="h-3.5 w-3.5" />
                   Dica de Objetivo
@@ -690,17 +690,17 @@ export function AppHomePage() {
             )}
           </div>
 
-          <div className="flex flex-col gap-2 mt-6">
+          <div className="flex flex-col gap-2 mt-4 md:mt-6">
             <button
               onClick={generateSuggestions}
-              className="w-full bg-primary hover:bg-primary-hover text-white font-bold text-sm py-3 px-4 rounded-xl text-center transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95 cursor-pointer border-none"
+              className="w-full bg-primary hover:bg-primary-hover text-white font-bold text-sm py-2.5 md:py-3 px-4 rounded-xl text-center transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95 cursor-pointer border-none"
             >
               <Sparkles className="h-4 w-4 text-amber-200 fill-amber-200" />
               Gerar Cardápio Sugerido
             </button>
             <Link 
               to="/app/perfil?tab=preferencias"
-              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm py-2.5 px-4 rounded-xl text-center no-underline transition-all flex items-center justify-center gap-1.5"
+              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm py-2 md:py-2.5 px-4 rounded-xl text-center no-underline transition-all flex items-center justify-center gap-1.5"
             >
               Ajustar Preferências
               <ArrowRight className="h-3.5 w-3.5" />
@@ -842,17 +842,17 @@ export function AppHomePage() {
 
       {/* Inspirations Section */}
       <section>
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold">{sectionTitle}</h3>
+        <div className="flex items-center justify-between mb-4 md:mb-6">
+          <h3 className="text-lg md:text-xl font-bold">{sectionTitle}</h3>
           <Link to="/app/favoritos" className="text-primary font-bold text-sm flex items-center gap-1 no-underline">
             Ver todos <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
         
         {favsLoading || recsLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-2xl overflow-hidden border shadow-sm h-64 animate-pulse" style={{ borderColor: 'var(--color-outline-variant)' }} />
+              <div key={i} className="bg-white rounded-2xl overflow-hidden border shadow-sm h-48 md:h-64 animate-pulse" style={{ borderColor: 'var(--color-outline-variant)' }} />
             ))}
           </div>
         ) : displayRecipes.length === 0 ? (
@@ -861,7 +861,7 @@ export function AppHomePage() {
             <p className="text-sm font-medium text-text-secondary">Nenhuma receita recomendada disponível.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
             {displayRecipes.map((recipe) => {
               const isLocked = recipe.is_premium && !isPremiumUser;
               return (
@@ -871,7 +871,7 @@ export function AppHomePage() {
                   className="bg-white rounded-2xl overflow-hidden border shadow-sm hover:shadow-md transition-shadow group cursor-pointer no-underline block" 
                   style={{ borderColor: 'var(--color-outline-variant)' }}
                 >
-                  <div className="h-44 relative overflow-hidden bg-slate-100">
+                  <div className="h-28 md:h-44 relative overflow-hidden bg-slate-100">
                     <button
                       onClick={(e) => {
                         e.preventDefault();
@@ -879,7 +879,7 @@ export function AppHomePage() {
                         toggleFavorite.mutate({ recipeId: recipe.id, isFavorite: isRecipeFavorite(recipe.id) });
                       }}
                       disabled={toggleFavorite.isPending}
-                      className="absolute top-4 right-4 bg-white/90 hover:bg-white p-2 rounded-full backdrop-blur-md shadow-sm z-10 active:scale-90 transition-transform cursor-pointer disabled:opacity-50"
+                      className="absolute top-2 right-2 md:top-4 md:right-4 bg-white/90 hover:bg-white p-1.5 md:p-2 rounded-full backdrop-blur-md shadow-sm z-10 active:scale-90 transition-transform cursor-pointer disabled:opacity-50"
                     >
                       <Star 
                         className={`h-4 w-4 transition-colors ${
@@ -903,37 +903,37 @@ export function AppHomePage() {
 
                     {/* Premium Lock Overlay */}
                     {isLocked && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/40 backdrop-blur-[1px]">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-400/90 shadow-md">
-                          <Lock className="h-4 w-4 text-amber-950" />
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/40 backdrop-blur-[1px]">
+                        <div className="flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full bg-amber-400/90 shadow-md">
+                          <Lock className="h-3.5 w-3.5 md:h-4 md:w-4 text-amber-950" />
                         </div>
-                        <span className="text-[9px] font-black text-white uppercase tracking-wider">Exclusivo Pro</span>
+                        <span className="text-[8px] md:text-[9px] font-black text-white uppercase tracking-wider text-center px-1">Exclusivo Pro</span>
                       </div>
                     )}
 
                     {/* Premium badge */}
                     {recipe.is_premium && (
-                      <span className="absolute top-4 left-4 flex items-center gap-1 rounded-full bg-amber-400/95 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-950 shadow z-10">
+                      <span className="absolute top-2 left-2 md:top-4 md:left-4 flex items-center gap-1 rounded-full bg-amber-400/95 px-1.5 py-0.5 md:px-2 md:py-0.5 text-[8px] md:text-[9px] font-black uppercase tracking-wider text-amber-950 shadow z-10">
                         <Crown className="h-2.5 w-2.5" />
                         Pro
                       </span>
                     )}
                   </div>
-                  <div className="p-4">
-                    <div className="flex gap-2 mb-2">
-                      <span className="bg-green-50 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                  <div className="p-3 md:p-4">
+                    <div className="flex flex-wrap gap-1.5 mb-1.5 md:mb-2">
+                      <span className="bg-green-50 text-green-700 text-[9px] md:text-[10px] px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full font-bold uppercase tracking-wider truncate max-w-[80px] md:max-w-none">
                         {recipe.usage_context || 'Receita'}
                       </span>
-                      <span className="bg-neutral-100 text-neutral-600 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                      <span className="bg-neutral-100 text-neutral-600 text-[9px] md:text-[10px] px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full font-bold uppercase tracking-wider">
                         {recipe.prep_time_minutes} min
                       </span>
                     </div>
-                    <h4 className="font-bold text-lg text-on-surface mb-2 group-hover:text-primary transition-colors line-clamp-1">
+                    <h4 className="font-bold text-sm md:text-lg text-on-surface mb-1 md:mb-2 group-hover:text-primary transition-colors line-clamp-2 md:line-clamp-1 h-9 md:h-auto">
                       {recipe.title}
                     </h4>
-                    <div className="flex items-center gap-4 text-text-secondary text-[11px] font-medium">
-                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{getDifficultyLabel(recipe.difficulty_level)}</span>
-                      <span className="flex items-center gap-1"><PiggyBank className="h-3 w-3" />{getCostLabel(recipe.cost_level)}</span>
+                    <div className="flex flex-wrap items-center gap-x-2 md:gap-x-4 gap-y-1 text-text-secondary text-[10px] md:text-[11px] font-medium">
+                      <span className="flex items-center gap-1 shrink-0"><Clock className="h-3 w-3" />{getDifficultyLabel(recipe.difficulty_level)}</span>
+                      <span className="flex items-center gap-1 shrink-0"><PiggyBank className="h-3 w-3" />{getCostLabel(recipe.cost_level)}</span>
                     </div>
                   </div>
                 </Link>

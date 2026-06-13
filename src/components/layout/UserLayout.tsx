@@ -103,7 +103,7 @@ export function UserLayout() {
             
             <button
               onClick={signOut}
-              className="ml-2 rounded-full p-2.5 transition-colors hover:bg-red-50 cursor-pointer text-red-500"
+              className="hidden md:flex ml-2 rounded-full p-2.5 transition-colors hover:bg-red-50 cursor-pointer text-red-500 items-center"
               title="Sair"
             >
               <LogOut className="h-4 w-4" />
@@ -113,15 +113,15 @@ export function UserLayout() {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 pb-12">
+      <main className="flex-1 pb-nav md:pb-12">
         <div className="container-app py-6">
           <Outlet />
         </div>
       </main>
 
-      {/* Sticky Footer */}
+      {/* Sticky Footer — hidden on mobile to avoid stacking above BottomNav */}
       <footer 
-        className="w-full pt-4 pb-20 sm:py-4 border-t bg-white" 
+        className="hidden md:block w-full py-4 border-t" 
         style={{ 
           borderColor: 'var(--color-outline-variant)',
           backgroundColor: 'color-mix(in srgb, var(--color-surface-container-lowest) 95%, transparent)'

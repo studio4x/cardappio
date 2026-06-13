@@ -119,7 +119,7 @@ serve(async (req) => {
               <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 24px auto; border-collapse: collapse;">
                 <tr>
                   <td align="center" bgcolor="#f76f25" style="border-radius: 8px; background-color: #f76f25;">
-                    <a href="https://cardappio-mauve.vercel.app/app/semana" target="_blank" style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; background-color: #f76f25; border-top: 12px solid #f76f25; border-bottom: 12px solid #f76f25; border-left: 24px solid #f76f25; border-right: 24px solid #f76f25; border-radius: 8px;">
+                    <a href="https://cardappio.app.br/app/semana" target="_blank" style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; background-color: #f76f25; border-top: 12px solid #f76f25; border-bottom: 12px solid #f76f25; border-left: 24px solid #f76f25; border-right: 24px solid #f76f25; border-radius: 8px;">
                       Acessar Planejamento
                     </a>
                   </td>
@@ -196,7 +196,7 @@ serve(async (req) => {
               <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 24px auto; border-collapse: collapse;">
                 <tr>
                   <td align="center" bgcolor="#f76f25" style="border-radius: 8px; background-color: #f76f25;">
-                    <a href="https://cardappio-mauve.vercel.app/app/configuracoes" target="_blank" style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; background-color: #f76f25; border-top: 12px solid #f76f25; border-bottom: 12px solid #f76f25; border-left: 24px solid #f76f25; border-right: 24px solid #f76f25; border-radius: 8px;">
+                    <a href="https://cardappio.app.br/app/configuracoes" target="_blank" style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; background-color: #f76f25; border-top: 12px solid #f76f25; border-bottom: 12px solid #f76f25; border-left: 24px solid #f76f25; border-right: 24px solid #f76f25; border-radius: 8px;">
                       Gerenciar Conta
                     </a>
                   </td>

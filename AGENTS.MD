@@ -268,7 +268,7 @@ Após deploy, confirmar via API:
 
 1. O `readyState` do deploy de produção é `READY`;
 2. O SHA do deploy corresponde ao `HEAD` local;
-3. O domínio canônico (`cardappio-mauve.vercel.app`) responde corretamente.
+3. O domínio canônico (`cardappio.app.br`) responde corretamente.
 
 Se houver divergência entre o deploy publicado e o HEAD, tratar como falha e corrigir antes de encerrar.
 

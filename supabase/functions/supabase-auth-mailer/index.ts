@@ -17,8 +17,15 @@ serve(async (req) => {
     const toEmail = user?.email || payload.email
     const token = email_data?.token
     const tokenHash = email_data?.token_hash
-    const siteUrl = email_data?.site_url || 'https://cardappio-mauve.vercel.app'
-    const redirectTo = email_data?.redirect_to || `${siteUrl}/app`
+    // Normalize siteUrl to always use www if that is the main production domain
+    let siteUrl = email_data?.site_url || 'https://www.cardappio.app.br'
+    if (siteUrl === 'https://cardappio.app.br') {
+      siteUrl = 'https://www.cardappio.app.br'
+    }
+    let redirectTo = email_data?.redirect_to || `${siteUrl}/app`
+    if (emailActionType === 'recovery') {
+      redirectTo = `${siteUrl}/auth/callback?type=recovery`
+    }
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || 'https://wkngjvsgafmdwejmckks.supabase.co'
 
     if (!toEmail) {
@@ -54,7 +61,7 @@ serve(async (req) => {
           <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 24px auto; border-collapse: collapse;">
             <tr>
               <td align="center" bgcolor="#f76f25" style="border-radius: 8px; background-color: #f76f25;">
-                <a href="${confirmationUrl}" target="_blank" style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; background-color: #f76f25; border-top: 12px solid #f76f25; border-bottom: 12px solid #f76f25; border-left: 24px solid #f76f25; border-right: 24px solid #f76f25; border-radius: 8px;">
+                <a href="${confirmationUrl}" style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; background-color: #f76f25; border-top: 12px solid #f76f25; border-bottom: 12px solid #f76f25; border-left: 24px solid #f76f25; border-right: 24px solid #f76f25; border-radius: 8px;">
                   Confirmar E-mail
                 </a>
               </td>
@@ -79,7 +86,7 @@ serve(async (req) => {
           <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 24px auto; border-collapse: collapse;">
             <tr>
               <td align="center" bgcolor="#f76f25" style="border-radius: 8px; background-color: #f76f25;">
-                <a href="${confirmationUrl}" target="_blank" style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; background-color: #f76f25; border-top: 12px solid #f76f25; border-bottom: 12px solid #f76f25; border-left: 24px solid #f76f25; border-right: 24px solid #f76f25; border-radius: 8px;">
+                <a href="${confirmationUrl}" style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; background-color: #f76f25; border-top: 12px solid #f76f25; border-bottom: 12px solid #f76f25; border-left: 24px solid #f76f25; border-right: 24px solid #f76f25; border-radius: 8px;">
                   Entrar no Aplicativo
                 </a>
               </td>
@@ -110,7 +117,7 @@ serve(async (req) => {
           <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 24px auto; border-collapse: collapse;">
             <tr>
               <td align="center" bgcolor="#f76f25" style="border-radius: 8px; background-color: #f76f25;">
-                <a href="${confirmationUrl}" target="_blank" style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; background-color: #f76f25; border-top: 12px solid #f76f25; border-bottom: 12px solid #f76f25; border-left: 24px solid #f76f25; border-right: 24px solid #f76f25; border-radius: 8px;">
+                <a href="${confirmationUrl}" style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; background-color: #f76f25; border-top: 12px solid #f76f25; border-bottom: 12px solid #f76f25; border-left: 24px solid #f76f25; border-right: 24px solid #f76f25; border-radius: 8px;">
                   Redefinir Senha
                 </a>
               </td>
@@ -134,7 +141,7 @@ serve(async (req) => {
           <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 24px auto; border-collapse: collapse;">
             <tr>
               <td align="center" bgcolor="#f76f25" style="border-radius: 8px; background-color: #f76f25;">
-                <a href="${confirmationUrl}" target="_blank" style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; background-color: #f76f25; border-top: 12px solid #f76f25; border-bottom: 12px solid #f76f25; border-left: 24px solid #f76f25; border-right: 24px solid #f76f25; border-radius: 8px;">
+                <a href="${confirmationUrl}" style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; background-color: #f76f25; border-top: 12px solid #f76f25; border-bottom: 12px solid #f76f25; border-left: 24px solid #f76f25; border-right: 24px solid #f76f25; border-radius: 8px;">
                   Aceitar Convite
                 </a>
               </td>
@@ -155,7 +162,7 @@ serve(async (req) => {
           <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 24px auto; border-collapse: collapse;">
             <tr>
               <td align="center" bgcolor="#f76f25" style="border-radius: 8px; background-color: #f76f25;">
-                <a href="${confirmationUrl}" target="_blank" style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; background-color: #f76f25; border-top: 12px solid #f76f25; border-bottom: 12px solid #f76f25; border-left: 24px solid #f76f25; border-right: 24px solid #f76f25; border-radius: 8px;">
+                <a href="${confirmationUrl}" style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; background-color: #f76f25; border-top: 12px solid #f76f25; border-bottom: 12px solid #f76f25; border-left: 24px solid #f76f25; border-right: 24px solid #f76f25; border-radius: 8px;">
                   Confirmar Novo E-mail
                 </a>
               </td>
