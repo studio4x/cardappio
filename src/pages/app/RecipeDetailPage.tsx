@@ -113,9 +113,9 @@ export function RecipeDetailPage() {
 
   if (isLocked) {
     return (
-      <div className="bg-off-white min-h-screen pb-20 p-6 md:p-10 flex flex-col items-center">
+      <div className="pb-20 pt-2 md:pt-4 flex flex-col items-center w-full">
         {/* Back navigation */}
-        <div className="flex items-center justify-between mb-8 w-full max-w-2xl">
+        <div className="flex items-center justify-between mb-6 w-full max-w-2xl">
           <button 
             onClick={() => navigate(-1)}
             className="active:scale-95 transition-transform hover:bg-neutral-100 py-2 px-3 rounded-full cursor-pointer flex items-center gap-1.5 text-xs font-bold uppercase text-slate-500"
@@ -204,7 +204,7 @@ export function RecipeDetailPage() {
   }
 
   return (
-    <div className="bg-off-white min-h-screen pb-[180px] md:pb-28 p-6 md:p-10">
+    <div className="pb-[180px] md:pb-28 pt-2 md:pt-4">
       {/* Back navigation & favorite button row */}
       <div className="flex items-center justify-between mb-6 w-full">
         <button 
