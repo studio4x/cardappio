@@ -469,12 +469,11 @@ export function RecipeDetailPage() {
         </div>
       </main>
 
-      {/* Bottom Action Bar */}
+      {/* Floating Action Bar */}
       <div 
-        className="fixed bottom-0 left-0 right-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1280px] bg-white/95 backdrop-blur-md border-t md:border-x z-50 flex gap-4 transition-all md:rounded-t-3xl md:shadow-lg px-5 pt-4" 
+        className="fixed bottom-[calc(80px+env(safe-area-inset-bottom,0px))] md:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-md bg-white/90 backdrop-blur-md border shadow-2xl rounded-2xl z-30 p-3 flex gap-3 transition-all animate-in slide-in-from-bottom-8 duration-300" 
         style={{
           borderColor: 'var(--color-outline-variant)',
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 72px)',
         }}
       >
         <button 
@@ -484,7 +483,7 @@ export function RecipeDetailPage() {
             setSelectedDayId(null)
             setIsAddModalOpen(true)
           }}
-          className="flex-1 bg-fresh-green text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all cursor-pointer animate-in fade-in zoom-in-95 duration-200"
+          className="flex-1 bg-fresh-green text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-lg active:scale-95 hover:brightness-105 transition-all cursor-pointer animate-in fade-in zoom-in-95 duration-200"
         >
           <Plus className="h-5 w-5" />
           Adicionar ao Plano Semanal
