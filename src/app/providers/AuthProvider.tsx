@@ -9,6 +9,7 @@ import {
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 import type { Profile, UserPreferences, AuthState } from '@/types/auth'
+import { toast } from 'sonner'
 
 interface AuthContextValue extends AuthState {
   session: Session | null
@@ -152,11 +153,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [supabaseUser, fetchProfile, fetchPreferences])
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut()
+    // 1. Clear local state immediately for instant feedback
     setSession(null)
     setSupabaseUser(null)
     setProfile(null)
     setPreferences(null)
+
+    // 2. Clear flags
+    try {
+      sessionStorage.removeItem('isRecoveryFlow')
+    } catch {}
+
+    // 3. Show instant feedback toast
+    toast.success('Sessão encerrada com sucesso!')
+
+    // 4. Invalidate session on Supabase server in background
+    try {
+      await supabase.auth.signOut()
+    } catch (err) {
+      console.warn('Could not invalidate session on server, but cleared locally:', err)
+    }
   }, [])
 
   useEffect(() => {

@@ -351,9 +351,9 @@ export function AppHomePage() {
   }
 
   return (
-    <div className="pb-6 md:pb-8">
+    <div className="pb-4 md:pb-8">
       {/* Welcome Section */}
-      <section className="mb-6 md:mb-10">
+      <section className="mb-5 md:mb-10">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
           <div className="min-w-0">
             <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1 block">Dashboard</span>
@@ -389,7 +389,7 @@ export function AppHomePage() {
       </section>
 
       {/* Bento Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-6 mb-6 md:mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-6 mb-5 md:mb-10">
         {/* Week Summary Card */}
         <div 
           className="col-span-12 bg-white border rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm overflow-hidden"
@@ -408,7 +408,7 @@ export function AppHomePage() {
           </div>
 
           {!activeWeek && !weekLoading ? (
-             <div className="py-8 text-center bg-surface-container-low rounded-2xl border-2 border-dashed border-outline-variant">
+             <div className="py-6 md:py-8 text-center bg-surface-container-low rounded-2xl border-2 border-dashed border-outline-variant">
                 <p className="text-sm font-medium text-text-secondary mb-3">Você ainda não planejou sua semana.</p>
                 <Link to="/app/semana/nova" className="text-xs font-bold text-primary underline">Começar planejamento</Link>
              </div>
@@ -452,7 +452,7 @@ export function AppHomePage() {
           style={{ borderColor: 'var(--color-outline-variant)' }}
         >
           <div>
-            <h3 className="text-base md:text-lg font-bold mb-4 flex items-center gap-2">
+            <h3 className="text-base md:text-lg font-bold mb-2.5 md:mb-4 flex items-center gap-2">
               <ChefHat className="h-5 w-5 text-primary" />
               Explorar Cardápio
             </h3>
@@ -508,7 +508,7 @@ export function AppHomePage() {
           
           <Link 
             to="/app/receitas"
-            className="w-full mt-4 md:mt-6 bg-primary text-white font-bold text-sm py-2.5 md:py-3 px-4 rounded-xl text-center no-underline shadow-md shadow-primary/10 hover:bg-primary/95 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+            className="w-full mt-3.5 md:mt-6 bg-primary text-white font-bold text-sm py-2.5 md:py-3 px-4 rounded-xl text-center no-underline shadow-md shadow-primary/10 hover:bg-primary/95 active:scale-95 transition-all flex items-center justify-center gap-1.5"
           >
             Acessar Cardápio Completo
             <ArrowRight className="h-4 w-4" />
@@ -524,7 +524,7 @@ export function AppHomePage() {
              <ShoppingCart className="h-24 w-24 text-secondary rotate-12" />
           </div>
           <div>
-            <h3 className="text-base md:text-lg font-bold mb-3 md:mb-4 flex items-center gap-2 relative z-10">
+            <h3 className="text-base md:text-lg font-bold mb-2.5 md:mb-4 flex items-center gap-2 relative z-10">
               <ListChecks className="h-5 w-5 text-secondary" />
               Lista de Compras
             </h3>
@@ -536,7 +536,7 @@ export function AppHomePage() {
                 ))}
               </div>
             ) : !activeWeek ? (
-              <div className="py-6 text-center bg-white/30 rounded-2xl border border-white/40 relative z-10 flex flex-col justify-center items-center">
+              <div className="py-4.5 md:py-6 text-center bg-white/30 rounded-2xl border border-white/40 relative z-10 flex flex-col justify-center items-center">
                 <p className="text-xs font-medium text-text-secondary mb-3 px-4">
                   Monte seu cardápio da semana para gerar a lista de compras automaticamente.
                 </p>
@@ -548,7 +548,7 @@ export function AppHomePage() {
                 </Link>
               </div>
             ) : !shoppingList ? (
-              <div className="py-6 text-center bg-white/30 rounded-2xl border border-white/40 relative z-10 flex flex-col justify-center items-center">
+              <div className="py-4.5 md:py-6 text-center bg-white/30 rounded-2xl border border-white/40 relative z-10 flex flex-col justify-center items-center">
                 <p className="text-xs font-medium text-text-secondary mb-3 px-4">
                   Sua lista de compras ainda não foi gerada para esta semana.
                 </p>
@@ -568,13 +568,13 @@ export function AppHomePage() {
                 </button>
               </div>
             ) : !shoppingList.items || shoppingList.items.length === 0 ? (
-              <div className="py-6 text-center bg-white/30 rounded-2xl border border-white/40 relative z-10">
+              <div className="py-4.5 md:py-6 text-center bg-white/30 rounded-2xl border border-white/40 relative z-10">
                 <p className="text-xs font-medium text-text-secondary px-4">
                   Nenhum item na sua lista de compras. Adicione receitas com ingredientes ao planejamento.
                 </p>
               </div>
             ) : (
-              <ul className="space-y-3 relative z-10">
+              <ul className="space-y-2 md:space-y-3 relative z-10">
                 {shoppingList.items.slice(0, 3).map((item) => (
                   <li key={item.id} className="bg-white/50 p-2 md:p-2.5 rounded-xl border border-white/50">
                     <button
@@ -605,7 +605,7 @@ export function AppHomePage() {
           {activeWeek && shoppingList && (
             <Link 
               to={`/app/semana/${activeWeek.id}/compras`}
-              className="w-full mt-4 md:mt-6 text-primary font-bold text-sm py-2 block text-center no-underline border-b-2 border-transparent hover:border-primary transition-all relative z-10"
+              className="w-full mt-3 md:mt-6 text-primary font-bold text-sm py-2 block text-center no-underline border-b-2 border-transparent hover:border-primary transition-all relative z-10"
             >
               Ver lista completa
             </Link>
@@ -628,11 +628,11 @@ export function AppHomePage() {
             </p>
 
             {preferences && (
-              <div className="space-y-2 bg-slate-50/60 p-3 md:p-3.5 rounded-xl md:rounded-2xl border border-slate-100">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
+              <div className="space-y-1.5 md:space-y-2 bg-slate-50/60 p-2.5 md:p-3.5 rounded-xl md:rounded-2xl border border-slate-100">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
                   Preferências Ativas:
                 </span>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1">
                   <span className="bg-primary/5 text-primary text-[10px] px-2.5 py-1 rounded-full font-bold">
                     👥 {preferences.household_size} {preferences.household_size === 1 ? 'pessoa' : 'pessoas'}
                   </span>
@@ -656,7 +656,7 @@ export function AppHomePage() {
             
             {/* Goal-based Tip */}
             {preferences?.primary_goal && (
-              <div className="p-3 md:p-3.5 rounded-xl md:rounded-2xl bg-orange-50/30 border border-orange-100/40">
+              <div className="p-2.5 md:p-3.5 rounded-xl md:rounded-2xl bg-orange-50/30 border border-orange-100/40">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-primary block mb-1 flex items-center gap-1">
                   <ChefHat className="h-3.5 w-3.5" />
                   Dica de Objetivo
@@ -690,10 +690,10 @@ export function AppHomePage() {
             )}
           </div>
 
-          <div className="flex flex-col gap-2 mt-4 md:mt-6">
+          <div className="flex flex-col gap-1.5 md:gap-2 mt-3.5 md:mt-6">
             <button
               onClick={generateSuggestions}
-              className="w-full bg-primary hover:bg-primary-hover text-white font-bold text-sm py-2.5 md:py-3 px-4 rounded-xl text-center transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95 cursor-pointer border-none"
+              className="w-full bg-primary hover:bg-primary-hover text-white font-bold text-sm py-2 md:py-3 px-4 rounded-xl text-center transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95 cursor-pointer border-none"
             >
               <Sparkles className="h-4 w-4 text-amber-200 fill-amber-200" />
               Gerar Cardápio Sugerido
@@ -820,20 +820,20 @@ export function AppHomePage() {
       {/* Editorial Notices */}
       {latestNotice && (
         <div 
-          className="mb-10 p-5 rounded-3xl border flex gap-4 items-start shadow-sm"
+          className="mb-6 md:mb-10 p-4 md:p-5 rounded-2xl md:rounded-3xl border flex gap-3.5 md:gap-4 items-start shadow-sm"
           style={{ 
             backgroundColor: 'color-mix(in srgb, var(--color-primary-container) 10%, transparent)',
             borderColor: 'var(--color-primary-container)'
           }}
         >
-          <div className="rounded-2xl p-3 shadow-sm" style={{ backgroundColor: 'white' }}>
-            <Sparkles className="h-5 w-5 text-primary" style={{ color: 'var(--color-primary)' }} />
+          <div className="rounded-xl md:rounded-2xl p-2.5 md:p-3 shadow-sm shrink-0" style={{ backgroundColor: 'white' }}>
+            <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-primary" style={{ color: 'var(--color-primary)' }} />
           </div>
           <div>
             <h4 className="text-[10px] font-bold uppercase tracking-widest mb-1 text-primary">
               {latestNotice.notice_type === 'tip' ? 'Dica do Editor' : 'Aviso do Sistema'}
             </h4>
-            <p className="text-sm font-bold text-on-surface">
+            <p className="text-xs md:text-sm font-bold text-on-surface">
               {latestNotice.body}
             </p>
           </div>
@@ -842,7 +842,7 @@ export function AppHomePage() {
 
       {/* Inspirations Section */}
       <section>
-        <div className="flex items-center justify-between mb-4 md:mb-6">
+        <div className="flex items-center justify-between mb-3 md:mb-6">
           <h3 className="text-lg md:text-xl font-bold">{sectionTitle}</h3>
           <Link to="/app/favoritos" className="text-primary font-bold text-sm flex items-center gap-1 no-underline">
             Ver todos <ArrowRight className="h-4 w-4" />
@@ -919,8 +919,8 @@ export function AppHomePage() {
                       </span>
                     )}
                   </div>
-                  <div className="p-3 md:p-4">
-                    <div className="flex flex-wrap gap-1.5 mb-1.5 md:mb-2">
+                  <div className="p-2.5 md:p-4">
+                    <div className="flex flex-wrap gap-1 mb-1 md:mb-2">
                       <span className="bg-green-50 text-green-700 text-[9px] md:text-[10px] px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full font-bold uppercase tracking-wider truncate max-w-[80px] md:max-w-none">
                         {recipe.usage_context || 'Receita'}
                       </span>
@@ -928,10 +928,10 @@ export function AppHomePage() {
                         {recipe.prep_time_minutes} min
                       </span>
                     </div>
-                    <h4 className="font-bold text-sm md:text-lg text-on-surface mb-1 md:mb-2 group-hover:text-primary transition-colors line-clamp-2 md:line-clamp-1 h-9 md:h-auto">
+                    <h4 className="font-bold text-xs md:text-lg text-on-surface mb-1 md:mb-2 group-hover:text-primary transition-colors line-clamp-2 md:line-clamp-1 h-8 md:h-auto">
                       {recipe.title}
                     </h4>
-                    <div className="flex flex-wrap items-center gap-x-2 md:gap-x-4 gap-y-1 text-text-secondary text-[10px] md:text-[11px] font-medium">
+                    <div className="flex flex-wrap items-center gap-x-2 md:gap-x-4 gap-y-0.5 text-text-secondary text-[10px] md:text-[11px] font-medium">
                       <span className="flex items-center gap-1 shrink-0"><Clock className="h-3 w-3" />{getDifficultyLabel(recipe.difficulty_level)}</span>
                       <span className="flex items-center gap-1 shrink-0"><PiggyBank className="h-3 w-3" />{getCostLabel(recipe.cost_level)}</span>
                     </div>
