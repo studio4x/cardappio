@@ -5,9 +5,9 @@ import { useState, useEffect } from 'react'
 import { config } from '@/config'
 
 const navLinks = [
-  { label: 'Como funciona', href: '#como-funciona' },
-  { label: 'Benefícios', href: '#beneficios' },
-  { label: 'Planos', href: '#planos' },
+  { label: 'Como funciona', href: '/#como-funciona' },
+  { label: 'Benefícios', href: '/#beneficios' },
+  { label: 'Planos', href: '/#planos' },
 ]
 
 export function PublicHeader() {
@@ -35,13 +35,13 @@ export function PublicHeader() {
         {/* Desktop nav */}
         <nav className="hidden items-center gap-10 md:flex">
           {navLinks.map((link) => (
-            <a
+            <Link
               key={link.href}
-              href={link.href}
+              to={link.href}
               className="text-sm font-bold text-on-surface/70 hover:text-primary transition-colors no-underline"
             >
               {link.label}
-            </a>
+            </Link>
           ))}
           <div className="flex items-center gap-6 ml-4">
             <Link
@@ -73,14 +73,14 @@ export function PublicHeader() {
         <div className="absolute top-full left-0 w-full bg-white border-b border-neutral-100 p-6 md:hidden animate-in fade-in slide-in-from-top-4 duration-300">
           <nav className="flex flex-col gap-6">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.href}
-                href={link.href}
+                to={link.href}
                 className="text-lg font-bold text-on-surface/70 no-underline"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
             <div className="pt-6 border-t border-neutral-50 flex flex-col gap-4">
               <Link

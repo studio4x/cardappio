@@ -21,7 +21,7 @@ export function PublicFooter() {
             <div className="flex flex-col gap-4">
               <Link to="/#como-funciona" className="text-sm font-bold text-on-surface/70 hover:text-primary transition-colors no-underline">Como funciona</Link>
               <Link to="/app/receitas" className="text-sm font-bold text-on-surface/70 hover:text-primary transition-colors no-underline">Receitas</Link>
-              <Link to="/planos" className="text-sm font-bold text-on-surface/70 hover:text-primary transition-colors no-underline">Premium</Link>
+              <Link to="/#planos" className="text-sm font-bold text-on-surface/70 hover:text-primary transition-colors no-underline">Premium</Link>
             </div>
           </div>
 
