@@ -94,7 +94,6 @@ export function AudioPlayerRecipe({ title, steps }: AudioPlayerRecipeProps) {
     utterance.rate = rate
     
     utterance.onend = () => {
-      setIsPlaying(false)
       onEndCallback()
     }
 
