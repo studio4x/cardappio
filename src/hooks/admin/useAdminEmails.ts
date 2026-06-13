@@ -1,12 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 
+export type EmailProvider = 'smtp' | 'brevo'
+
 export interface EmailConfig {
-  provider: string
+  provider: EmailProvider
+  // Brevo API
+  brevo_api_key?: string
+  // SMTP
   smtp_host?: string
   smtp_port?: number
   smtp_user?: string
   smtp_pass?: string
+  // Shared (used by both providers)
   from_email: string
   from_name?: string
 }
@@ -17,6 +23,7 @@ export interface EmailLog {
   subject: string
   body_html: string
   status: 'sent' | 'failed'
+  provider: EmailProvider
   error_message: string | null
   created_at: string
 }
@@ -37,7 +44,8 @@ export function useEmailConfig() {
       if (error) {
         if (error.code === 'PGRST116') {
           return { 
-            provider: 'smtp', 
+            provider: 'smtp' as EmailProvider,
+            brevo_api_key: '',
             smtp_host: 'smtp-relay.brevo.com', 
             smtp_port: 587, 
             smtp_user: '', 
@@ -97,7 +105,7 @@ export function useEmailLogs() {
 }
 
 /**
- * Mutation to send a test email via custom SMTP setup
+ * Mutation to send a test email via the currently configured provider (SMTP or Brevo)
  */
 export function useSendTestEmail() {
   const queryClient = useQueryClient()

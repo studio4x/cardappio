@@ -1,6 +1,7 @@
 /**
  * Email helpers for Edge Functions
- * Uses Nodemailer via SMTP to send custom emails.
+ * Supports two providers: SMTP (via Nodemailer) and Brevo (via REST API).
+ * Provider is determined by `email_config.provider` in app_settings.
  */
 import { getServiceClient } from './auth.ts'
 import nodemailer from 'npm:nodemailer@6.9.10'
@@ -11,12 +12,29 @@ interface SendEmailParams {
   html: string
 }
 
+type EmailProvider = 'smtp' | 'brevo'
+
+interface EmailConfig {
+  provider?: EmailProvider
+  // Brevo
+  brevo_api_key?: string
+  // SMTP
+  smtp_host?: string
+  smtp_port?: number
+  smtp_user?: string
+  smtp_pass?: string
+  // Shared
+  from_email?: string
+  from_name?: string
+}
+
 /**
- * Sends an email using SMTP credentials fetched from app_settings
+ * Sends an email using the provider configured in app_settings.
+ * Logs the result to public.email_logs.
  */
 export async function sendEmail({ to, subject, html }: SendEmailParams) {
   const supabase = getServiceClient()
-  
+
   // 1. Get email config from app_settings
   const { data: configData, error: configError } = await supabase
     .from('app_settings')
@@ -29,16 +47,13 @@ export async function sendEmail({ to, subject, html }: SendEmailParams) {
     throw new Error('Configuração de e-mail não encontrada em app_settings.')
   }
 
-  const emailConfig = (configData.value_json || {}) as {
-    provider?: string
-    smtp_host?: string
-    smtp_port?: number
-    smtp_user?: string
-    smtp_pass?: string
-    from_email?: string
-    from_name?: string
-  }
+  const emailConfig = (configData.value_json || {}) as EmailConfig
 
+  const provider: EmailProvider = emailConfig.provider === 'brevo' ? 'brevo' : 'smtp'
+  const fromEmail = emailConfig.from_email || 'contato@studio4x.com.br'
+  const fromName = emailConfig.from_name || 'Cardappio'
+
+  // Helper: log the email send result to email_logs
   const logEmail = async (status: 'sent' | 'failed', errorMessage: string | null = null) => {
     try {
       await supabase
@@ -48,6 +63,7 @@ export async function sendEmail({ to, subject, html }: SendEmailParams) {
           subject,
           body_html: html,
           status,
+          provider,
           error_message: errorMessage
         })
     } catch (logErr) {
@@ -55,12 +71,108 @@ export async function sendEmail({ to, subject, html }: SendEmailParams) {
     }
   }
 
+  // 2. Route to the correct provider
+  if (provider === 'brevo') {
+    return await sendEmailViaBrevo({ to, subject, html, fromEmail, fromName, emailConfig, logEmail })
+  }
+
+  return await sendEmailViaSMTP({ to, subject, html, fromEmail, fromName, emailConfig, logEmail })
+}
+
+// ─── Brevo REST API ────────────────────────────────────────────────────────────
+
+async function sendEmailViaBrevo({
+  to,
+  subject,
+  html,
+  fromEmail,
+  fromName,
+  emailConfig,
+  logEmail
+}: {
+  to: string
+  subject: string
+  html: string
+  fromEmail: string
+  fromName: string
+  emailConfig: EmailConfig
+  logEmail: (status: 'sent' | 'failed', errorMessage?: string | null) => Promise<void>
+}) {
+  const apiKey = emailConfig.brevo_api_key
+
+  if (!apiKey) {
+    const errorDetail = 'Chave de API da Brevo não configurada (brevo_api_key ausente).'
+    console.warn(errorDetail)
+    await logEmail('failed', errorDetail)
+    return { success: false, error: errorDetail }
+  }
+
+  try {
+    const payload = {
+      sender: { name: fromName, email: fromEmail },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html
+    }
+
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': apiKey,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+
+    if (!response.ok) {
+      const errorBody = await response.text()
+      let errorMsg = `Brevo API error (${response.status}): ${errorBody}`
+      try {
+        const parsed = JSON.parse(errorBody)
+        errorMsg = parsed.message || errorMsg
+      } catch {
+        // use raw text
+      }
+      console.error('Falha ao enviar e-mail via Brevo API:', errorMsg)
+      await logEmail('failed', errorMsg)
+      return { success: false, error: errorMsg }
+    }
+
+    const responseData = await response.json()
+    await logEmail('sent')
+    return { success: true, data: responseData }
+  } catch (err: any) {
+    console.error('Falha ao enviar e-mail via Brevo API:', err)
+    const errorMsg = err.message || String(err)
+    await logEmail('failed', errorMsg)
+    return { success: false, error: errorMsg }
+  }
+}
+
+// ─── SMTP / Nodemailer ─────────────────────────────────────────────────────────
+
+async function sendEmailViaSMTP({
+  to,
+  subject,
+  html,
+  fromEmail,
+  fromName,
+  emailConfig,
+  logEmail
+}: {
+  to: string
+  subject: string
+  html: string
+  fromEmail: string
+  fromName: string
+  emailConfig: EmailConfig
+  logEmail: (status: 'sent' | 'failed', errorMessage?: string | null) => Promise<void>
+}) {
   const host = emailConfig.smtp_host
   const port = Number(emailConfig.smtp_port || 587)
   const user = emailConfig.smtp_user
   const pass = emailConfig.smtp_pass
-  const fromEmail = emailConfig.from_email || 'contato@studio4x.com.br'
-  const fromName = emailConfig.from_name || 'Cardappio'
 
   if (!host || !user || !pass) {
     const errorDetail = 'Configurações de SMTP incompletas (Host, Usuário ou Senha ausentes).'
