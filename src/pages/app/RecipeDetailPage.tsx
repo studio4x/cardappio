@@ -204,7 +204,7 @@ export function RecipeDetailPage() {
   }
 
   return (
-    <div className="pb-[180px] md:pb-28 pt-2 md:pt-4">
+    <div className="pb-12 md:pb-16 pt-2 md:pt-4">
       {/* Back navigation & favorite button row */}
       <div className="flex items-center justify-between mb-6 w-full">
         <button 
@@ -452,43 +452,39 @@ export function RecipeDetailPage() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                   {activeTab === 'ingredients' ? (
-                     <RecipeIngredients 
-                       ingredients={recipe.ingredients ?? []} 
-                       servings={recipe.servings}
-                       householdSize={preferences?.household_size}
-                     />
-                   ) : (
-                     <RecipeSteps steps={recipe.steps ?? []} />
-                   )}
+                    {activeTab === 'ingredients' ? (
+                      <RecipeIngredients 
+                        ingredients={recipe.ingredients ?? []} 
+                        servings={recipe.servings}
+                        householdSize={preferences?.household_size}
+                      />
+                    ) : (
+                      <RecipeSteps steps={recipe.steps ?? []} />
+                    )}
                 </div>
               )}
             </div>
+            {/* Static Action Button */}
+            {!isLocked && (
+              <div className="pt-6 mt-6 border-t border-slate-200/60">
+                <button 
+                  onClick={() => {
+                    setModalStep('weeks')
+                    setSelectedWeekId(null)
+                    setSelectedDayId(null)
+                    setIsAddModalOpen(true)
+                  }}
+                  className="w-full bg-fresh-green text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg active:scale-95 hover:brightness-105 transition-all cursor-pointer"
+                >
+                  <Plus className="h-5 w-5" />
+                  Adicionar ao Plano Semanal
+                </button>
+              </div>
+            )}
           </div>
 
         </div>
       </main>
-
-      {/* Floating Action Bar */}
-      <div 
-        className="fixed bottom-[calc(80px+env(safe-area-inset-bottom,0px))] md:bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-md bg-white/90 backdrop-blur-md border shadow-2xl rounded-2xl z-30 p-3 flex gap-3 transition-all animate-in slide-in-from-bottom-8 duration-300" 
-        style={{
-          borderColor: 'var(--color-outline-variant)',
-        }}
-      >
-        <button 
-          onClick={() => {
-            setModalStep('weeks')
-            setSelectedWeekId(null)
-            setSelectedDayId(null)
-            setIsAddModalOpen(true)
-          }}
-          className="flex-1 bg-fresh-green text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-lg active:scale-95 hover:brightness-105 transition-all cursor-pointer animate-in fade-in zoom-in-95 duration-200"
-        >
-          <Plus className="h-5 w-5" />
-          Adicionar ao Plano Semanal
-        </button>
-      </div>
 
       {/* Dialog para Adicionar ao Plano Semanal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
