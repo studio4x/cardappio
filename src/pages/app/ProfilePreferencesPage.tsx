@@ -285,7 +285,7 @@ export function ProfilePreferencesPage() {
       />
 
       {/* Tab Switcher */}
-      <div className="flex border-b" style={{ borderColor: 'var(--color-outline-variant)' }}>
+      <div className="flex overflow-x-auto no-scrollbar border-b -mx-4 px-4 md:mx-0 md:px-0 scroll-snap-x whitespace-nowrap" style={{ borderColor: 'var(--color-outline-variant)' }}>
         {[
           { id: 'dados', label: 'Dados Pessoais', icon: User },
           { id: 'preferencias', label: 'Planejamento', icon: Settings },
@@ -296,7 +296,7 @@ export function ProfilePreferencesPage() {
             key={tab.id}
             onClick={() => setSearchParams({ tab: tab.id })}
             className={cn(
-              "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all cursor-pointer",
+              "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all cursor-pointer flex-shrink-0 scroll-snap-start",
               activeTab === tab.id 
                 ? "border-primary text-primary" 
                 : "border-transparent text-muted-foreground hover:text-foreground"
@@ -316,7 +316,7 @@ export function ProfilePreferencesPage() {
         {/* PROFILE TAB */}
         {activeTab === 'dados' && (
           <div className="space-y-6 animate-in fade-in duration-300">
-            <div className="space-y-4 rounded-2xl border p-6 bg-white shadow-sm">
+            <div className="space-y-4 rounded-xl md:rounded-2xl border p-4 md:p-6 bg-white shadow-sm">
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-muted-foreground">Nome completo</label>
                 <input
@@ -347,7 +347,7 @@ export function ProfilePreferencesPage() {
               </Button>
             </div>
 
-            <div className="space-y-4 rounded-2xl border p-6 bg-white shadow-sm mt-6">
+            <div className="space-y-4 rounded-xl md:rounded-2xl border p-4 md:p-6 bg-white shadow-sm mt-6">
               <h3 className="font-bold flex items-center gap-2 mb-2">Segurança</h3>
               
               <div className="space-y-2">
@@ -405,7 +405,7 @@ export function ProfilePreferencesPage() {
 
             <button 
               onClick={() => signOut()}
-              className="flex w-full items-center justify-between rounded-2xl border p-5 text-red-600 bg-red-50/30 hover:bg-red-50 transition-colors cursor-pointer"
+              className="flex w-full items-center justify-between rounded-xl md:rounded-2xl border p-4 md:p-5 text-red-600 bg-red-50/30 hover:bg-red-50 transition-colors cursor-pointer"
               style={{ borderColor: 'rgba(220, 38, 38, 0.2)' }}
             >
               <div className="flex items-center gap-3">
@@ -420,7 +420,7 @@ export function ProfilePreferencesPage() {
         {/* PREFERENCES TAB */}
         {activeTab === 'preferencias' && (
           <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-            <div className="rounded-2xl border p-6 bg-white shadow-sm space-y-6">
+            <div className="rounded-xl md:rounded-2xl border p-4 md:p-6 bg-white shadow-sm space-y-5 md:space-y-6">
               <div className="space-y-4">
                 <h3 className="font-bold flex items-center gap-2">Configuração Padrão</h3>
                 
@@ -488,7 +488,7 @@ export function ProfilePreferencesPage() {
             </div>
 
             {/* Reset Onboarding Card */}
-            <div className="rounded-2xl border border-red-100 p-6 bg-red-50/10 shadow-sm space-y-4">
+            <div className="rounded-xl md:rounded-2xl border border-red-100 p-4 md:p-6 bg-red-50/10 shadow-sm space-y-4">
               <div>
                 <h4 className="font-bold text-red-600 flex items-center gap-2">
                   <Sparkles className="h-4 w-4" />
@@ -514,12 +514,12 @@ export function ProfilePreferencesPage() {
         {/* NOTIFICATIONS TAB */}
         {activeTab === 'notificacoes' && (
           <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-            <div className="rounded-2xl border p-6 bg-white shadow-sm space-y-6">
+            <div className="rounded-xl md:rounded-2xl border p-4 md:p-6 bg-white shadow-sm space-y-5 md:space-y-6">
               <h3 className="font-bold flex items-center gap-2">Configurações de Notificações</h3>
               
               <div className="space-y-4">
                 {/* Web Push Subscription switch */}
-                <div className="flex items-center justify-between p-4 rounded-xl border bg-slate-50/50">
+                <div className="flex items-center justify-between p-3.5 md:p-4 rounded-xl border bg-slate-50/50">
                   <div>
                     <h4 className="text-sm font-semibold">Notificações no Dispositivo (Push)</h4>
                     <p className="text-xs text-muted-foreground">Receba avisos na tela do celular mesmo com o app fechado.</p>
@@ -528,60 +528,60 @@ export function ProfilePreferencesPage() {
                     type="checkbox" 
                     checked={pushEnabled} 
                     onChange={e => setPushEnabled(e.target.checked)}
-                    className="h-5 w-5 accent-primary cursor-pointer"
+                    className="h-5 w-5 accent-primary cursor-pointer shrink-0 ml-2"
                   />
                 </div>
 
                 {/* Other preference checkboxes */}
                 <div className="space-y-3 pt-2">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-start gap-3">
                     <input 
                       id="mealReminders" 
                       type="checkbox" 
                       checked={mealReminders} 
                       onChange={e => setMealReminders(e.target.checked)} 
-                      className="h-4 w-4 accent-primary cursor-pointer"
+                      className="h-4 w-4 accent-primary cursor-pointer mt-0.5 shrink-0"
                     />
-                    <label htmlFor="mealReminders" className="text-sm font-medium cursor-pointer">
+                    <label htmlFor="mealReminders" className="text-sm font-medium cursor-pointer leading-tight text-slate-700">
                       Lembretes de Preparo Semanal (deixar de molho, descongelar)
                     </label>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-start gap-3">
                     <input 
                       id="dailySummary" 
                       type="checkbox" 
                       checked={dailySummary} 
                       onChange={e => setDailySummary(e.target.checked)} 
-                      className="h-4 w-4 accent-primary cursor-pointer"
+                      className="h-4 w-4 accent-primary cursor-pointer mt-0.5 shrink-0"
                     />
-                    <label htmlFor="dailySummary" className="text-sm font-medium cursor-pointer">
+                    <label htmlFor="dailySummary" className="text-sm font-medium cursor-pointer leading-tight text-slate-700">
                       Resumo diário do menu planejado
                     </label>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-start gap-3">
                     <input 
                       id="systemUpdates" 
                       type="checkbox" 
                       checked={systemUpdates} 
                       onChange={e => setSystemUpdates(e.target.checked)} 
-                      className="h-4 w-4 accent-primary cursor-pointer"
+                      className="h-4 w-4 accent-primary cursor-pointer mt-0.5 shrink-0"
                     />
-                    <label htmlFor="systemUpdates" className="text-sm font-medium cursor-pointer">
+                    <label htmlFor="systemUpdates" className="text-sm font-medium cursor-pointer leading-tight text-slate-700">
                       Atualizações de sistema e segurança
                     </label>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-start gap-3">
                     <input 
                       id="marketingAlerts" 
                       type="checkbox" 
                       checked={marketingAlerts} 
                       onChange={e => setMarketingAlerts(e.target.checked)} 
-                      className="h-4 w-4 accent-primary cursor-pointer"
+                      className="h-4 w-4 accent-primary cursor-pointer mt-0.5 shrink-0"
                     />
-                    <label htmlFor="marketingAlerts" className="text-sm font-medium cursor-pointer">
+                    <label htmlFor="marketingAlerts" className="text-sm font-medium cursor-pointer leading-tight text-slate-700">
                       Dicas de receitas e promoções
                     </label>
                   </div>
@@ -611,14 +611,14 @@ export function ProfilePreferencesPage() {
 
           return (
             <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start">
                 
                 {/* Cartão de Assinatura Atual */}
                 <div className="lg:col-span-5 space-y-4">
                   <h4 className="text-sm font-bold uppercase tracking-wider text-slate-400">Seu Status Atual</h4>
                   
                   <div className={cn(
-                    "relative overflow-hidden rounded-[2rem] p-6 text-white shadow-xl aspect-[1.58/1] flex flex-col justify-between transition-all duration-300 hover:shadow-2xl hover:scale-[1.01]",
+                    "relative overflow-hidden rounded-[2rem] p-5 md:p-6 text-white shadow-xl min-h-[170px] md:aspect-[1.58/1] flex flex-col justify-between transition-all duration-300 hover:shadow-2xl hover:scale-[1.01]",
                     isPro 
                       ? "bg-gradient-to-br from-amber-500 via-orange-500 to-red-600 shadow-orange-500/10" 
                       : "bg-gradient-to-br from-slate-800 to-slate-950 border border-slate-700/50 shadow-slate-900/10"
@@ -628,26 +628,26 @@ export function ProfilePreferencesPage() {
                     
                     <div className="flex justify-between items-start z-10">
                       <div>
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-white/70">Membro Premium</span>
-                        <h3 className="text-2xl font-black tracking-tight mt-1">{activePlanName}</h3>
+                        <span className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-white/70">Membro Premium</span>
+                        <h3 className="text-xl md:text-2xl font-black tracking-tight mt-1">{activePlanName}</h3>
                       </div>
                       <div className={cn(
-                        "rounded-2xl p-3 backdrop-blur-md",
+                        "rounded-2xl p-2 md:p-3 backdrop-blur-md",
                         isPro ? "bg-white/20" : "bg-white/10"
                       )}>
-                        {isPro ? <Crown className="h-6 w-6 text-yellow-300 animate-pulse" /> : <CreditCard className="h-6 w-6 text-slate-300" />}
+                        {isPro ? <Crown className="h-5 w-5 md:h-6 md:w-6 text-yellow-300 animate-pulse" /> : <CreditCard className="h-5 w-5 md:h-6 md:w-6 text-slate-300" />}
                       </div>
                     </div>
 
-                    <div className="space-y-4 z-10">
+                    <div className="space-y-4 z-10 mt-4 md:mt-0">
                       {/* Fake Card Number for premium aesthetic */}
-                      <p className="font-mono text-lg tracking-[0.25em] text-white/90">
+                      <p className="font-mono text-sm md:text-lg tracking-[0.25em] text-white/90">
                         {isPro ? "••••  ••••  ••••  2026" : "••••  ••••  ••••  FREE"}
                       </p>
                       
                       <div className="flex justify-between items-end">
                         <div>
-                          <p className="text-[9px] font-bold uppercase tracking-wider text-white/60">Validade</p>
+                          <p className="text-[8px] md:text-[9px] font-bold uppercase tracking-wider text-white/60">Validade</p>
                           <p className="text-xs font-semibold mt-0.5">
                             {isPro && subscription?.subscription_until 
                               ? new Date(subscription.subscription_until).toLocaleDateString('pt-BR') 
@@ -655,7 +655,7 @@ export function ProfilePreferencesPage() {
                           </p>
                         </div>
                         <span className={cn(
-                          "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border backdrop-blur-md",
+                          "px-2.5 py-0.5 md:px-3 md:py-1 rounded-full text-[8px] md:text-[9px] font-black uppercase tracking-wider border backdrop-blur-md",
                           isPro 
                             ? "bg-yellow-400/25 border-yellow-300/40 text-yellow-200" 
                             : "bg-slate-700/50 border-slate-600/30 text-slate-300"
@@ -667,23 +667,23 @@ export function ProfilePreferencesPage() {
                   </div>
 
                   {/* Active Limits Info */}
-                  <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm space-y-4">
+                  <div className="bg-white rounded-xl md:rounded-2xl border border-slate-100 p-4 md:p-5 shadow-sm space-y-4">
                     <h5 className="font-bold text-slate-900 text-sm">Recursos Disponíveis:</h5>
                     <ul className="space-y-2.5">
                       <li className="flex items-center gap-3 text-xs text-slate-600">
-                        <div className={cn("h-4 w-4 rounded-full flex items-center justify-center text-white", isPro ? "bg-emerald-500" : "bg-slate-300")}>
+                        <div className={cn("h-4 w-4 rounded-full flex items-center justify-center text-white shrink-0", isPro ? "bg-emerald-500" : "bg-slate-300")}>
                           <Check className="h-2.5 w-2.5 stroke-[3]" />
                         </div>
                         <span>Planejamento semanal: <strong>{isPro ? 'Sem limites' : 'Apenas 1 ativo'}</strong></span>
                       </li>
                       <li className="flex items-center gap-3 text-xs text-slate-600">
-                        <div className={cn("h-4 w-4 rounded-full flex items-center justify-center text-white", isPro ? "bg-emerald-500" : "bg-slate-300")}>
+                        <div className={cn("h-4 w-4 rounded-full flex items-center justify-center text-white shrink-0", isPro ? "bg-emerald-500" : "bg-slate-300")}>
                           <Check className="h-2.5 w-2.5 stroke-[3]" />
                         </div>
                         <span>Acesso a Receitas: <strong>{isPro ? 'Mais de 500 exclusivas' : 'Apenas receitas básicas'}</strong></span>
                       </li>
                       <li className="flex items-center gap-3 text-xs text-slate-600">
-                        <div className={cn("h-4 w-4 rounded-full flex items-center justify-center text-white", isPro ? "bg-emerald-500" : "bg-slate-300")}>
+                        <div className={cn("h-4 w-4 rounded-full flex items-center justify-center text-white shrink-0", isPro ? "bg-emerald-500" : "bg-slate-300")}>
                           <Check className="h-2.5 w-2.5 stroke-[3]" />
                         </div>
                         <span>Lista de Compras Inteligente: <strong>{isPro ? 'Automática e Ilimitada' : 'Gerada com restrições'}</strong></span>
@@ -737,7 +737,7 @@ export function ProfilePreferencesPage() {
                         <div
                           key={plan.id}
                           className={cn(
-                            "rounded-3xl border p-6 bg-white transition-all duration-300 relative flex flex-col justify-between hover:shadow-lg",
+                            "rounded-2xl md:rounded-3xl border p-4 md:p-6 bg-white transition-all duration-300 relative flex flex-col justify-between hover:shadow-lg",
                             isUserActivePlan 
                               ? "border-primary ring-2 ring-primary/20" 
                               : "border-slate-100"
@@ -798,7 +798,7 @@ export function ProfilePreferencesPage() {
                               }}
                               disabled={checkoutMutation.isPending || isUserActivePlan}
                               className={cn(
-                                "w-full py-5 rounded-full text-xs font-bold cursor-pointer transition-all",
+                                "w-full py-3.5 md:py-4.5 rounded-full text-xs font-bold cursor-pointer transition-all",
                                 isUserActivePlan 
                                   ? "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed" 
                                   : "bg-primary hover:opacity-95 text-white shadow-md shadow-primary/10"
@@ -821,7 +821,7 @@ export function ProfilePreferencesPage() {
 
       {/* Modal de Seleção de Plano */}
       <Dialog open={isPlanModalOpen} onOpenChange={setIsPlanModalOpen}>
-        <DialogContent className="max-w-md rounded-3xl p-6 bg-white">
+        <DialogContent className="max-w-md rounded-2xl md:rounded-3xl p-4 md:p-6 bg-white max-w-[95vw]">
           <DialogHeader className="text-left">
             <DialogTitle className="text-xl font-extrabold text-slate-900">Escolha o seu plano Pro</DialogTitle>
             <DialogDescription className="text-sm text-slate-500">
@@ -867,23 +867,23 @@ export function ProfilePreferencesPage() {
                     type="button"
                     onClick={() => setSelectedPlanId(plan.id)}
                     className={cn(
-                      "w-full flex items-center justify-between p-4 border rounded-2xl text-left transition-all cursor-pointer",
+                      "w-full flex flex-col sm:flex-row sm:items-center justify-between p-3.5 md:p-4 border rounded-xl md:rounded-2xl text-left transition-all cursor-pointer gap-2",
                       isSelected 
                         ? "border-primary bg-primary/5 ring-2 ring-primary/20" 
                         : "border-slate-200 hover:border-slate-300"
                     )}
                   >
-                    <div className="space-y-1">
-                      <p className="font-bold text-slate-900">{plan.name}</p>
-                      <p className="text-xs text-slate-500 line-clamp-1">{plan.description}</p>
+                    <div className="space-y-0.5">
+                      <p className="font-bold text-sm md:text-base text-slate-900">{plan.name}</p>
+                      <p className="text-[11px] md:text-xs text-slate-500 line-clamp-1">{plan.description}</p>
                     </div>
-                    <div className="text-right flex-shrink-0 ml-4">
-                      <p className="font-black text-slate-900">
+                    <div className="text-left sm:text-right flex-shrink-0 sm:ml-4">
+                      <p className="font-black text-slate-900 text-sm md:text-base">
                         R$ {price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        <span className="text-[10px] text-slate-400 font-medium">/mês</span>
+                        <span className="text-[9px] md:text-[10px] text-slate-400 font-medium">/mês</span>
                       </p>
                       {selectedInterval === 'yearly' && (
-                        <p className="text-[9px] text-emerald-600 font-bold">
+                        <p className="text-[8px] md:text-[9px] text-emerald-600 font-bold">
                           Cobrado R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/ano
                         </p>
                       )}
@@ -898,7 +898,7 @@ export function ProfilePreferencesPage() {
             <Button
               onClick={handleUpgrade}
               disabled={checkoutMutation.isPending || !selectedPlanId}
-              className="w-full py-6 rounded-full text-sm font-bold flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+              className="w-full py-4.5 rounded-full text-sm font-bold flex items-center justify-center gap-2 shadow-lg cursor-pointer"
             >
               {checkoutMutation.isPending ? (
                 <>
