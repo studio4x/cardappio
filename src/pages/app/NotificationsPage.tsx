@@ -63,7 +63,7 @@ export function NotificationsPage() {
           description="Você não tem nenhuma notificação no momento."
         />
       ) : (
-        <div className="space-y-4">
+        <div className="grid gap-6 md:grid-cols-2">
           {notifications.map((notif) => (
             <div
               key={notif.id}
@@ -101,7 +101,7 @@ export function NotificationsPage() {
                 </p>
 
                 {notif.image_url && (
-                  <div className="relative w-full aspect-video md:max-w-md rounded-xl overflow-hidden bg-slate-50 border border-slate-100">
+                  <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-slate-50 border border-slate-100">
                     <img src={notif.image_url} className="w-full h-full object-cover" alt="Imagem da notificação" />
                   </div>
                 )}
