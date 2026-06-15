@@ -20,7 +20,7 @@ export async function updateUserSubscription(userId: string, data: {
       user_id: userId,
       ...data,
       updated_at: new Date().toISOString(),
-    })
+    }, { onConflict: 'user_id' })
 
   if (error) throw error
 }
