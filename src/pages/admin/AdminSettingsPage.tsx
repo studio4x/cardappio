@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,13 @@ import { Image as ImageIcon, Save, Trash2, Palette, Shield, Settings2, HelpCircl
 import { cn } from '@/lib/utils'
 
 export function AdminSettingsPage() {
-  const { loading, visualIdentity, updateVisualIdentity, uploadAsset } = useAdminSettings()
+  const { loading, visualIdentity, updateVisualIdentity, uploadAsset, vercelWebhookUrl, updateVercelWebhookUrl } = useAdminSettings()
+  const [vercelUrlInput, setVercelUrlInput] = useState('')
+
+  useEffect(() => {
+    setVercelUrlInput(vercelWebhookUrl || '')
+  }, [vercelWebhookUrl])
+
   const [isSaving, setIsSaving] = useState(false)
   const [activeTab, setActiveTab] = useState('visual')
 
@@ -200,6 +206,43 @@ export function AdminSettingsPage() {
               O favicon deve ser preferencialmente quadrado. Após alterar as imagens, pode ser necessário 
               recarregar a página (limpar cache) para ver as mudanças refletidas no navegador.
             </p>
+          </div>
+
+          <div className="rounded-2xl border bg-white p-6 shadow-sm space-y-4">
+            <div className="flex items-center gap-3 border-b pb-3">
+              <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                <Settings2 className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-slate-800">Automação de Deploy & Atualização do PWA</h3>
+                <p className="text-xs text-slate-500">Configure o webhook da Vercel para auto-atualizar os aparelhos instalados.</p>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block">Vercel Deploy Webhook URL</label>
+              <input
+                type="text"
+                placeholder="https://api.vercel.com/v1/integrations/deploy/..."
+                value={vercelUrlInput}
+                onChange={(e) => setVercelUrlInput(e.target.value)}
+                className="w-full text-sm border rounded-xl px-4 py-3 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+              />
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Obtenha esta URL no seu painel da Vercel em: <strong>Settings &gt; Git &gt; Deploy Webhooks</strong> (selecione a branch <code>main</code>). 
+                Quando logotipos ou favicon forem modificados, a Supabase invocará esta URL para gerar um novo build do PWA com os novos ícones de forma 100% automática.
+              </p>
+            </div>
+
+            <div className="flex justify-end">
+              <Button
+                onClick={() => updateVercelWebhookUrl(vercelUrlInput)}
+                className="gap-2 rounded-xl text-xs font-bold font-heading py-2.5 px-4"
+              >
+                <Save className="h-4 w-4" />
+                Salvar Webhook de Deploy
+              </Button>
+            </div>
           </div>
         </TabsContent>
 

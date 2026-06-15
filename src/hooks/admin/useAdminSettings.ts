@@ -15,26 +15,34 @@ export function useAdminSettings() {
     logo_light_url: '',
     favicon_url: ''
   })
+  const [vercelWebhookUrl, setVercelWebhookUrl] = useState('')
 
   const fetchSettings = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('app_settings')
-        .select('value_json')
-        .eq('setting_key', 'visual_identity')
-        .single()
+      const [visualRes, vercelRes] = await Promise.all([
+        supabase
+          .from('app_settings')
+          .select('value_json')
+          .eq('setting_key', 'visual_identity')
+          .single(),
+        supabase
+          .from('app_settings')
+          .select('value_json')
+          .eq('setting_key', 'vercel_config')
+          .maybeSingle()
+      ])
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          // Setting doesn't exist, migration might not have run or was conflict
-          return
+      if (visualRes.error) {
+        if (visualRes.error.code !== 'PGRST116') {
+          throw visualRes.error
         }
-        throw error
+      } else if (visualRes.data?.value_json) {
+        setVisualIdentity(visualRes.data.value_json as unknown as VisualIdentity)
       }
 
-      if (data?.value_json) {
-        setVisualIdentity(data.value_json as unknown as VisualIdentity)
+      if (vercelRes.data?.value_json) {
+        setVercelWebhookUrl((vercelRes.data.value_json as any).deploy_webhook_url || '')
       }
     } catch (err) {
       console.error('Error fetching settings:', err)
@@ -62,6 +70,29 @@ export function useAdminSettings() {
     } catch (err) {
       console.error('Error updating settings:', err)
       toast.error('Erro ao salvar configurações')
+      return false
+    }
+  }
+
+  const updateVercelWebhookUrl = async (url: string) => {
+    try {
+      const { error } = await supabase
+        .from('app_settings')
+        .upsert({ 
+          setting_key: 'vercel_config',
+          value_json: { deploy_webhook_url: url },
+          description: 'Configurações de integração com a Vercel para auto-deploy',
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'setting_key' })
+
+      if (error) throw error
+      
+      setVercelWebhookUrl(url)
+      toast.success('Webhook de deploy salvo!')
+      return true
+    } catch (err) {
+      console.error('Error updating vercel config:', err)
+      toast.error('Erro ao salvar webhook de deploy')
       return false
     }
   }
@@ -97,7 +128,9 @@ export function useAdminSettings() {
   return {
     loading,
     visualIdentity,
+    vercelWebhookUrl,
     updateVisualIdentity,
+    updateVercelWebhookUrl,
     uploadAsset,
     refresh: fetchSettings
   }
