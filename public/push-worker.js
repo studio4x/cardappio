@@ -13,7 +13,7 @@ self.addEventListener('push', (event) => {
   const options = {
     body: data.body,
     icon: data.icon || '/favicon.svg',
-    badge: data.badge || data.icon || '/favicon.svg',
+    badge: data.badge || '/favicon.svg',
     color: data.color || '#f76f25',
     data: {
       action_url: data.action_url || '/app/notificacoes'
