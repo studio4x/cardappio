@@ -372,32 +372,37 @@ export function ProfilePreferencesPage() {
       />
 
       {/* Mobile Tab Trigger Bar */}
-      <div className="md:hidden flex items-center justify-between bg-slate-100/80 p-3 rounded-2xl border border-slate-200/50">
-        <div className="flex items-center gap-2">
-          {(() => {
-            const tabs = [
-              { id: 'dados', label: 'Dados Pessoais', icon: User },
-              { id: 'preferencias', label: 'Planejamento', icon: Settings },
-              { id: 'notificacoes', label: 'Notificações', icon: Bell },
-              { id: 'assinatura', label: 'Assinatura', icon: CreditCard },
-            ]
-            const activeTabInfo = tabs.find(t => t.id === activeTab) || tabs[0]
-            const ActiveIcon = activeTabInfo.icon
-            return (
-              <>
-                <ActiveIcon className="h-5 w-5 text-primary" />
-                <span className="text-sm font-bold text-slate-800">{activeTabInfo.label}</span>
-              </>
-            )
-          })()}
+      <div className="md:hidden space-y-1.5">
+        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-1">
+          Seções de configurações:
+        </span>
+        <div className="flex items-center justify-between bg-slate-100/80 p-3 rounded-2xl border border-slate-200/50">
+          <div className="flex items-center gap-2">
+            {(() => {
+              const tabs = [
+                { id: 'dados', label: 'Dados Pessoais', icon: User },
+                { id: 'preferencias', label: 'Planejamento', icon: Settings },
+                { id: 'notificacoes', label: 'Notificações', icon: Bell },
+                { id: 'assinatura', label: 'Assinatura', icon: CreditCard },
+              ]
+              const activeTabInfo = tabs.find(t => t.id === activeTab) || tabs[0]
+              const ActiveIcon = activeTabInfo.icon
+              return (
+                <>
+                  <ActiveIcon className="h-5 w-5 text-primary" />
+                  <span className="text-sm font-bold text-slate-800">{activeTabInfo.label}</span>
+                </>
+              )
+            })()}
+          </div>
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-slate-700 text-xs font-bold rounded-xl border border-slate-200/50 shadow-sm cursor-pointer hover:bg-slate-50 transition-all"
+          >
+            <Menu className="h-4 w-4 text-slate-500" />
+            <span>Ver Opções</span>
+          </button>
         </div>
-        <button
-          onClick={() => setIsMobileMenuOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-slate-700 text-xs font-bold rounded-xl border border-slate-200/50 shadow-sm cursor-pointer hover:bg-slate-50 transition-all"
-        >
-          <Menu className="h-4 w-4 text-slate-500" />
-          <span>Ver Opções</span>
-        </button>
       </div>
 
       {/* Off-canvas Mobile Menu */}

@@ -287,38 +287,43 @@ export function RecipePickerPage() {
       />
 
       {/* Mobile Tab Trigger Bar */}
-      <div className="md:hidden flex items-center justify-between bg-slate-100/80 p-3 rounded-2xl border border-slate-200/50">
-        <div className="flex items-center gap-2">
-          {(() => {
-            const methods = [
-              { id: 'catalog', label: 'Catálogo', icon: ChefHat },
-              { id: 'colecoes', label: 'Coleções', icon: LayoutGrid },
-              { id: 'food_type', label: 'Tipo de Alimento', icon: ListFilter, isPro: true },
-              { id: 'suggestions', label: 'Sugestões', icon: Sparkles, isPro: true },
-              { id: 'favorites', label: 'Meus Favoritos', icon: Star },
-              { id: 'custom', label: 'Importar / Nova', icon: Globe },
-            ]
-            const activeMethodInfo = methods.find(m => m.id === activeMethod) || methods[0]
-            const ActiveIcon = activeMethodInfo.icon
-            const showLockIcon = activeMethodInfo.isPro && !isPremiumUser
-            return (
-              <>
-                <ActiveIcon className="h-5 w-5 text-primary" />
-                <span className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                  {activeMethodInfo.label}
-                  {showLockIcon && <Lock className="h-3 w-3 text-amber-500" />}
-                </span>
-              </>
-            )
-          })()}
+      <div className="md:hidden space-y-1.5">
+        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-1">
+          Como deseja escolher as receitas:
+        </span>
+        <div className="flex items-center justify-between bg-slate-100/80 p-3 rounded-2xl border border-slate-200/50">
+          <div className="flex items-center gap-2">
+            {(() => {
+              const methods = [
+                { id: 'catalog', label: 'Catálogo', icon: ChefHat },
+                { id: 'colecoes', label: 'Coleções', icon: LayoutGrid },
+                { id: 'food_type', label: 'Tipo de Alimento', icon: ListFilter, isPro: true },
+                { id: 'suggestions', label: 'Sugestões', icon: Sparkles, isPro: true },
+                { id: 'favorites', label: 'Meus Favoritos', icon: Star },
+                { id: 'custom', label: 'Importar / Nova', icon: Globe },
+              ]
+              const activeMethodInfo = methods.find(m => m.id === activeMethod) || methods[0]
+              const ActiveIcon = activeMethodInfo.icon
+              const showLockIcon = activeMethodInfo.isPro && !isPremiumUser
+              return (
+                <>
+                  <ActiveIcon className="h-5 w-5 text-primary" />
+                  <span className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                    {activeMethodInfo.label}
+                    {showLockIcon && <Lock className="h-3 w-3 text-amber-500" />}
+                  </span>
+                </>
+              )
+            })()}
+          </div>
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-slate-700 text-xs font-bold rounded-xl border border-slate-200/50 shadow-sm cursor-pointer hover:bg-slate-50 transition-all"
+          >
+            <Menu className="h-4 w-4 text-slate-500" />
+            <span>Ver Opções</span>
+          </button>
         </div>
-        <button
-          onClick={() => setIsMobileMenuOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-slate-700 text-xs font-bold rounded-xl border border-slate-200/50 shadow-sm cursor-pointer hover:bg-slate-50 transition-all"
-        >
-          <Menu className="h-4 w-4 text-slate-500" />
-          <span>Ver Opções</span>
-        </button>
       </div>
 
       {/* Off-canvas Mobile Menu */}
