@@ -961,7 +961,7 @@ export function ProfilePreferencesPage() {
 
       {/* Modal de Seleção de Plano */}
       <Dialog open={isPlanModalOpen} onOpenChange={setIsPlanModalOpen}>
-        <DialogContent className="max-w-md rounded-2xl md:rounded-3xl p-4 md:p-6 bg-white max-w-[95vw]">
+        <DialogContent className="rounded-2xl md:rounded-3xl p-4 md:p-6 bg-white w-[95vw] md:max-w-[60%]">
           <DialogHeader className="text-left">
             <DialogTitle className="text-xl font-extrabold text-slate-900">Escolha o seu plano Pro</DialogTitle>
             <DialogDescription className="text-sm text-slate-500">
@@ -1063,7 +1063,7 @@ export function ProfilePreferencesPage() {
 
       {/* Modal 1: Solicitar Reembolso (Retenção e Convencimento) */}
       <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
-        <DialogContent className="max-w-md rounded-[2rem] p-6 bg-white max-w-[95vw]">
+        <DialogContent className="rounded-[2rem] p-6 bg-white w-[95vw] md:max-w-[60%]">
           <DialogHeader className="text-left space-y-2">
             <DialogTitle className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
               <Crown className="h-6 w-6 text-amber-500 animate-pulse" />
@@ -1125,7 +1125,7 @@ export function ProfilePreferencesPage() {
 
       {/* Modal 2: Justificativa e Confirmação */}
       <Dialog open={isConfirmCancelModalOpen} onOpenChange={setIsConfirmCancelModalOpen}>
-        <DialogContent className="max-w-md rounded-[2rem] p-6 bg-white max-w-[95vw]">
+        <DialogContent className="rounded-[2rem] p-6 bg-white w-[95vw] md:max-w-[60%]">
           <DialogHeader className="text-left space-y-2">
             <DialogTitle className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
               <AlertTriangle className="h-6 w-6 text-rose-500 animate-pulse" />
