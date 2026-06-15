@@ -231,12 +231,18 @@ serve(async (req) => {
         const stripeStatus = subscription.status // e.g. trialing, active, past_due, canceled, unpaid
         const tier = (stripeStatus === 'active' || stripeStatus === 'trialing') ? 'premium' : 'free'
         
+        // Stripe 2026-05-27.dahlia deprecates top-level current_period_end in favor of item-level
+        const currentPeriodEndRaw = subscription.current_period_end || subscription.items?.data?.[0]?.current_period_end
+        const currentPeriodEnd = currentPeriodEndRaw 
+          ? new Date(currentPeriodEndRaw * 1000).toISOString() 
+          : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
         await updateUserSubscription(userId, {
           plan_id: userSub.plan_id,
           status: stripeStatus === 'active' ? 'active' : stripeStatus === 'past_due' ? 'past_due' : 'canceled',
           tier: tier,
           billing_cycle: subscription.plan?.interval === 'year' ? 'yearly' : 'monthly',
-          current_period_end: new Date(subscription.current_period_end * 1000).toISOString()
+          current_period_end: currentPeriodEnd
         })
 
         // Update profile
@@ -244,7 +250,7 @@ serve(async (req) => {
           .from('profiles')
           .update({
             subscription_tier: tier,
-            subscription_until: tier === 'premium' ? new Date(subscription.current_period_end * 1000).toISOString() : null
+            subscription_until: tier === 'premium' ? currentPeriodEnd : null
           })
           .eq('id', userId)
 
