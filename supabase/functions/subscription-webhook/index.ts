@@ -82,7 +82,8 @@ serve(async (req) => {
           tier: 'premium',
           billing_cycle: billingPeriod === 'yearly' ? 'yearly' : 'monthly',
           current_period_end: new Date(Date.now() + (billingPeriod === 'yearly' ? 365 : 30) * 24 * 60 * 60 * 1000).toISOString(),
-          stripe_subscription_id: session.subscription || 'direct_payment'
+          stripe_subscription_id: session.subscription || 'direct_payment',
+          stripe_customer_id: session.customer
         })
 
         // Sincronizar o tier do perfil do usuário para premium

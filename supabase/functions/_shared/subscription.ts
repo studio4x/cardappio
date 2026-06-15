@@ -11,6 +11,7 @@ export async function updateUserSubscription(userId: string, data: {
   billing_cycle: 'monthly' | 'yearly' | 'lifetime'
   current_period_end?: string
   stripe_subscription_id?: string
+  stripe_customer_id?: string | null
 }) {
   const supabase = getServiceClient()
 
