@@ -136,6 +136,15 @@ serve(async (req) => {
               status: 'failed',
               error_message: pushErr.message
             })
+
+            // Automatically clean up expired/revoked subscriptions (410 Gone / 404 Not Found)
+            if (pushErr.statusCode === 410 || pushErr.statusCode === 404) {
+              console.log(`Auto-cleaning expired push subscription for user ${item.user_id}`)
+              await supabase
+                .from('notification_preferences')
+                .update({ push_enabled: false, push_token: null })
+                .eq('user_id', item.user_id)
+            }
           }
         }
 
