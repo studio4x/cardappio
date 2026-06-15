@@ -15,7 +15,7 @@ export function useSubscription() {
         .from('user_subscriptions')
         .select(`
           *,
-          plan:plans(*)
+          plan:subscription_plans(*)
         `)
         .eq('user_id', supabaseUser.id)
         .eq('status', 'active')
