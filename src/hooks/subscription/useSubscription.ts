@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 export function useSubscription() {
   const { supabaseUser } = useAuth()
 
-  const { data: subscription, isLoading } = useQuery({
+  const { data: subscription, isLoading, refetch: refetchSubscription } = useQuery({
     queryKey: ['user-subscription', supabaseUser?.id],
     queryFn: async () => {
       if (!supabaseUser) return null
@@ -58,5 +58,5 @@ export function useSubscription() {
     }
   })
 
-  return { subscription, isLoading, checkoutMutation }
+  return { subscription, isLoading, checkoutMutation, refetchSubscription }
 }

@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input'
  */
 export function ProfilePreferencesPage() {
   const { profile, preferences, isLoading } = useProfile()
+  const { subscription, checkoutMutation, refetchSubscription } = useSubscription()
   const { data: notifPrefs, isLoading: isLoadingNotifs } = useNotificationPreferences()
   
   const updateProfile = useUpdateProfile()
@@ -61,8 +62,6 @@ export function ProfilePreferencesPage() {
       setIsResettingOnboarding(false)
     }
   }
-
-  const { subscription, checkoutMutation } = useSubscription()
 
   const [searchParams, setSearchParams] = useSearchParams()
   const rawTab = searchParams.get('tab')
@@ -105,7 +104,7 @@ export function ProfilePreferencesPage() {
         .from('subscription_events')
         .select('*')
         .eq('user_id', profile.id)
-        .eq('event_type', 'checkout_completed')
+        .in('event_type', ['checkout_completed', 'refund'])
         .order('created_at', { ascending: false })
       if (error) throw error
       return data
@@ -143,6 +142,7 @@ export function ProfilePreferencesPage() {
         setCancelReason('')
         setCancelConfirmText('')
         await refreshProfile()
+        await refetchSubscription()
         await refetchTransactions()
       } else {
         toast.error(result?.message || data?.error || 'Erro ao processar o cancelamento. Tente novamente.')
@@ -887,66 +887,87 @@ export function ProfilePreferencesPage() {
                 <h4 className="text-sm font-bold uppercase tracking-wider text-slate-400">Histórico de Transações</h4>
                 
                 {transactions && transactions.length > 0 ? (
-                  <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                          <th className="p-4">Data</th>
-                          <th className="p-4">Valor</th>
-                          <th className="p-4">Status</th>
-                          <th className="p-4 text-right">Ação</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-sm">
-                        {transactions.map((tx: any) => {
-                          const txDate = new Date(tx.created_at)
-                          const diffTime = Math.abs(Date.now() - txDate.getTime())
-                          const diffDays = diffTime / (1000 * 60 * 60 * 24)
-                          const isEligibleForRefund = diffDays <= 7 && isPro && subscription?.status === 'active'
-                          
-                          const amount = tx.payload?.amount_total 
-                            ? (tx.payload.amount_total / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-                            : 'R$ 39,90' // Fallback
-                          
-                          return (
-                            <tr key={tx.id} className="hover:bg-slate-50/20">
-                              <td className="p-4 font-medium text-slate-600">
-                                {txDate.toLocaleDateString('pt-BR')}
-                              </td>
-                              <td className="p-4 font-semibold text-slate-800">
-                                {amount}
-                              </td>
-                              <td className="p-4">
-                                <span className={cn(
-                                  "inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider",
-                                  subscription?.status === 'canceled' 
-                                    ? "bg-slate-100 text-slate-500 border border-slate-200" 
-                                    : "bg-emerald-50 text-emerald-600 border border-emerald-100"
-                                )}>
-                                  {subscription?.status === 'canceled' ? 'Cancelado' : 'Aprovado'}
-                                </span>
-                              </td>
-                              <td className="p-4 text-right">
-                                {isEligibleForRefund ? (
-                                  <Button 
-                                    variant="link" 
-                                    onClick={() => {
-                                      setIsCancelModalOpen(true)
-                                    }}
-                                    className="text-xs text-rose-500 hover:text-rose-600 p-0 h-auto font-bold"
-                                  >
-                                    Solicitar Reembolso
-                                  </Button>
-                                ) : (
-                                  <span className="text-xs text-slate-400 font-medium">Sem ações</span>
-                                )}
-                              </td>
+                  (() => {
+                    const purchases = transactions.filter((t: any) => t.event_type === 'checkout_completed')
+                    const refunds = transactions.filter((t: any) => t.event_type === 'refund')
+
+                    if (purchases.length === 0) {
+                      return (
+                        <div className="bg-slate-50/50 rounded-2xl p-6 text-center border border-dashed border-slate-200 text-slate-400 font-medium text-xs">
+                          Nenhuma transação financeira registrada nesta conta.
+                        </div>
+                      )
+                    }
+
+                    return (
+                      <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                              <th className="p-4">Data</th>
+                              <th className="p-4">Valor</th>
+                              <th className="p-4">Status</th>
+                              <th className="p-4 text-right">Ação</th>
                             </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 text-sm">
+                            {purchases.map((tx: any) => {
+                              const txDate = new Date(tx.created_at)
+                              const diffTime = Math.abs(Date.now() - txDate.getTime())
+                              const diffDays = diffTime / (1000 * 60 * 60 * 24)
+                              
+                              const subscriptionId = tx.payload?.data?.object?.subscription || tx.payload?.subscription
+                              const isRefunded = refunds.some((r: any) => r.provider_id === subscriptionId)
+                              
+                              const isEligibleForRefund = diffDays <= 7 && isPro && subscription?.status === 'active' && !isRefunded
+                              
+                              const amount = tx.payload?.amount_total 
+                                ? (tx.payload.amount_total / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                                : 'R$ 39,90' // Fallback
+                              
+                              return (
+                                <tr key={tx.id} className="hover:bg-slate-50/20">
+                                  <td className="p-4 font-medium text-slate-600">
+                                    {txDate.toLocaleDateString('pt-BR')}
+                                  </td>
+                                  <td className="p-4 font-semibold text-slate-800">
+                                    {amount}
+                                  </td>
+                                  <td className="p-4">
+                                    <span className={cn(
+                                      "inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider",
+                                      isRefunded 
+                                        ? "bg-rose-50 text-rose-600 border border-rose-100"
+                                        : subscription?.status === 'canceled' 
+                                          ? "bg-slate-100 text-slate-500 border border-slate-200" 
+                                          : "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                                    )}>
+                                      {isRefunded ? 'Reembolsado' : subscription?.status === 'canceled' ? 'Cancelado' : 'Aprovado'}
+                                    </span>
+                                  </td>
+                                  <td className="p-4 text-right">
+                                    {isEligibleForRefund ? (
+                                      <Button 
+                                        variant="link" 
+                                        onClick={() => {
+                                          setIsCancelModalOpen(true)
+                                        }}
+                                        className="text-xs text-rose-500 hover:text-rose-600 p-0 h-auto font-bold"
+                                      >
+                                        Solicitar Reembolso
+                                      </Button>
+                                    ) : (
+                                      <span className="text-xs text-slate-400 font-medium">Sem ações</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )
+                  })()
                 ) : (
                   <div className="bg-slate-50/50 rounded-2xl p-6 text-center border border-dashed border-slate-200 text-slate-400 font-medium text-xs">
                     Nenhuma transação financeira registrada nesta conta.
