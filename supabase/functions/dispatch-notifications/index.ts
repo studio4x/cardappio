@@ -31,6 +31,16 @@ serve(async (req) => {
   try {
     const supabase = getServiceClient()
 
+    // Fetch visual identity logo for fallback icon
+    const { data: settingsData } = await supabase
+      .from('app_settings')
+      .select('value_json')
+      .eq('setting_key', 'visual_identity')
+      .maybeSingle()
+
+    const visualIdentity = settingsData?.value_json as any
+    const logoUrl = visualIdentity?.logo_light_url || visualIdentity?.logo_dark_url || '/favicon.svg'
+
     // 1. Fetch pending notifications
     const { data: queue, error: queueError } = await supabase
       .from('notification_queue')
@@ -99,6 +109,8 @@ serve(async (req) => {
               JSON.stringify({
                 title: item.title,
                 body: item.body,
+                icon: item.payload_json?.icon_url || logoUrl,
+                image: item.payload_json?.image_url || null,
                 action_url: item.payload_json?.action_url || '/app/notificacoes'
               })
             )

@@ -35,9 +35,11 @@ import {
   User, 
   AlertTriangle,
   History,
-  FileText
+  FileText,
+  Image as ImageIcon
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { supabase } from '@/integrations/supabase/client'
 
 export function AdminNotificationsPage() {
   const { data: users } = useAdminUsers()
@@ -56,6 +58,43 @@ export function AdminNotificationsPage() {
   const [target, setTarget] = useState<'all' | 'subscribers' | 'specific'>('all')
   const [specificUserId, setSpecificUserId] = useState('')
   const [actionUrl, setActionUrl] = useState('')
+  const [imageUrl, setImageUrl] = useState('')
+  const [isUploading, setIsUploading] = useState(false)
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 2MB')
+      return
+    }
+
+    try {
+      setIsUploading(true)
+      const fileExt = file.name.split('.').pop()
+      const fileName = `notification-${Math.random().toString(36).substring(2)}.${fileExt}`
+      const filePath = `notifications/${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('system')
+        .upload(filePath, file)
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('system')
+        .getPublicUrl(filePath)
+
+      setImageUrl(publicUrl)
+      toast.success('Imagem enviada com sucesso!')
+    } catch (err: any) {
+      console.error('Error uploading image:', err)
+      toast.error(err.message || 'Erro ao enviar imagem')
+    } finally {
+      setIsUploading(false)
+    }
+  }
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,13 +110,15 @@ export function AdminNotificationsPage() {
         type,
         target,
         specificUserId: target === 'specific' ? specificUserId : undefined,
-        actionUrl: actionUrl || undefined
+        actionUrl: actionUrl || undefined,
+        imageUrl: imageUrl || undefined
       })
 
       toast.success(`Notificação enfileirada e disparada para ${result.count} usuários!`)
       setTitle('')
       setBody('')
       setActionUrl('')
+      setImageUrl('')
     } catch (err: any) {
       toast.error(err.message || 'Erro ao enviar notificação')
     }
@@ -292,6 +333,62 @@ export function AdminNotificationsPage() {
                     onChange={e => setActionUrl(e.target.value)}
                   />
                   <p className="text-xs text-slate-400">Quando o usuário clicar na notificação push ou in-app, ele será redirecionado para este link na plataforma.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="imageUrl">Imagem da Notificação (URL ou Upload)</Label>
+                  <div className="flex gap-4 items-center">
+                    <Input 
+                      id="imageUrl" 
+                      placeholder="https://exemplo.com/imagem.png ou use o botão de upload ao lado" 
+                      value={imageUrl} 
+                      onChange={e => setImageUrl(e.target.value)}
+                      className="flex-1"
+                    />
+                    <div className="relative">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        className="gap-2 cursor-pointer relative"
+                        disabled={isUploading}
+                        asChild
+                      >
+                        <label className="cursor-pointer">
+                          {isUploading ? 'Enviando...' : 'Upload'}
+                          <input 
+                            type="file" 
+                            className="hidden" 
+                            accept="image/*" 
+                            onChange={handleImageUpload} 
+                            disabled={isUploading}
+                          />
+                        </label>
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {imageUrl && (
+                    <div className="relative w-full max-w-xs aspect-video mt-2 rounded-lg border overflow-hidden bg-slate-50 group">
+                      <img src={imageUrl} className="w-full h-full object-cover" alt="Preview da notificação" />
+                      <button
+                        type="button"
+                        onClick={() => setImageUrl('')}
+                        className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                        title="Remover Imagem"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                  
+                  <div className="text-xs text-slate-400 space-y-1 mt-1">
+                    <p>💡 <strong>Recomendações para Imagens Push:</strong></p>
+                    <ul className="list-disc pl-4 space-y-0.5">
+                      <li><strong>Proporção ideal:</strong> 16:9 (ex: 1920x1080px ou 720x400px) para imagem principal do corpo.</li>
+                      <li><strong>Tamanho do arquivo:</strong> Máximo de 2MB para evitar atrasos na entrega ou rejeições.</li>
+                      <li><strong>Compatibilidade:</strong> Imagens grandes são suportadas no Android (Chrome) e Windows/macOS (Chrome/Edge/Firefox). No iOS (Safari), o suporte de imagens em push depende da versão do sistema.</li>
+                    </ul>
+                  </div>
                 </div>
 
                 <div className="pt-2 flex justify-end">

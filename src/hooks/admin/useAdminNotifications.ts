@@ -108,7 +108,8 @@ export function useSendManualNotification() {
       type,
       target,
       specificUserId,
-      actionUrl
+      actionUrl,
+      imageUrl
     }: {
       title: string
       body: string
@@ -116,6 +117,7 @@ export function useSendManualNotification() {
       target: 'all' | 'subscribers' | 'specific'
       specificUserId?: string
       actionUrl?: string
+      imageUrl?: string
     }) => {
       // 1. Fetch target user IDs
       let userIds: string[] = []
@@ -147,7 +149,10 @@ export function useSendManualNotification() {
       }
 
       // 2. Insert into notification_queue
-      const payload_json = actionUrl ? { action_url: actionUrl } : {}
+      const payload_json: any = {}
+      if (actionUrl) payload_json.action_url = actionUrl
+      if (imageUrl) payload_json.image_url = imageUrl
+
       const queueRows = userIds.map(userId => ({
         user_id: userId,
         title,
