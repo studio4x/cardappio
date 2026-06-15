@@ -42,11 +42,12 @@ serve(async (req) => {
     const logoUrl = visualIdentity?.logo_light_url || visualIdentity?.logo_dark_url || '/favicon.svg'
 
     // 1. Fetch pending notifications
+    // Using a 1-minute buffer (Date.now() + 60000) to account for database vs server clock drift
     const { data: queue, error: queueError } = await supabase
       .from('notification_queue')
       .select('*')
       .eq('status', 'pending')
-      .lte('scheduled_for', new Date().toISOString())
+      .lte('scheduled_for', new Date(Date.now() + 60000).toISOString())
       .limit(50)
 
     if (queueError) throw queueError

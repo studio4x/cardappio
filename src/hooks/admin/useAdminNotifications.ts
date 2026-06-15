@@ -159,7 +159,6 @@ export function useSendManualNotification() {
         body,
         type,
         payload_json,
-        scheduled_for: new Date().toISOString(),
         status: 'pending'
       }))
 
