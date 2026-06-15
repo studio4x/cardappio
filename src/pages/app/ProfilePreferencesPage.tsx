@@ -371,7 +371,7 @@ export function ProfilePreferencesPage() {
       />
 
       {/* Tab Switcher */}
-      <div className="flex overflow-x-auto no-scrollbar border-b -mx-4 px-4 md:mx-0 md:px-0 scroll-snap-x whitespace-nowrap" style={{ borderColor: 'var(--color-outline-variant)' }}>
+      <div className="bg-slate-100/80 p-1.5 rounded-2xl flex gap-1 overflow-x-auto no-scrollbar border border-slate-200/50">
         {[
           { id: 'dados', label: 'Dados Pessoais', icon: User },
           { id: 'preferencias', label: 'Planejamento', icon: Settings },
@@ -382,18 +382,14 @@ export function ProfilePreferencesPage() {
             key={tab.id}
             onClick={() => setSearchParams({ tab: tab.id })}
             className={cn(
-              "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all cursor-pointer flex-shrink-0 scroll-snap-start",
+              'flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition-all shrink-0 cursor-pointer border-none',
               activeTab === tab.id 
-                ? "border-primary text-primary" 
-                : "border-transparent text-muted-foreground hover:text-foreground"
+                ? 'bg-white text-slate-800 shadow-sm' 
+                : 'text-slate-500 hover:text-slate-800 hover:bg-white/40'
             )}
-            style={{ 
-              borderColor: activeTab === tab.id ? 'var(--color-primary)' : 'transparent',
-              color: activeTab === tab.id ? 'var(--color-primary)' : 'inherit'
-            }}
           >
-            <tab.icon className="h-4 w-4" />
-            {tab.label}
+            <tab.icon className={cn("h-4 w-4", activeTab === tab.id ? "text-primary" : "text-slate-400")} />
+            <span>{tab.label}</span>
           </button>
         ))}
       </div>
