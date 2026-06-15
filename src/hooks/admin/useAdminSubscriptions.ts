@@ -10,6 +10,8 @@ export interface AdminSubscription {
   billing_cycle: 'monthly' | 'yearly' | 'lifetime'
   current_period_end: string | null
   cancel_at_period_end: boolean
+  cancel_reason?: string | null
+  cancelled_at?: string | null
   created_at: string
   updated_at: string
   profile: {

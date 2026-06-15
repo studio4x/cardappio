@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { User, Settings, Bell, CreditCard, ChevronRight, LogOut, Check, Eye, EyeOff, Key, Sparkles, ArrowRight, Loader2, Crown } from 'lucide-react'
+import { User, Settings, Bell, CreditCard, ChevronRight, LogOut, Check, Eye, EyeOff, Key, Sparkles, ArrowRight, Loader2, Crown, AlertTriangle, HelpCircle } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
@@ -13,6 +13,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useSubscription } from '@/hooks/subscription/useSubscription'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 
 /**
  * ProfilePreferencesPage (Screen 15)
@@ -87,6 +89,71 @@ export function ProfilePreferencesPage() {
   })
 
   const paidPlans = plans?.filter(p => p.price_monthly > 0) || []
+
+  // Cancel / Refund states and handlers
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
+  const [isConfirmCancelModalOpen, setIsConfirmCancelModalOpen] = useState(false)
+  const [cancelReason, setCancelReason] = useState('')
+  const [cancelConfirmText, setCancelConfirmText] = useState('')
+  const [isCanceling, setIsCanceling] = useState(false)
+
+  const { data: transactions, refetch: refetchTransactions } = useQuery({
+    queryKey: ['user-transactions', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return []
+      const { data, error } = await supabase
+        .from('subscription_events')
+        .select('*')
+        .eq('user_id', profile.id)
+        .eq('event_type', 'checkout_completed')
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return data
+    },
+    enabled: !!profile?.id
+  })
+
+  const handleProcessCancel = async () => {
+    if (cancelConfirmText !== 'CONFIRMAR CANCELAMENTO') {
+      toast.error('Por favor, digite a frase de confirmação exatamente como solicitada.')
+      return
+    }
+    if (!cancelReason.trim()) {
+      toast.error('Por favor, descreva o motivo do cancelamento.')
+      return
+    }
+
+    setIsCanceling(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('cancel-subscription', {
+        body: { reason: cancelReason }
+      })
+
+      if (error) throw error
+
+      const result = data?.data
+      if (data?.success || result?.success) {
+        toast.success(
+          result?.refunded 
+            ? 'Assinatura cancelada e reembolso solicitado com sucesso!' 
+            : 'Assinatura cancelada com sucesso!'
+        )
+        setIsConfirmCancelModalOpen(false)
+        setIsCancelModalOpen(false)
+        setCancelReason('')
+        setCancelConfirmText('')
+        await refreshProfile()
+        await refetchTransactions()
+      } else {
+        toast.error(result?.message || data?.error || 'Erro ao processar o cancelamento. Tente novamente.')
+      }
+    } catch (err: any) {
+      console.error('Error canceling subscription:', err)
+      toast.error(err.message || 'Erro de rede ou falha na Edge Function.')
+    } finally {
+      setIsCanceling(false)
+    }
+  }
 
   useEffect(() => {
     if (paidPlans.length > 0 && !selectedPlanId) {
@@ -814,6 +881,79 @@ export function ProfilePreferencesPage() {
                 </div>
 
               </div>
+
+              {/* Histórico de Transações */}
+              <div className="border-t border-slate-100 pt-8 mt-8 space-y-4">
+                <h4 className="text-sm font-bold uppercase tracking-wider text-slate-400">Histórico de Transações</h4>
+                
+                {transactions && transactions.length > 0 ? (
+                  <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          <th className="p-4">Data</th>
+                          <th className="p-4">Valor</th>
+                          <th className="p-4">Status</th>
+                          <th className="p-4 text-right">Ação</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-sm">
+                        {transactions.map((tx: any) => {
+                          const txDate = new Date(tx.created_at)
+                          const diffTime = Math.abs(Date.now() - txDate.getTime())
+                          const diffDays = diffTime / (1000 * 60 * 60 * 24)
+                          const isEligibleForRefund = diffDays <= 7 && isPro && subscription?.status === 'active'
+                          
+                          const amount = tx.payload?.amount_total 
+                            ? (tx.payload.amount_total / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                            : 'R$ 39,90' // Fallback
+                          
+                          return (
+                            <tr key={tx.id} className="hover:bg-slate-50/20">
+                              <td className="p-4 font-medium text-slate-600">
+                                {txDate.toLocaleDateString('pt-BR')}
+                              </td>
+                              <td className="p-4 font-semibold text-slate-800">
+                                {amount}
+                              </td>
+                              <td className="p-4">
+                                <span className={cn(
+                                  "inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider",
+                                  subscription?.status === 'canceled' 
+                                    ? "bg-slate-100 text-slate-500 border border-slate-200" 
+                                    : "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                                )}>
+                                  {subscription?.status === 'canceled' ? 'Cancelado' : 'Aprovado'}
+                                </span>
+                              </td>
+                              <td className="p-4 text-right">
+                                {isEligibleForRefund ? (
+                                  <Button 
+                                    variant="link" 
+                                    onClick={() => {
+                                      setIsCancelModalOpen(true)
+                                    }}
+                                    className="text-xs text-rose-500 hover:text-rose-600 p-0 h-auto font-bold"
+                                  >
+                                    Solicitar Reembolso
+                                  </Button>
+                                ) : (
+                                  <span className="text-xs text-slate-400 font-medium">Sem ações</span>
+                                )}
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="bg-slate-50/50 rounded-2xl p-6 text-center border border-dashed border-slate-200 text-slate-400 font-medium text-xs">
+                    Nenhuma transação financeira registrada nesta conta.
+                  </div>
+                )}
+              </div>
+
             </div>
           );
         })()}
@@ -916,6 +1056,143 @@ export function ProfilePreferencesPage() {
               className="w-full py-3 rounded-full text-slate-400 hover:text-slate-600 font-medium cursor-pointer"
             >
               Cancelar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal 1: Solicitar Reembolso (Retenção e Convencimento) */}
+      <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
+        <DialogContent className="max-w-md rounded-[2rem] p-6 bg-white max-w-[95vw]">
+          <DialogHeader className="text-left space-y-2">
+            <DialogTitle className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+              <Crown className="h-6 w-6 text-amber-500 animate-pulse" />
+              Mantenha o seu plano Premium!
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500 leading-relaxed">
+              Dificuldade em manter a rotina saudável? O Cardappio Premium é o seu maior aliado para economizar tempo na cozinha e comer melhor!
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-5 py-4 border-t border-slate-50 mt-4">
+            <h5 className="font-bold text-slate-900 text-xs uppercase tracking-wider">O que você perderá ao cancelar:</h5>
+            <ul className="space-y-3">
+              <li className="flex gap-2.5 items-start text-xs text-slate-600">
+                <div className="h-4 w-4 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0 text-rose-500 mt-0.5 font-bold">✕</div>
+                <span><strong>Planejamento Ilimitado</strong>: Perda do seu histórico e de criar planejadores completos de 7 ou 14 dias.</span>
+              </li>
+              <li className="flex gap-2.5 items-start text-xs text-slate-600">
+                <div className="h-4 w-4 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0 text-rose-500 mt-0.5 font-bold">✕</div>
+                <span><strong>Mais de 500 Receitas Exclusivas</strong>: Perda do acesso às nossas receitas avançadas e funcionais.</span>
+              </li>
+              <li className="flex gap-2.5 items-start text-xs text-slate-600">
+                <div className="h-4 w-4 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0 text-rose-500 mt-0.5 font-bold">✕</div>
+                <span><strong>Lista Inteligente Automática</strong>: Terá que organizar seus ingredientes manualmente toda semana.</span>
+              </li>
+              <li className="flex gap-2.5 items-start text-xs text-slate-600">
+                <div className="h-4 w-4 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0 text-rose-500 mt-0.5 font-bold">✕</div>
+                <span><strong>Player de Voz (IA)</strong>: Não terá mais as receitas sendo lidas passo a passo por comando de voz.</span>
+              </li>
+            </ul>
+
+            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 text-[11px] leading-relaxed text-slate-600">
+              Tem alguma dúvida ou sugestão? Nossa equipe de suporte está pronta para ajudar você a tirar o máximo proveito da plataforma.
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 mt-4">
+            <Button
+              type="button"
+              onClick={() => setIsCancelModalOpen(false)}
+              className="w-full py-4.5 rounded-full text-xs font-bold bg-primary hover:bg-primary/90 text-white cursor-pointer shadow-lg"
+            >
+              Manter Assinatura Ativa
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setIsCancelModalOpen(false)
+                setIsConfirmCancelModalOpen(true)
+              }}
+              className="w-full py-3 rounded-full text-rose-500 hover:text-rose-600 hover:bg-rose-50/50 font-bold text-xs cursor-pointer"
+            >
+              Continuar com o cancelamento
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal 2: Justificativa e Confirmação */}
+      <Dialog open={isConfirmCancelModalOpen} onOpenChange={setIsConfirmCancelModalOpen}>
+        <DialogContent className="max-w-md rounded-[2rem] p-6 bg-white max-w-[95vw]">
+          <DialogHeader className="text-left space-y-2">
+            <DialogTitle className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+              <AlertTriangle className="h-6 w-6 text-rose-500 animate-pulse" />
+              Confirmar Reembolso & Cancelamento
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500 leading-relaxed">
+              O reembolso será processado no mesmo cartão de crédito utilizado na compra. Dependendo da sua operadora de cartão, o valor será estornado e constará em sua fatura em até 5 a 10 dias úteis.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-3 mt-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="cancelReasonInput" className="text-xs font-bold text-slate-700">Por que você está cancelando?</Label>
+              <textarea
+                id="cancelReasonInput"
+                rows={3}
+                value={cancelReason}
+                onChange={e => setCancelReason(e.target.value)}
+                placeholder="Por favor, escreva o motivo para nos ajudar a melhorar..."
+                className="w-full rounded-xl border p-3 text-xs border-slate-200 outline-none bg-white text-slate-800 placeholder-slate-400 focus:border-primary resize-none"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="cancelConfirmInput" className="text-xs font-bold text-slate-700">
+                Digite a frase abaixo para confirmar:
+              </Label>
+              <div className="bg-slate-100 p-2.5 rounded-xl border font-mono text-[10px] font-black text-center text-slate-800 select-none">
+                CONFIRMAR CANCELAMENTO
+              </div>
+              <Input
+                id="cancelConfirmInput"
+                value={cancelConfirmText}
+                onChange={(e: any) => setCancelConfirmText(e.target.value)}
+                placeholder="Digite a frase em maiúsculas..."
+                className="rounded-xl bg-white text-slate-800 text-xs border-slate-200"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 mt-4">
+            <Button
+              type="button"
+              disabled={isCanceling || !cancelReason.trim() || cancelConfirmText !== 'CONFIRMAR CANCELAMENTO'}
+              onClick={handleProcessCancel}
+              className="w-full py-4.5 rounded-full text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center gap-2 shadow-lg shadow-rose-100 cursor-pointer"
+            >
+              {isCanceling ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Efetuando cancelamento...
+                </>
+              ) : (
+                <>
+                  Prosseguir com o cancelamento
+                </>
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setIsConfirmCancelModalOpen(false)
+                setIsCancelModalOpen(true)
+              }}
+              className="w-full py-3 rounded-full text-slate-400 hover:text-slate-600 font-semibold text-xs cursor-pointer"
+            >
+              Voltar
             </Button>
           </div>
         </DialogContent>

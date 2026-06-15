@@ -192,6 +192,11 @@ export function AdminSubscriptionsPage() {
                     <td className="p-4">
                       <div className="font-bold text-slate-900">{sub.profile?.full_name || 'Sem Nome'}</div>
                       <div className="text-xs text-slate-400 mt-0.5">{sub.profile?.email}</div>
+                      {sub.status === 'canceled' && sub.cancel_reason && (
+                        <div className="text-xs text-rose-500 mt-1 italic max-w-xs break-words font-medium">
+                          Motivo: "{sub.cancel_reason}"
+                        </div>
+                      )}
                     </td>
                     <td className="p-4">
                       <div className="font-semibold text-slate-800">{sub.plan?.name || 'Carregando...'}</div>
