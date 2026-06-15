@@ -8,6 +8,7 @@ import { FavoriteButton } from '@/components/recipes/FavoriteButton'
 import { RecipeIngredients } from '@/components/recipes/RecipeIngredients'
 import { RecipeSteps } from '@/components/recipes/RecipeSteps'
 import { AudioPlayerRecipe } from '@/components/recipes/AudioPlayerRecipe'
+import { RecipeShare } from '@/components/recipes/RecipeShare'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -263,6 +264,9 @@ export function RecipeDetailPage() {
                 </div>
               </div>
             </section>
+
+            {/* Botões de Compartilhamento */}
+            <RecipeShare title={recipe.title} recipeSlug={recipeSlug || ''} />
 
             {/* Importer badge — only for non-admin users */}
             {(() => {
