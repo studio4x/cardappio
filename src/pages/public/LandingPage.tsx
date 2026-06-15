@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { Utensils, ArrowRight, Clock, Star, PiggyBank, Sparkles, Check, ChevronRight } from 'lucide-react'
 import { config } from '@/config'
 import { SEO } from '@/components/shared/SEO'
@@ -6,9 +7,45 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import type { AdminPlan } from '@/hooks/admin/useAdminPlans'
 import { useAuth } from '@/app/providers/AuthProvider'
+import { LoadingState } from '@/components/shared/LoadingState'
+
+const hasLocalSession = () => {
+  if (typeof window === 'undefined') return false
+  try {
+    return Object.keys(localStorage).some(key => key.startsWith('sb-') && key.endsWith('-auth-token'))
+  } catch {
+    return false
+  }
+}
 
 export function LandingPage() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, isAdmin, isLoading: isAuthLoading } = useAuth()
+  const navigate = useNavigate()
+
+  const isMobileSession = (() => {
+    if (typeof window === 'undefined') return false
+    const isMobileViewport = window.innerWidth < 768
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                         (window.navigator as any).standalone === true
+    const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    return isMobileViewport || isStandalone || isMobileUA
+  })()
+
+  const hasSessionToken = hasLocalSession()
+
+  useEffect(() => {
+    if (!isAuthLoading && isAuthenticated && isMobileSession) {
+      if (isAdmin) {
+        navigate('/admin', { replace: true })
+      } else {
+        navigate('/app', { replace: true })
+      }
+    }
+  }, [isAuthLoading, isAuthenticated, isAdmin, isMobileSession, navigate])
+
+  if (isAuthLoading && isMobileSession && hasSessionToken) {
+    return <LoadingState fullScreen message="Redirecionando para o painel..." />
+  }
   const { data: plans, isLoading } = useQuery({
     queryKey: ['public-plans'],
     queryFn: async () => {
