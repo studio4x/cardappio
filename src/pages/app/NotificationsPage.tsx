@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/button'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
+import { useNavigate } from 'react-router-dom'
 
 export function NotificationsPage() {
   const { data: notifications, isLoading, refetch } = useNotifications()
   const markAsRead = useMarkAsRead()
   const markAllAsRead = useMarkAllAsRead()
+  const navigate = useNavigate()
 
   const unreadCount = notifications?.filter(n => !n.is_read).length || 0
 
@@ -61,36 +63,90 @@ export function NotificationsPage() {
           description="Você não tem nenhuma notificação no momento."
         />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {notifications.map((notif) => (
             <div
               key={notif.id}
               onClick={() => !notif.is_read && markAsRead.mutate(notif.id)}
               className={cn(
-                "group relative flex gap-4 rounded-2xl border p-4 transition-all hover:shadow-sm cursor-pointer",
-                notif.is_read ? "bg-white/50 border-transparent opacity-80" : "bg-white border-outline-variant shadow-sm"
+                "group relative overflow-hidden rounded-2xl border bg-white p-5 transition-all hover:shadow-md cursor-pointer flex flex-col gap-4",
+                notif.is_read ? "opacity-80 border-slate-100 bg-white/60" : "border-slate-200 shadow-sm"
               )}
-              style={{ borderColor: notif.is_read ? 'transparent' : 'var(--color-outline-variant)' }}
             >
-              <div className={cn("mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full", getColor(notif.type))}>
-                {getIcon(notif.type)}
-              </div>
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center justify-between">
-                  <h4 className={cn("text-sm font-bold", !notif.is_read ? "text-foreground" : "text-muted-foreground")}>
-                    {notif.title}
-                  </h4>
-                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                    {formatDistanceToNow(new Date(notif.created_at), { addSuffix: true, locale: ptBR })}
+              {/* Badge/Dot and Date */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  {!notif.is_read && (
+                    <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                  )}
+                  <div className={cn("flex h-8 w-8 items-center justify-center rounded-full", getColor(notif.type))}>
+                    {getIcon(notif.type)}
+                  </div>
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    {notif.type === 'meal_reminder' ? 'Lembrete' : notif.type === 'subscription' ? 'Assinatura' : notif.type === 'promotion' ? 'Novidade' : 'Sistema'}
                   </span>
                 </div>
-                <p className="text-xs leading-relaxed text-muted-foreground">
+                <span className="text-[10px] text-slate-400">
+                  {formatDistanceToNow(new Date(notif.created_at), { addSuffix: true, locale: ptBR })}
+                </span>
+              </div>
+
+              {/* Main Content (Title, Body, Image) */}
+              <div className="space-y-3">
+                <h4 className="text-base font-bold text-slate-900">
+                  {notif.title}
+                </h4>
+                <p className="text-sm leading-relaxed text-slate-600">
                   {notif.body}
                 </p>
+
+                {notif.image_url && (
+                  <div className="relative w-full aspect-video md:max-w-md rounded-xl overflow-hidden bg-slate-50 border border-slate-100">
+                    <img src={notif.image_url} className="w-full h-full object-cover" alt="Imagem da notificação" />
+                  </div>
+                )}
               </div>
-              {!notif.is_read && (
-                <div className="absolute right-4 bottom-4 h-2 w-2 rounded-full bg-primary" />
-              )}
+
+              {/* Action Button & Mark as Read */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-3 border-t border-slate-100">
+                {notif.action_url ? (
+                  <Button 
+                    variant="default"
+                    size="sm"
+                    className="w-full sm:w-auto font-bold gap-2 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!notif.is_read) markAsRead.mutate(notif.id);
+                      if (notif.action_url?.startsWith('http')) {
+                        window.open(notif.action_url, '_blank');
+                      } else {
+                        navigate(notif.action_url || '/');
+                      }
+                    }}
+                  >
+                    Abrir Link
+                  </Button>
+                ) : (
+                  <div />
+                )}
+
+                {!notif.is_read ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full sm:w-auto text-xs font-semibold text-slate-500 hover:text-primary gap-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      markAsRead.mutate(notif.id);
+                    }}
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                    Marcar como lida
+                  </Button>
+                ) : (
+                  <span className="text-xs text-slate-400 italic font-medium">Lida</span>
+                )}
+              </div>
             </div>
           ))}
         </div>

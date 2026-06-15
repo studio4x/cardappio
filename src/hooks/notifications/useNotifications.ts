@@ -10,6 +10,7 @@ export interface Notification {
   body: string
   type: 'meal_reminder' | 'system' | 'promotion' | 'subscription'
   action_url: string | null
+  image_url: string | null
   is_read: boolean
   read_at: string | null
   created_at: string

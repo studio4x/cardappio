@@ -78,6 +78,7 @@ serve(async (req) => {
             body: item.body,
             type: item.type === 'meal_reminder' || item.type === 'subscription' || item.type === 'promotion' || item.type === 'system' ? item.type : 'system',
             action_url: item.payload_json?.action_url || null,
+            image_url: item.payload_json?.image_url || null,
             is_read: false
           })
           .select('id')
