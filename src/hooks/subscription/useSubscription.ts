@@ -43,7 +43,8 @@ export function useSubscription() {
       })
 
       if (error) throw error
-      const checkoutUrl = data?.checkout_url || data?.url
+      const result = data?.data
+      const checkoutUrl = result?.checkout_url || result?.url || data?.checkout_url || data?.url
       if (checkoutUrl) {
         window.location.href = checkoutUrl
       }

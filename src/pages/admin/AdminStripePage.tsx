@@ -105,20 +105,21 @@ export function AdminStripePage() {
 
       if (error) throw error
 
-      if (data?.success) {
+      const result = data?.data
+      if (result?.success) {
         setTestResult({
           tested: true,
           success: true,
-          message: `Conexão efetuada com sucesso no modo ${data.mode === 'production' ? 'Produção' : 'Sandbox'}.`,
-          accountId: data.account_id,
-          businessProfile: data.business_profile
+          message: `Conexão efetuada com sucesso no modo ${result.mode === 'production' ? 'Produção' : 'Sandbox'}.`,
+          accountId: result.account_id,
+          businessProfile: result.business_profile
         })
         toast.success('Conexão testada com sucesso!')
       } else {
         setTestResult({
           tested: true,
           success: false,
-          message: data?.error || 'Erro desconhecido na validação com o Stripe.'
+          message: result?.error || data?.error || 'Erro desconhecido na validação com o Stripe.'
         })
         toast.error('Falha na validação com o Stripe.')
       }
