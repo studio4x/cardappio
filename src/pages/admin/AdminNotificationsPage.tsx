@@ -36,7 +36,8 @@ import {
   AlertTriangle,
   History,
   FileText,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Copy
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/integrations/supabase/client'
@@ -141,6 +142,49 @@ export function AdminNotificationsPage() {
       toast.error('Erro ao remover notificação')
     }
   }
+
+  const handleCopyNotification = (item: any) => {
+    setTitle(item.title)
+    setBody(item.body)
+    setType(item.type)
+    setActionUrl(item.payload_json?.action_url || '')
+    setImageUrl(item.payload_json?.image_url || '')
+    toast.success('Conteúdo copiado para o formulário!')
+  }
+
+  const handleResend = async (item: any) => {
+    const targetText = target === 'all' ? 'todos os usuários' : target === 'subscribers' ? 'apenas assinantes' : 'usuário específico';
+    if (!confirm(`Deseja reenviar esta notificação agora para ${targetText}?`)) {
+      return
+    }
+
+    try {
+      const result = await sendNotification.mutateAsync({
+        title: item.title,
+        body: item.body,
+        type: item.type,
+        target,
+        specificUserId: target === 'specific' ? specificUserId : undefined,
+        actionUrl: item.payload_json?.action_url || undefined,
+        imageUrl: item.payload_json?.image_url || undefined
+      })
+
+      toast.success(`Notificação reenviada para ${result.count} usuários!`)
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao reenviar notificação')
+    }
+  }
+
+  // Get 5 most recent unique sent notifications for quick copy/resend
+  const uniqueRecentNotifications = queue
+    ? Array.from(
+        new Map(
+          queue
+            .filter(item => item.status === 'sent')
+            .map(item => [`${item.title}-${item.body}`, item])
+        ).values()
+      ).slice(0, 5)
+    : [];
 
   // Calculate metrics
   const totalQueued = queue?.length || 0
@@ -401,27 +445,86 @@ export function AdminNotificationsPage() {
             </div>
 
             {/* Sidebar info */}
-            <div className="rounded-2xl border bg-slate-50 p-6 shadow-sm flex flex-col justify-between">
-              <div className="space-y-4">
-                <h4 className="font-bold text-slate-900">Como funciona o push?</h4>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  As notificações utilizam o padrão <strong>Web Push (VAPID)</strong> diretamente no navegador ou PWA instalado do usuário.
-                </p>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  Quando você clica em <strong>"Enviar Agora"</strong>:
-                </p>
-                <ol className="list-decimal pl-5 text-xs text-slate-500 space-y-2">
-                  <li>O sistema cria e adiciona a fila como <code>pending</code>.</li>
-                  <li>Inoca instantaneamente a Edge Function de disparo.</li>
-                  <li>A função envia o alerta in-app e despacha o pacote push via protocolo de rede.</li>
-                  <li>Os logs de entrega são criados imediatamente para você auditar a entrega.</li>
-                </ol>
+            <div className="space-y-6">
+              {/* Card 1: 5 últimas notificações enviadas */}
+              <div className="rounded-2xl border bg-white p-6 shadow-sm">
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <History className="h-4 w-4 text-indigo-500" />
+                  Últimas Enviadas
+                </h3>
+                
+                {uniqueRecentNotifications.length > 0 ? (
+                  <div className="space-y-4">
+                    {uniqueRecentNotifications.map((item: any) => (
+                      <div key={item.id} className="text-xs border-b last:border-0 pb-3 last:pb-0 border-slate-100 flex flex-col gap-1.5">
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="font-bold text-slate-800 line-clamp-1">{item.title}</span>
+                          <Badge variant="outline" className="text-[10px] scale-90 origin-right whitespace-nowrap capitalize">
+                            {item.type === 'meal_reminder' ? 'Lembrete' : item.type}
+                          </Badge>
+                        </div>
+                        <p className="text-slate-500 line-clamp-2 leading-relaxed">{item.body}</p>
+                        
+                        {item.payload_json?.image_url && (
+                          <div className="relative w-16 aspect-video rounded border overflow-hidden bg-slate-50">
+                            <img src={item.payload_json.image_url} className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                        
+                        <div className="flex gap-2 mt-1">
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 text-[11px] px-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 gap-1 cursor-pointer"
+                            onClick={() => handleCopyNotification(item)}
+                          >
+                            <Copy className="h-3 w-3" />
+                            Aproveitar
+                          </Button>
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 text-[11px] px-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 gap-1 cursor-pointer"
+                            onClick={() => handleResend(item)}
+                            disabled={sendNotification.isPending}
+                          >
+                            <Send className="h-3 w-3" />
+                            Reenviar
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 text-center py-4">Nenhuma notificação enviada recentemente.</p>
+                )}
               </div>
 
-              <div className="mt-6 border-t pt-4 border-slate-200">
-                <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-100">
-                  <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-                  <span>Apenas usuários que concederam permissão de notificações em seus navegadores receberão o push.</span>
+              {/* Card 2: Como funciona o push */}
+              <div className="rounded-2xl border bg-slate-50 p-6 shadow-sm flex flex-col justify-between">
+                <div className="space-y-4">
+                  <h4 className="font-bold text-slate-900">Como funciona o push?</h4>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    As notificações utilizam o padrão <strong>Web Push (VAPID)</strong> diretamente no navegador ou PWA instalado do usuário.
+                  </p>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    Quando você clica em <strong>"Enviar Agora"</strong>:
+                  </p>
+                  <ol className="list-decimal pl-5 text-xs text-slate-500 space-y-2">
+                    <li>O sistema cria e adiciona a fila como <code>pending</code>.</li>
+                    <li>Invoca instantaneamente a Edge Function de disparo.</li>
+                    <li>A função envia o alerta in-app e despacha o pacote push via protocolo de rede.</li>
+                    <li>Os logs de entrega são criados imediatamente para você auditar a entrega.</li>
+                  </ol>
+                </div>
+
+                <div className="mt-6 border-t pt-4 border-slate-200">
+                  <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-100">
+                    <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                    <span>Apenas usuários que concederam permissão de notificações em seus navegadores receberão o push.</span>
+                  </div>
                 </div>
               </div>
             </div>
