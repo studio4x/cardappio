@@ -155,6 +155,25 @@ export function ProfilePreferencesPage() {
     }
   }
 
+  const handleOpenInvoice = async (invoiceId: string) => {
+    if (!invoiceId) return
+    try {
+      const { data, error } = await supabase.functions.invoke('get-invoice-url', {
+        body: { invoiceId }
+      })
+      if (error) throw error
+      const url = data?.hosted_invoice_url || data?.data?.hosted_invoice_url
+      if (url) {
+        window.open(url, '_blank')
+      } else {
+        toast.error('URL da fatura não encontrada.')
+      }
+    } catch (err) {
+      console.error('Error fetching invoice url:', err)
+      toast.error('Erro ao buscar fatura na Stripe.')
+    }
+  }
+
   useEffect(() => {
     if (paidPlans.length > 0 && !selectedPlanId) {
       setSelectedPlanId(paidPlans[0].id)
@@ -924,11 +943,18 @@ export function ProfilePreferencesPage() {
                               const amount = tx.payload?.amount_total 
                                 ? (tx.payload.amount_total / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
                                 : 'R$ 39,90' // Fallback
+
+                              const invoiceId = tx.payload?.data?.object?.invoice || tx.payload?.invoice
                               
                               return (
                                 <tr key={tx.id} className="hover:bg-slate-50/20">
-                                  <td className="p-4 font-medium text-slate-600">
-                                    {txDate.toLocaleDateString('pt-BR')}
+                                  <td className="p-4">
+                                    <div className="font-medium text-slate-600">{txDate.toLocaleDateString('pt-BR')}</div>
+                                    {invoiceId && (
+                                      <div className="text-[10px] text-slate-400 font-mono mt-0.5" title={invoiceId}>
+                                        Pedido: {invoiceId.substring(0, 12)}...
+                                      </div>
+                                    )}
                                   </td>
                                   <td className="p-4 font-semibold text-slate-800">
                                     {amount}
@@ -946,19 +972,34 @@ export function ProfilePreferencesPage() {
                                     </span>
                                   </td>
                                   <td className="p-4 text-right">
-                                    {isEligibleForRefund ? (
-                                      <Button 
-                                        variant="link" 
-                                        onClick={() => {
-                                          setIsCancelModalOpen(true)
-                                        }}
-                                        className="text-xs text-rose-500 hover:text-rose-600 p-0 h-auto font-bold"
-                                      >
-                                        Solicitar Reembolso
-                                      </Button>
-                                    ) : (
-                                      <span className="text-xs text-slate-400 font-medium">Sem ações</span>
-                                    )}
+                                    <div className="flex items-center justify-end gap-2.5">
+                                      {invoiceId && (
+                                        <Button 
+                                          variant="link" 
+                                          onClick={() => handleOpenInvoice(invoiceId)}
+                                          className="text-xs text-primary hover:text-primary/90 p-0 h-auto font-bold cursor-pointer"
+                                        >
+                                          Ver Fatura
+                                        </Button>
+                                      )}
+                                      {isEligibleForRefund && (
+                                        <>
+                                          {invoiceId && <span className="text-slate-200">|</span>}
+                                          <Button 
+                                            variant="link" 
+                                            onClick={() => {
+                                              setIsCancelModalOpen(true)
+                                            }}
+                                            className="text-xs text-rose-500 hover:text-rose-600 p-0 h-auto font-bold cursor-pointer"
+                                          >
+                                            Solicitar Reembolso
+                                          </Button>
+                                        </>
+                                      )}
+                                      {!isEligibleForRefund && !invoiceId && (
+                                        <span className="text-xs text-slate-400 font-medium">Sem ações</span>
+                                      )}
+                                    </div>
                                   </td>
                                 </tr>
                               )

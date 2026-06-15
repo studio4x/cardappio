@@ -5,6 +5,7 @@ import { ErrorState } from '@/components/shared/ErrorState'
 import { useAdminSubscriptions, useUpdateSubscription, type AdminSubscription } from '@/hooks/admin/useAdminSubscriptions'
 import { Check, Edit2, ShieldAlert, Sparkles, Calendar, DollarSign, Users, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { supabase } from '@/integrations/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
@@ -17,6 +18,7 @@ export function AdminSubscriptionsPage() {
 
   const [search, setSearch] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('')
+  const [loadingInvoiceId, setLoadingInvoiceId] = useState<string | null>(null)
   
   // Modal states
   const [isOpen, setIsOpen] = useState(false)
@@ -24,6 +26,28 @@ export function AdminSubscriptionsPage() {
   const [status, setStatus] = useState<AdminSubscription['status']>('active')
   const [tier, setTier] = useState<AdminSubscription['tier']>('plano-7-refeicoes')
   const [periodEnd, setPeriodEnd] = useState('')
+
+  const handleOpenInvoice = async (subscriptionId?: string | null) => {
+    if (!subscriptionId || subscriptionId === 'direct_payment') return
+    setLoadingInvoiceId(subscriptionId)
+    try {
+      const { data, error } = await supabase.functions.invoke('get-invoice-url', {
+        body: { subscriptionId }
+      })
+      if (error) throw error
+      const url = data?.hosted_invoice_url || data?.data?.hosted_invoice_url
+      if (url) {
+        window.open(url, '_blank')
+      } else {
+        toast.error('URL da fatura não encontrada.')
+      }
+    } catch (err: any) {
+      console.error('Error fetching invoice url:', err)
+      toast.error(err.message || 'Erro ao buscar fatura na Stripe.')
+    } finally {
+      setLoadingInvoiceId(null)
+    }
+  }
 
   // Compute metrics
   const metrics = useMemo(() => {
@@ -201,6 +225,11 @@ export function AdminSubscriptionsPage() {
                     <td className="p-4">
                       <div className="font-semibold text-slate-800">{sub.plan?.name || 'Carregando...'}</div>
                       <div className="text-[10px] font-black uppercase text-primary tracking-widest mt-0.5">{sub.tier}</div>
+                      {sub.stripe_subscription_id && (
+                        <div className="text-[10px] text-slate-400 font-mono mt-1" title={sub.stripe_subscription_id}>
+                          Sub ID: {sub.stripe_subscription_id.substring(0, 15)}...
+                        </div>
+                      )}
                     </td>
                     <td className="p-4">
                       <span className={cn(
@@ -223,9 +252,36 @@ export function AdminSubscriptionsPage() {
                       </div>
                     </td>
                     <td className="p-4 text-right">
-                      <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(sub)} className="rounded-full">
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center justify-end gap-2.5">
+                        {sub.stripe_subscription_id && sub.stripe_subscription_id !== 'direct_payment' && (
+                          <>
+                            <Button
+                              variant="link"
+                              disabled={loadingInvoiceId === sub.stripe_subscription_id}
+                              onClick={() => handleOpenInvoice(sub.stripe_subscription_id)}
+                              className="text-xs text-primary hover:text-primary/90 p-0 h-auto font-bold cursor-pointer"
+                            >
+                              {loadingInvoiceId === sub.stripe_subscription_id ? 'Carregando...' : 'Fatura'}
+                            </Button>
+                            <span className="text-slate-200">|</span>
+                            <Button
+                              variant="link"
+                              onClick={() => {
+                                const isTest = sub.stripe_subscription_id?.includes('test') || sub.stripe_subscription_id?.startsWith('sub_test_')
+                                const baseUrl = isTest ? 'https://dashboard.stripe.com/test' : 'https://dashboard.stripe.com'
+                                window.open(`${baseUrl}/subscriptions/${sub.stripe_subscription_id}`, '_blank')
+                              }}
+                              className="text-xs text-emerald-600 hover:text-emerald-700 p-0 h-auto font-bold cursor-pointer"
+                            >
+                              Stripe
+                            </Button>
+                            <span className="text-slate-200">|</span>
+                          </>
+                        )}
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(sub)} className="rounded-full shrink-0">
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))
