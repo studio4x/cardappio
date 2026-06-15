@@ -41,6 +41,7 @@ import { ProfilePreferencesPage } from '@/pages/app/ProfilePreferencesPage'
 import { NotificationsPage } from '@/pages/app/NotificationsPage'
 import { HistoryPage } from '@/pages/app/HistoryPage'
 import { SubscriptionPage } from '@/pages/app/SubscriptionPage'
+import { SubscriptionSuccessPage } from '@/pages/app/SubscriptionSuccessPage'
 import { CozinheiraShowcasePage } from '@/pages/app/CozinheiraShowcasePage'
 
 // Admin pages
@@ -144,6 +145,7 @@ export const router = createBrowserRouter([
               // Fase 5 - Perfil e monetização
                { path: '/app/perfil', element: <ProfilePreferencesPage /> },
               { path: '/app/assinatura', element: <SubscriptionPage /> },
+              { path: '/app/confirmacao-assinatura', element: <SubscriptionSuccessPage /> },
               { path: '/app/notificacoes', element: <NotificationsPage /> },
               { path: '/app/cozinheiras', element: <CozinheiraShowcasePage /> },
             ],

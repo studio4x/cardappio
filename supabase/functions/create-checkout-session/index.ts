@@ -75,7 +75,7 @@ serve(async (req) => {
         },
       ],
       mode: 'subscription',
-      success_url: `${appUrl}/app/perfil?session_id={CHECKOUT_SESSION_ID}&checkout=success`,
+      success_url: `${appUrl}/app/confirmacao-assinatura?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/app/perfil?checkout=cancel`,
       customer_email: user.email,
       metadata: {
