@@ -29,7 +29,7 @@ const XIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export function RecipeShare({ title, recipeSlug }: RecipeShareProps) {
   const [copied, setCopied] = useState(false)
   const shareUrl = `${window.location.origin}/app/receitas/${recipeSlug}`
-  const shareText = `Olha só essa receita de *${title}* que encontrei no Cardappio! 🍳😋\n\nConfira os ingredientes e o passo a passo completo no link:`
+  const shareText = `Olha só essa receita de *${title}* que encontrei no App Cardappio! 🍳😋\n\nConfira os ingredientes e o passo a passo completo no link:`
 
   const handleCopyLink = async () => {
     try {
