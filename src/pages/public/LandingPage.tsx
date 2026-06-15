@@ -43,9 +43,6 @@ export function LandingPage() {
     }
   }, [isAuthLoading, isAuthenticated, isAdmin, isMobileSession, navigate])
 
-  if (isAuthLoading && isMobileSession && hasSessionToken) {
-    return <LoadingState fullScreen message="Redirecionando para o painel..." />
-  }
   const { data: plans, isLoading } = useQuery({
     queryKey: ['public-plans'],
     queryFn: async () => {
@@ -58,6 +55,10 @@ export function LandingPage() {
       return data as AdminPlan[]
     }
   })
+
+  if (isAuthLoading && isMobileSession && hasSessionToken) {
+    return <LoadingState fullScreen message="Redirecionando para o painel..." />
+  }
 
   return (
     <div className="bg-background min-h-screen selection:bg-fresh-green selection:text-white">
