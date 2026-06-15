@@ -27,13 +27,17 @@ export function useAppSettings() {
 
   useEffect(() => {
     if (visualIdentity?.favicon_url) {
-      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement
-      if (!link) {
-        link = document.createElement('link')
+      const links = document.querySelectorAll("link[rel*='icon']")
+      if (links.length > 0) {
+        links.forEach((link) => {
+          (link as HTMLLinkElement).href = visualIdentity.favicon_url
+        })
+      } else {
+        const link = document.createElement('link')
         link.rel = 'icon'
+        link.href = visualIdentity.favicon_url
         document.getElementsByTagName('head')[0].appendChild(link)
       }
-      link.href = visualIdentity.favicon_url
     }
   }, [visualIdentity?.favicon_url])
 
