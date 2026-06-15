@@ -14,11 +14,14 @@ self.addEventListener('push', (event) => {
     body: data.body,
     icon: data.icon || '/favicon.svg',
     badge: data.badge || '/favicon.svg',
-    image: data.image || null,
     data: {
       action_url: data.action_url || '/app/notificacoes'
     }
   };
+
+  if (data.image) {
+    options.image = data.image;
+  }
 
   event.waitUntil(
     self.registration.showNotification(data.title, options)

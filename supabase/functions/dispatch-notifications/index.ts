@@ -39,7 +39,7 @@ serve(async (req) => {
       .maybeSingle()
 
     const visualIdentity = settingsData?.value_json as any
-    const logoUrl = visualIdentity?.logo_light_url || visualIdentity?.logo_dark_url || '/favicon.svg'
+    const faviconUrl = visualIdentity?.favicon_url || visualIdentity?.logo_light_url || visualIdentity?.logo_dark_url || '/favicon.svg'
 
     // 1. Fetch pending notifications
     // Using a 1-minute buffer (Date.now() + 60000) to account for database vs server clock drift
@@ -110,7 +110,7 @@ serve(async (req) => {
               JSON.stringify({
                 title: item.title,
                 body: item.body,
-                icon: item.payload_json?.icon_url || logoUrl,
+                icon: item.payload_json?.icon_url || faviconUrl,
                 image: item.payload_json?.image_url || null,
                 action_url: item.payload_json?.action_url || '/app/notificacoes'
               })
