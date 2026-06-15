@@ -113,6 +113,7 @@ serve(async (req) => {
                 body: item.body,
                 icon: item.payload_json?.icon_url || faviconUrl,
                 image: item.payload_json?.image_url || null,
+                color: '#f76f25',
                 action_url: item.payload_json?.action_url || '/app/notificacoes'
               })
             )

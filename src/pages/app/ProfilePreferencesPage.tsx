@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { User, Settings, Bell, CreditCard, ChevronRight, LogOut, Check, Eye, EyeOff, Key, Sparkles, ArrowRight, Loader2, Crown, AlertTriangle, HelpCircle, Menu, X } from 'lucide-react'
+import { User, Settings, Bell, CreditCard, ChevronRight, LogOut, Check, Eye, EyeOff, Key, Sparkles, ArrowRight, Loader2, Crown, AlertTriangle, HelpCircle, Menu, X, Utensils, BookOpen, ShoppingBag, Volume2 } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
@@ -66,7 +66,7 @@ export function ProfilePreferencesPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const rawTab = searchParams.get('tab')
   const activeTab = (
-    rawTab === 'preferencias' || rawTab === 'notificacoes' || rawTab === 'assinatura'
+    rawTab === 'preferencias' || rawTab === 'notificacoes' || rawTab === 'assinatura' || rawTab === 'sobre'
       ? rawTab
       : 'dados'
   )
@@ -384,6 +384,7 @@ export function ProfilePreferencesPage() {
                 { id: 'preferencias', label: 'Planejamento', icon: Settings },
                 { id: 'notificacoes', label: 'Notificações', icon: Bell },
                 { id: 'assinatura', label: 'Assinatura', icon: CreditCard },
+                { id: 'sobre', label: 'Sobre o App', icon: HelpCircle },
               ]
               const activeTabInfo = tabs.find(t => t.id === activeTab) || tabs[0]
               const ActiveIcon = activeTabInfo.icon
@@ -431,6 +432,7 @@ export function ProfilePreferencesPage() {
                 { id: 'preferencias', label: 'Planejamento', icon: Settings },
                 { id: 'notificacoes', label: 'Notificações', icon: Bell },
                 { id: 'assinatura', label: 'Assinatura', icon: CreditCard },
+                { id: 'sobre', label: 'Sobre o App', icon: HelpCircle },
               ].map(tab => {
                 const TabIcon = tab.icon
                 const isActive = activeTab === tab.id
@@ -465,6 +467,7 @@ export function ProfilePreferencesPage() {
           { id: 'preferencias', label: 'Planejamento', icon: Settings },
           { id: 'notificacoes', label: 'Notificações', icon: Bell },
           { id: 'assinatura', label: 'Assinatura', icon: CreditCard },
+          { id: 'sobre', label: 'Sobre o App', icon: HelpCircle },
         ].map(tab => (
           <button
             key={tab.id}
@@ -1103,6 +1106,126 @@ export function ProfilePreferencesPage() {
             </div>
           );
         })()}
+
+        {/* SOBRE TAB */}
+        {activeTab === 'sobre' && (
+          <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+            <div className="rounded-xl md:rounded-2xl border p-5 md:p-6 bg-white shadow-sm space-y-6">
+              {/* Logo & Welcome Header */}
+              <div className="flex flex-col items-center text-center space-y-3 pb-6 border-b border-slate-100">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center shadow-inner">
+                  <Utensils className="h-9 w-9 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-slate-900">Cardappio</h3>
+                  <p className="text-xs font-semibold text-primary uppercase tracking-wider mt-0.5">Seu Assistente de Cozinha Inteligente</p>
+                </div>
+                <p className="text-sm text-slate-600 max-w-md leading-relaxed">
+                  O Cardappio nasceu para simplificar sua relação com a cozinha. Nós ajudamos você a planejar suas refeições semanais, descobrir novas receitas e gerar listas de compras completas de forma automática e prática.
+                </p>
+              </div>
+
+              {/* Core Pillars */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">O que o Cardappio faz por você:</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex gap-3 p-4 rounded-xl border border-slate-100 hover:border-slate-200 bg-slate-50/30 transition-all">
+                    <div className="h-8 w-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
+                      <Settings className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h5 className="font-bold text-sm text-slate-800">Menu Semanal</h5>
+                      <p className="text-xs text-slate-500 mt-0.5">Monte o cardápio da sua semana inteira de forma personalizada.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 p-4 rounded-xl border border-slate-100 hover:border-slate-200 bg-slate-50/30 transition-all">
+                    <div className="h-8 w-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                      <BookOpen className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h5 className="font-bold text-sm text-slate-800">Livro de Receitas</h5>
+                      <p className="text-xs text-slate-500 mt-0.5">Guarde e organize seus pratos favoritos em um só lugar.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 p-4 rounded-xl border border-slate-100 hover:border-slate-200 bg-slate-50/30 transition-all">
+                    <div className="h-8 w-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                      <ShoppingBag className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h5 className="font-bold text-sm text-slate-800">Lista Automática</h5>
+                      <p className="text-xs text-slate-500 mt-0.5">Ingredientes agregados de forma inteligente para sua ida ao mercado.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 p-4 rounded-xl border border-slate-100 hover:border-slate-200 bg-slate-50/30 transition-all">
+                    <div className="h-8 w-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                      <Volume2 className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h5 className="font-bold text-sm text-slate-800">Instruções por Voz</h5>
+                      <p className="text-xs text-slate-500 mt-0.5">Receitas ditadas passo a passo enquanto você cozinha, sem sujar as mãos.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Version & Technical Info (Presented in a super friendly way) */}
+              <div className="border-t border-slate-100 pt-6 space-y-4">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">Informações de Atualização:</h4>
+                <div className="rounded-2xl bg-slate-50 border border-slate-100 p-5 space-y-4">
+                  
+                  {/* Status Indicator */}
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-200/50">
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                      </span>
+                      <span className="text-xs font-bold text-slate-700">Status do Aplicativo</span>
+                    </div>
+                    <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
+                      Conectado e atualizado
+                    </span>
+                  </div>
+
+                  {/* Version Detail */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <div>
+                      <p className="font-bold text-slate-800">Versão instalada:</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">Indica o pacote de melhorias mais recente que você está utilizando.</p>
+                    </div>
+                    <span className="font-bold text-slate-600 bg-slate-200/60 px-3 py-1 rounded-xl shrink-0 self-start sm:self-center">
+                      v{__BUILD_VERSION__}
+                    </span>
+                  </div>
+
+                  {/* Update Code Detail */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <div>
+                      <p className="font-bold text-slate-800">Identificador da versão:</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">Um código interno exclusivo que confirma a integridade e a segurança desta versão.</p>
+                    </div>
+                    <span className="font-mono text-xs text-slate-500 bg-slate-200/60 px-3 py-1 rounded-xl shrink-0 self-start sm:self-center">
+                      #{__COMMIT_HASH__}
+                    </span>
+                  </div>
+
+                  {/* Auto updates note */}
+                  <div className="flex gap-2.5 items-start bg-blue-50/30 border border-blue-100/50 rounded-xl p-3 text-[11px] text-slate-600 leading-relaxed">
+                    <div className="h-4 w-4 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0 mt-0.5 font-bold">ℹ</div>
+                    <span>
+                      O Cardappio é atualizado automaticamente em segundo plano sempre que novos recursos são lançados. Não é necessária nenhuma ação manual para manter o aplicativo seguro e funcional.
+                    </span>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal de Seleção de Plano */}
