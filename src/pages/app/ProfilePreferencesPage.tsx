@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { User, Settings, Bell, CreditCard, ChevronRight, LogOut, Check, Eye, EyeOff, Key, Sparkles, ArrowRight, Loader2, Crown, AlertTriangle, HelpCircle } from 'lucide-react'
+import { User, Settings, Bell, CreditCard, ChevronRight, LogOut, Check, Eye, EyeOff, Key, Sparkles, ArrowRight, Loader2, Crown, AlertTriangle, HelpCircle, Menu, X } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
@@ -70,6 +70,7 @@ export function ProfilePreferencesPage() {
       ? rawTab
       : 'dados'
   )
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false)
   const [selectedPlanId, setSelectedPlanId] = useState<string>('')
   const [selectedInterval, setSelectedInterval] = useState<'monthly' | 'yearly'>('monthly')
@@ -370,8 +371,90 @@ export function ProfilePreferencesPage() {
         subtitle="Gerencie seu perfil, preferências de cardápio e assinatura."
       />
 
-      {/* Tab Switcher */}
-      <div className="bg-slate-100/80 p-1.5 rounded-2xl flex gap-1 overflow-x-auto no-scrollbar border border-slate-200/50">
+      {/* Mobile Tab Trigger Bar */}
+      <div className="md:hidden flex items-center justify-between bg-slate-100/80 p-3 rounded-2xl border border-slate-200/50">
+        <div className="flex items-center gap-2">
+          {(() => {
+            const tabs = [
+              { id: 'dados', label: 'Dados Pessoais', icon: User },
+              { id: 'preferencias', label: 'Planejamento', icon: Settings },
+              { id: 'notificacoes', label: 'Notificações', icon: Bell },
+              { id: 'assinatura', label: 'Assinatura', icon: CreditCard },
+            ]
+            const activeTabInfo = tabs.find(t => t.id === activeTab) || tabs[0]
+            const ActiveIcon = activeTabInfo.icon
+            return (
+              <>
+                <ActiveIcon className="h-5 w-5 text-primary" />
+                <span className="text-sm font-bold text-slate-800">{activeTabInfo.label}</span>
+              </>
+            )
+          })()}
+        </div>
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-slate-700 text-xs font-bold rounded-xl border border-slate-200/50 shadow-sm cursor-pointer hover:bg-slate-50 transition-all"
+        >
+          <Menu className="h-4 w-4 text-slate-500" />
+          <span>Ver Opções</span>
+        </button>
+      </div>
+
+      {/* Off-canvas Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden animate-in fade-in duration-200">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm" 
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          {/* Drawer Panel */}
+          <div className="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl flex flex-col p-6 transform transition-transform duration-300 ease-out animate-in slide-in-from-left">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">Navegação</h3>
+              <button 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-1 rounded-lg hover:bg-slate-100 transition-all cursor-pointer border-none bg-transparent"
+              >
+                <X className="h-5 w-5 text-slate-500" />
+              </button>
+            </div>
+            
+            <div className="flex flex-col gap-1.5 py-4 overflow-y-auto">
+              {[
+                { id: 'dados', label: 'Dados Pessoais', icon: User },
+                { id: 'preferencias', label: 'Planejamento', icon: Settings },
+                { id: 'notificacoes', label: 'Notificações', icon: Bell },
+                { id: 'assinatura', label: 'Assinatura', icon: CreditCard },
+              ].map(tab => {
+                const TabIcon = tab.icon
+                const isActive = activeTab === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      setSearchParams({ tab: tab.id })
+                      setIsMobileMenuOpen(false)
+                    }}
+                    className={cn(
+                      'flex items-center gap-3 w-full px-4 py-3 text-sm font-bold rounded-xl transition-all cursor-pointer text-left border-none outline-none',
+                      isActive 
+                        ? 'bg-primary/10 text-primary' 
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                    )}
+                  >
+                    <TabIcon className={cn("h-5 w-5", isActive ? "text-primary" : "text-slate-400")} />
+                    <span>{tab.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Navigation Tabs */}
+      <div className="hidden md:flex bg-slate-100/80 p-1.5 rounded-2xl gap-1 overflow-x-auto no-scrollbar border border-slate-200/50">
         {[
           { id: 'dados', label: 'Dados Pessoais', icon: User },
           { id: 'preferencias', label: 'Planejamento', icon: Settings },
