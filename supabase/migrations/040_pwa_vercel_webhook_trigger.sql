@@ -28,7 +28,7 @@ BEGIN
       -- Invoke the webhook asynchronously using pg_net
       PERFORM net.http_post(
         url := vercel_url,
-        headers := '{"Content-Type": "application/json"}'::jsonb,
+        headers := jsonb_build_object('Content-Type', 'application/json'),
         body := '{}'::jsonb
       );
     END IF;

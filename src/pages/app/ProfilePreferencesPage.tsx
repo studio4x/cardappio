@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { User, Settings, Bell, CreditCard, ChevronRight, LogOut, Check, Eye, EyeOff, Key, Sparkles, ArrowRight, Loader2, Crown, AlertTriangle, HelpCircle, Menu, X, Utensils, BookOpen, ShoppingBag, Volume2 } from 'lucide-react'
+import { User, Settings, Bell, CreditCard, ChevronRight, LogOut, Check, Eye, EyeOff, Key, Sparkles, ArrowRight, Loader2, Crown, AlertTriangle, HelpCircle, Menu, X, Utensils, BookOpen, ShoppingBag, Volume2, Download, Smartphone } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
@@ -15,6 +15,7 @@ import { useSubscription } from '@/hooks/subscription/useSubscription'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { usePWA } from '@/hooks/usePWA'
 
 /**
  * ProfilePreferencesPage (Screen 15)
@@ -34,8 +35,18 @@ export function ProfilePreferencesPage() {
   const updatePreferences = useUpdatePreferences()
   const updateNotifPrefs = useUpdateNotificationPreferences()
   const { signOut, refreshProfile } = useAuth()
+  const { isInstallable, isInstalled, isIOS, install } = usePWA()
   const navigate = useNavigate()
   const [isResettingOnboarding, setIsResettingOnboarding] = useState(false)
+
+  const handleInstallClick = async () => {
+    const success = await install()
+    if (success) {
+      toast.success('Instalação iniciada!')
+    } else {
+      toast.error('Não foi possível iniciar a instalação por este botão. Tente pelo menu do seu navegador.')
+    }
+  }
 
   const handleResetOnboarding = async () => {
     if (!profile?.id) return
@@ -1123,6 +1134,50 @@ export function ProfilePreferencesPage() {
                 <p className="text-sm text-slate-600 max-w-md leading-relaxed">
                   O Cardappio nasceu para simplificar sua relação com a cozinha. Nós ajudamos você a planejar suas refeições semanais, descobrir novas receitas e gerar listas de compras completas de forma automática e prática.
                 </p>
+              </div>
+
+              {/* PWA Installation Card */}
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/20 p-5 space-y-4">
+                <div className="flex gap-4">
+                  <div className="h-10 w-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                    <Smartphone className="h-5 w-5" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-sm text-slate-800">Instalar Cardappio no Dispositivo</h4>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Adicione o Cardappio à sua tela inicial para ter acesso instantâneo às suas receitas, lista de compras e planejamento semanal sem precisar abrir o navegador.
+                    </p>
+                  </div>
+                </div>
+
+                {isInstalled ? (
+                  <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 bg-emerald-100/40 px-3 py-2 rounded-xl border border-emerald-200 w-fit">
+                    <Check className="h-4 w-4" /> Aplicativo instalado e pronto para usar
+                  </div>
+                ) : isInstallable ? (
+                  <Button 
+                    onClick={handleInstallClick} 
+                    className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-2 text-xs py-2 h-auto rounded-xl transition-all shadow-sm hover:shadow active:scale-95"
+                  >
+                    <Download className="h-4 w-4" /> Instalar Aplicativo
+                  </Button>
+                ) : isIOS ? (
+                  <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-3.5 space-y-2 text-xs text-slate-700">
+                    <p className="font-bold flex items-center gap-1.5 text-amber-800">
+                      <span className="text-sm">ℹ️</span> Como instalar no iOS (Safari):
+                    </p>
+                    <ol className="list-decimal pl-4 space-y-1.5 leading-relaxed text-slate-600">
+                      <li>Toque no botão de <strong>Compartilhar</strong> <span className="inline-block px-1.5 py-0.5 bg-slate-100 rounded text-slate-800 font-mono text-[10px]">📤</span> na barra inferior.</li>
+                      <li>Role a lista de opções para baixo e selecione <strong>Adicionar à Tela de Início</strong> <span className="inline-block px-1.5 py-0.5 bg-slate-100 rounded text-slate-800 font-mono text-[10px]">➕</span>.</li>
+                      <li>Toque em <strong>Adicionar</strong> no canto superior direito para confirmar.</li>
+                    </ol>
+                  </div>
+                ) : (
+                  <div className="bg-blue-50/40 border border-blue-100/50 rounded-xl p-3.5 text-xs text-slate-600 leading-relaxed">
+                    <p className="font-bold text-blue-800 mb-1">Como instalar em seu navegador:</p>
+                    Abra o menu de configurações do seu navegador (geralmente nos <strong className="text-slate-800">três pontinhos</strong> no canto superior ou na <strong className="text-slate-800">barra de endereço</strong>) e clique em <strong className="text-emerald-700">"Instalar Cardappio"</strong> ou <strong className="text-emerald-700">"Adicionar à tela inicial"</strong>.
+                  </div>
+                )}
               </div>
 
               {/* Core Pillars */}
