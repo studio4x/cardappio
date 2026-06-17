@@ -81,6 +81,12 @@ export function useAppSettings() {
               sizes: '512x512',
               type: 'image/png',
               purpose: 'any maskable'
+            },
+            {
+              src: '/badge.png',
+              sizes: '96x96',
+              type: 'image/png',
+              purpose: 'monochrome'
             }
           ]
         }

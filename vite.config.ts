@@ -157,7 +157,7 @@ export default defineConfig(async () => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.svg', 'icons.svg', 'pwa-192.png', 'pwa-512.png', 'apple-touch-icon.png'],
+        includeAssets: ['favicon.svg', 'icons.svg', 'pwa-192.png', 'pwa-512.png', 'apple-touch-icon.png', 'badge.png'],
         manifest: {
           name: 'Cardappio',
           short_name: 'Cardappio',
@@ -183,6 +183,12 @@ export default defineConfig(async () => {
               sizes: '512x512',
               type: 'image/png',
               purpose: 'any maskable'
+            },
+            {
+              src: 'badge.png',
+              sizes: '96x96',
+              type: 'image/png',
+              purpose: 'monochrome'
             }
           ]
         },

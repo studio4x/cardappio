@@ -12,8 +12,8 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body,
-    icon: data.icon || '/favicon.svg',
-    badge: data.badge || '/badge.svg',
+    icon: data.icon || '/pwa-192.png',
+    badge: data.badge || '/badge.png',
     color: data.color || '#f76f25',
     data: {
       action_url: data.action_url || '/app/notificacoes'
