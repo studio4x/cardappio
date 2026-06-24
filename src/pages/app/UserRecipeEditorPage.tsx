@@ -320,6 +320,7 @@ export function UserRecipeEditorPage() {
                     className="w-full rounded-xl border p-2.5 text-sm border-slate-200 outline-none bg-white cursor-pointer"
                   >
                     <option value="">Sem unidade</option>
+                    {/* Antigas mantidas */}
                     <option value="g">Gramas (g)</option>
                     <option value="kg">Quilogramas (kg)</option>
                     <option value="ml">Mililitros (ml)</option>
@@ -344,6 +345,46 @@ export function UserRecipeEditorPage() {
                     <option value="folha">Folha(s)</option>
                     <option value="ramo">Ramo(s)</option>
                     <option value="a gosto">A gosto</option>
+                    {/* Novas unidades adicionadas */}
+                    <option value="quilo">Quilo (quilo)</option>
+                    <option value="quilos">Quilos (quilos)</option>
+                    <option value="grama">Grama (grama)</option>
+                    <option value="gramas">Gramas (gramas)</option>
+                    <option value="mg">Miligramas (mg)</option>
+                    <option value="milligrama">Miligrama (milligrama)</option>
+                    <option value="milligramas">Miligramas (milligramas)</option>
+                    <option value="liter">Liter (liter)</option>
+                    <option value="litros">Litros (litros)</option>
+                    <option value="dl">Decilitros (dl)</option>
+                    <option value="decilitro">Decilitro (decilitro)</option>
+                    <option value="decilitros">Decilitros (decilitros)</option>
+                    <option value="cl">Centilitros (cl)</option>
+                    <option value="centilitro">Centilitro (centilitro)</option>
+                    <option value="centilitros">Centilitros (centilitros)</option>
+                    <option value="millilitro">Mililitro (millilitro)</option>
+                    <option value="millilitros">Mililitros (millilitros)</option>
+                    <option value="xícaras">Xícaras (xícaras)</option>
+                    <option value="colher (sopa)">Colher (sopa)</option>
+                    <option value="colheres (sopa)">Colheres (sopa)</option>
+                    <option value="colher (chá)">Colher (chá)</option>
+                    <option value="colheres (chá)">Colheres (chá)</option>
+                    <option value="colher (sobremesa)">Colher (sobremesa)</option>
+                    <option value="colheres (sobremesa)">Colheres (sobremesa)</option>
+                    <option value="colher (café)">Colher (café)</option>
+                    <option value="colheres (café)">Colheres (café)</option>
+                    <option value="cm">Centímetro(s) (cm)</option>
+                    <option value="centímetro">Centímetro (centímetro)</option>
+                    <option value="centímetros">Centímetros (centímetros)</option>
+                    <option value="mm">Milímetro(s) (mm)</option>
+                    <option value="milímetro">Milímetro (milímetro)</option>
+                    <option value="milímetros">Milímetros (milímetros)</option>
+                    <option value="dentes">Dentes (dentes)</option>
+                    <option value="molho">Molho (molho)</option>
+                    <option value="molhos">Molhos (molhos)</option>
+                    <option value="folhas">Folhas (folhas)</option>
+                    <option value="fatias">Fatias (fatias)</option>
+                    <option value="pedaços">Pedaços (pedaços)</option>
+                    <option value="porção">Porção (porção)</option>
                   </select>
                 </div>
                 {ingredients.length > 1 && (
