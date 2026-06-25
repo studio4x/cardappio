@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { 
   Plus, 
   Search, 
@@ -13,9 +13,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Trash2,
-  Link2,
+  FileText,
+  Upload,
   Apple,
-  Crown
+  Crown,
+  AlertTriangle,
+  CheckCircle2,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -26,6 +29,13 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
+import {
+  buildAdminRecipeJsonExample,
+  humanizeRecipeSlug,
+  parseAdminRecipeJson,
+  slugifyRecipe,
+} from '@/lib/recipes/adminRecipeJsonImport'
 
 /**
  * AdminRecipesPage
@@ -34,13 +44,17 @@ import { toast } from 'sonner'
  */
 export function AdminRecipesPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const jsonFileInputRef = useRef<HTMLInputElement | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [seeding, setSeeding] = useState(false)
   const [page, setPage] = useState(1)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [importUrl, setImportUrl] = useState('')
-  const [isImporting, setIsImporting] = useState(false)
+  const [jsonImportValue, setJsonImportValue] = useState('')
+  const [jsonImportErrors, setJsonImportErrors] = useState<string[]>([])
+  const [jsonImportWarnings, setJsonImportWarnings] = useState<string[]>([])
+  const [isImportingJson, setIsImportingJson] = useState(false)
   const [generatingNutritionId, setGeneratingNutritionId] = useState<string | null>(null)
   const [togglingPremiumId, setTogglingPremiumId] = useState<string | null>(null)
   const [premiumFilter, setPremiumFilter] = useState<'all' | 'premium' | 'free'>('all')
@@ -172,34 +186,219 @@ export function AdminRecipesPage() {
     }
   }
 
-  const handleImportRecipe = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const trimmed = importUrl.trim()
-    if (!trimmed) return
-    setIsImporting(true)
+  const resetJsonImportState = () => {
+    setJsonImportErrors([])
+    setJsonImportWarnings([])
+  }
+
+  const handleLoadJsonFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+
+    if (!file) return
 
     try {
-      toast.loading('Importando receita com IA...', { id: 'import-progress' })
-      const { data, error } = await supabase.functions.invoke('rebuild-external-recipe', {
-        body: { url: trimmed }
+      const text = await file.text()
+      setJsonImportValue(text)
+      resetJsonImportState()
+    } catch (error) {
+      console.error('Erro ao ler arquivo JSON:', error)
+      toast.error('Não foi possível ler o arquivo JSON.')
+    }
+  }
+
+  const handleLoadExample = () => {
+    setJsonImportValue(buildAdminRecipeJsonExample())
+    resetJsonImportState()
+  }
+
+  const ensureUniqueRecipeSlug = async (baseSlug: string) => {
+    const normalizedBase = slugifyRecipe(baseSlug)
+    let candidate = normalizedBase
+    let suffix = 2
+
+    while (true) {
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('id')
+        .eq('slug', candidate)
+        .maybeSingle()
+
+      if (error && error.code !== 'PGRST116') throw error
+      if (!data) return candidate
+
+      candidate = `${normalizedBase}-${suffix}`
+      suffix += 1
+    }
+  }
+
+  const handleImportJson = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const { data, errors } = parseAdminRecipeJson(jsonImportValue)
+    setJsonImportErrors(errors)
+
+    if (!data) {
+      setJsonImportWarnings([])
+      toast.error('Corrija o JSON antes de importar.')
+      return
+    }
+
+    setJsonImportWarnings(data.warnings)
+    setIsImportingJson(true)
+
+    let createdRecipeId: string | null = null
+    const toastId = 'recipe-json-import'
+
+    try {
+      const { data: authData } = await supabase.auth.getUser()
+      const currentUserId = authData.user?.id ?? null
+
+      toast.loading('Importando receita em JSON...', { id: toastId })
+
+      let categoryId: string | null = null
+      if (data.category_name || data.category_slug) {
+        const categorySlug = data.category_slug || slugifyRecipe(data.category_name || '')
+        const categoryName = data.category_name || humanizeRecipeSlug(categorySlug)
+
+        const { data: categoryRow, error: categoryError } = await supabase
+          .from('recipe_categories')
+          .upsert(
+            {
+              slug: categorySlug,
+              name: categoryName,
+              description: null,
+              sort_order: 0,
+              is_active: true,
+            },
+            { onConflict: 'slug' }
+          )
+          .select('id')
+          .single()
+
+        if (categoryError) throw categoryError
+        categoryId = categoryRow.id
+      }
+
+      const uniqueSlug = await ensureUniqueRecipeSlug(data.slug || data.title)
+      const publishedAt = data.published_at || (data.status === 'published' ? new Date().toISOString() : null)
+
+      const { data: recipeRow, error: recipeError } = await supabase
+        .from('recipes')
+        .insert({
+          title: data.title,
+          subtitle: data.subtitle,
+          slug: uniqueSlug,
+          cover_image_url: data.cover_image_url,
+          difficulty_level: data.difficulty_level,
+          cost_level: data.cost_level,
+          prep_time_minutes: data.prep_time_minutes,
+          servings: data.servings,
+          category_id: categoryId,
+          usage_context: data.usage_context,
+          notes: data.notes,
+          status: data.status,
+          is_featured: data.is_featured,
+          is_premium: data.is_premium,
+          published_at: publishedAt,
+          created_by: currentUserId,
+          updated_by: currentUserId,
+        })
+        .select('id, title, slug')
+        .single()
+
+      if (recipeError) throw recipeError
+      createdRecipeId = recipeRow.id
+
+      if (data.ingredients.length > 0) {
+        const { error: ingredientsError } = await supabase
+          .from('recipe_ingredients')
+          .insert(
+            data.ingredients.map((ingredient) => ({
+              recipe_id: recipeRow.id,
+              name: ingredient.name,
+              quantity_label: ingredient.quantity_label,
+              unit: ingredient.unit,
+              normalized_name: ingredient.normalized_name || ingredient.name.toLowerCase().trim(),
+              sort_order: ingredient.sort_order,
+              is_optional: ingredient.is_optional,
+            }))
+          )
+
+        if (ingredientsError) throw ingredientsError
+      }
+
+      if (data.steps.length > 0) {
+        const { error: stepsError } = await supabase
+          .from('recipe_steps')
+          .insert(
+            data.steps.map((step) => ({
+              recipe_id: recipeRow.id,
+              step_number: step.step_number,
+              content: step.content,
+            }))
+          )
+
+        if (stepsError) throw stepsError
+      }
+
+      const tagIds: string[] = []
+      for (const tag of data.tags) {
+        const { data: tagRow, error: tagError } = await supabase
+          .from('recipe_tags')
+          .upsert(
+            {
+              name: tag.name,
+              slug: tag.slug,
+              tag_type: tag.tag_type,
+              is_active: true,
+            },
+            { onConflict: 'slug' }
+          )
+          .select('id')
+          .single()
+
+        if (tagError) throw tagError
+        tagIds.push(tagRow.id)
+      }
+
+      if (tagIds.length > 0) {
+        const { error: linksError } = await supabase
+          .from('recipe_tag_links')
+          .insert(tagIds.map((tagId) => ({ recipe_id: recipeRow.id, tag_id: tagId })))
+
+        if (linksError) throw linksError
+      }
+
+      void refetch()
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['recipes'] }),
+        queryClient.invalidateQueries({ queryKey: ['recipe-categories'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-tags'] }),
+      ])
+
+      setJsonImportValue('')
+      resetJsonImportState()
+
+      toast.success(`Receita "${recipeRow.title}" importada com sucesso!`, {
+        id: toastId,
+        description: data.warnings.length > 0 ? 'Importada com avisos não bloqueantes.' : 'JSON processado e salvo no banco.',
       })
-      if (error) throw error
-      if (data?.error) throw new Error(data.error.message || 'Erro ao importar receita')
-      
-      toast.success(`Receita "${data?.data?.title || 'importada'}" criada com sucesso!`, {
-        id: 'import-progress',
-        description: 'A tabela nutricional foi gerada automaticamente pela IA.'
-      })
-      setImportUrl('')
-      refetch()
+
+      navigate(`/admin/receitas/${recipeRow.id}`)
     } catch (err: any) {
-      console.error('Import error:', err)
-      toast.error('Erro ao importar receita', {
-        id: 'import-progress',
-        description: err.message || 'Verifique o link e tente novamente.'
+      console.error('Erro ao importar receita via JSON:', err)
+
+      if (createdRecipeId) {
+        await supabase.from('recipes').delete().eq('id', createdRecipeId)
+      }
+
+      toast.error('Erro ao importar receita via JSON', {
+        id: toastId,
+        description: err?.message || 'Verifique o JSON e tente novamente.',
       })
     } finally {
-      setIsImporting(false)
+      setIsImportingJson(false)
     }
   }
 
@@ -236,40 +435,121 @@ export function AdminRecipesPage() {
         </div>
       </div>
 
-      {/* URL Importer */}
-      <div className="rounded-2xl border bg-white p-5" style={{ borderColor: 'var(--color-outline-variant)' }}>
-        <div className="flex items-center gap-2 mb-3">
-          <Link2 className="h-4 w-4 text-primary" />
-          <span className="text-sm font-semibold text-foreground">Importar receita via URL</span>
-          <span className="text-xs text-muted-foreground ml-1">— a IA extrai, reescreve e gera a tabela nutricional automaticamente</span>
-        </div>
-        <form onSubmit={handleImportRecipe} className="flex gap-3">
-          <div className="relative flex-1">
-            <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              type="url"
-              placeholder="https://www.tudogostoso.com.br/receita/..."
-              value={importUrl}
-              onChange={(e) => setImportUrl(e.target.value)}
-              disabled={isImporting}
-              className="w-full rounded-xl border p-2.5 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
-              style={{ borderColor: 'var(--color-outline-variant)' }}
-            />
+      {/* JSON Importer */}
+      <div className="rounded-2xl border bg-white p-5 shadow-sm" style={{ borderColor: 'var(--color-outline-variant)' }}>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-primary" />
+              <span className="text-sm font-semibold text-foreground">Importar receita via JSON</span>
+            </div>
+            <p className="max-w-2xl text-xs text-muted-foreground">
+              Cole aqui o JSON gerado pela IA no formato definido para o Cardappio. O importador cria a receita, categoria, tags, ingredientes e passos.
+            </p>
           </div>
-          <button
-            type="submit"
-            disabled={isImporting || !importUrl.trim()}
-            className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-opacity"
-          >
-            {isImporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            {isImporting ? 'Importando...' : 'Importar com IA'}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleLoadExample}
+              disabled={isImportingJson}
+              className="gap-2"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              Usar exemplo
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => jsonFileInputRef.current?.click()}
+              disabled={isImportingJson}
+              className="gap-2"
+            >
+              <Upload className="h-4 w-4" />
+              Carregar arquivo
+            </Button>
+          </div>
+        </div>
+
+        <input
+          ref={jsonFileInputRef}
+          type="file"
+          accept=".json,application/json"
+          className="hidden"
+          onChange={handleLoadJsonFile}
+        />
+
+        <form onSubmit={handleImportJson} className="mt-4 space-y-4">
+          <textarea
+            value={jsonImportValue}
+            onChange={(event) => {
+              setJsonImportValue(event.target.value)
+              resetJsonImportState()
+            }}
+            placeholder={`{\n  "title": "Salpicão de Frango",\n  "subtitle": "Cremoso, colorido e pronto para a festa",\n  "slug": "salpicao-de-frango",\n  "category_name": "Aves",\n  "category_slug": "aves",\n  "cover_image_url": null,\n  "cover_image_prompt": "Top-down shot of a Brazilian chicken salpicão...",\n  "difficulty_level": "easy",\n  "cost_level": "medium",\n  "prep_time_minutes": 50,\n  "servings": 12,\n  "usage_context": "Almoço de domingo",\n  "notes": "",\n  "status": "draft",\n  "is_featured": false,\n  "is_premium": false,\n  "published_at": null,\n  "tags": [],\n  "ingredients": [],\n  "steps": []\n}`}
+            disabled={isImportingJson}
+            className="min-h-[320px] w-full rounded-2xl border border-slate-200 bg-slate-950 px-4 py-3 font-mono text-[12px] leading-5 text-slate-100 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
+            spellCheck={false}
+          />
+
+          {jsonImportErrors.length > 0 && (
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              <div className="mb-2 flex items-center gap-2 font-semibold">
+                <AlertTriangle className="h-4 w-4" />
+                Corrija o JSON antes de importar
+              </div>
+              <ul className="space-y-1">
+                {jsonImportErrors.map((error) => (
+                  <li key={error}>- {error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {jsonImportWarnings.length > 0 && jsonImportErrors.length === 0 && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+              <div className="mb-2 flex items-center gap-2 font-semibold">
+                <AlertTriangle className="h-4 w-4" />
+                Avisos não bloqueantes
+              </div>
+              <ul className="space-y-1">
+                {jsonImportWarnings.map((warning) => (
+                  <li key={warning}>- {warning}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-muted-foreground">
+              Aceita JSON puro ou conteúdo colado com blocos <span className="font-mono">```json</span>. A importação cria taxonomias quando necessário.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setJsonImportValue('')
+                  resetJsonImportState()
+                }}
+                disabled={isImportingJson || !jsonImportValue.trim()}
+              >
+                Limpar
+              </Button>
+              <Button
+                type="submit"
+                disabled={isImportingJson || !jsonImportValue.trim()}
+                className="gap-2"
+              >
+                {isImportingJson ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                {isImportingJson ? 'Importando...' : 'Importar JSON'}
+              </Button>
+            </div>
+          </div>
         </form>
-        {isImporting && (
-          <p className="mt-2 text-xs text-muted-foreground animate-pulse">
-            Buscando a página, processando com IA e gerando tabela nutricional... isso pode levar até 30 segundos.
-          </p>
-        )}
       </div>
 
       {/* Filters & search */}
