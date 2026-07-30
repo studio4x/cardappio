@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Sparkles, Loader2, Crown, UserCheck } from 'lucide-react'
+import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Sparkles, Loader2, Crown, UserCheck, Upload, X } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { useRecipe, useRecipeCategories } from '@/hooks/recipes/useRecipes'
@@ -21,6 +21,7 @@ export function AdminRecipeEditorPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const isNew = !id || id === 'nova'
+  const fileInputRef = useRef<HTMLInputElement>(null)
   
   // Note: useRecipe hook currently uses slug. Admin usually uses UUID.
   // I'll assume for admin we fetch by ID. 
@@ -28,6 +29,7 @@ export function AdminRecipeEditorPage() {
   const queryClient = useQueryClient()
   const generateNutrition = useGenerateNutrition()
   const [loading, setLoading] = useState(!isNew)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [recipeData, setRecipeData] = useState<any>({
     title: '',
     subtitle: '',
@@ -37,6 +39,7 @@ export function AdminRecipeEditorPage() {
     servings: 2,
     status: 'draft',
     category_id: '',
+    cover_image_url: '',
     is_premium: false,
     calories_per_serving: null,
     protein_per_serving: null,
@@ -92,6 +95,48 @@ export function AdminRecipeEditorPage() {
     }
     loadData()
   }, [id, isNew])
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor, selecione um arquivo de imagem válido (JPG, PNG, WebP).')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 5MB')
+      return
+    }
+
+    try {
+      setIsUploadingImage(true)
+      const fileExt = file.name.split('.').pop() || 'jpg'
+      const fileName = `recipes/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('system')
+        .upload(fileName, file, { upsert: true })
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('system')
+        .getPublicUrl(fileName)
+
+      setRecipeData((prev: any) => ({ ...prev, cover_image_url: publicUrl }))
+      toast.success('Imagem enviada com sucesso!')
+    } catch (err: any) {
+      console.error('Erro ao fazer upload da imagem:', err)
+      toast.error(err.message || 'Erro ao fazer upload da imagem')
+    } finally {
+      setIsUploadingImage(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
 
   const handleSave = async () => {
     setLoading(true)
@@ -305,15 +350,99 @@ export function AdminRecipeEditorPage() {
         <div className="space-y-6 rounded-2xl border bg-white p-6 shadow-sm">
           <h3 className="font-bold border-b pb-2 mb-4">Status & Mídia</h3>
           
-          <div className="aspect-video rounded-xl bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 gap-2 overflow-hidden">
-             {recipeData.cover_image_url ? (
-               <img src={recipeData.cover_image_url} className="h-full w-full object-cover" />
-             ) : (
-               <>
-                 <ImageIcon className="h-8 w-8" />
-                 <span className="text-xs">Clique para fazer upload</span>
-               </>
-             )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageUpload}
+            disabled={isUploadingImage}
+          />
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700">Imagem de Capa da Receita</label>
+            <div 
+              onClick={() => !isUploadingImage && fileInputRef.current?.click()}
+              className={cn(
+                "relative group aspect-video rounded-xl bg-slate-50 border-2 border-dashed border-slate-200 hover:border-primary/50 transition-all flex flex-col items-center justify-center text-slate-400 gap-2 overflow-hidden cursor-pointer",
+                isUploadingImage && "pointer-events-none opacity-80"
+              )}
+            >
+              {isUploadingImage ? (
+                <div className="flex flex-col items-center gap-2 text-primary">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <span className="text-xs font-semibold">Enviando imagem...</span>
+                </div>
+              ) : recipeData.cover_image_url ? (
+                <>
+                  <img src={recipeData.cover_image_url} alt="Capa da receita" className="h-full w-full object-cover" />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        fileInputRef.current?.click()
+                      }}
+                      className="rounded-lg text-xs flex items-center gap-1 bg-white/90 hover:bg-white text-slate-800"
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                      Trocar Imagem
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setRecipeData((prev: any) => ({ ...prev, cover_image_url: '' }))
+                      }}
+                      className="rounded-lg text-xs flex items-center gap-1"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Remover
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="p-3 rounded-full bg-slate-100 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                    <Upload className="h-6 w-6" />
+                  </div>
+                  <div className="text-center px-4">
+                    <p className="text-xs font-semibold text-slate-700 group-hover:text-primary transition-colors">
+                      Clique para fazer upload da imagem
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">PNG, JPG, WEBP até 5MB</p>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="space-y-1 pt-2">
+              <label className="text-xs font-medium text-slate-500">Ou informe a URL da imagem diretamente:</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={recipeData.cover_image_url || ''}
+                  onChange={(e) => setRecipeData({ ...recipeData, cover_image_url: e.target.value })}
+                  placeholder="https://exemplo.com/imagem-receita.jpg"
+                  className="flex-1 rounded-lg border border-slate-200 p-2 text-xs outline-none focus:ring-1 focus:ring-primary bg-slate-50/50"
+                />
+                {recipeData.cover_image_url && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setRecipeData({ ...recipeData, cover_image_url: '' })}
+                    className="text-xs text-red-500 hover:text-red-600 hover:bg-red-50 shrink-0"
+                  >
+                    Limpar
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="space-y-2">
