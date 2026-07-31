@@ -410,6 +410,45 @@ export function AdminRecipeEditorPage() {
               </select>
             </div>
           </div>
+
+          <div className="space-y-2 pt-4 border-t border-slate-100">
+            <label className="text-sm font-medium">Tags da Receita</label>
+            {isLoadingTags ? (
+              <div className="flex items-center gap-2 text-xs text-slate-400 py-1">
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                <span>Carregando tags...</span>
+              </div>
+            ) : !allTags || allTags.length === 0 ? (
+              <p className="text-xs text-slate-400 italic">Nenhuma tag cadastrada.</p>
+            ) : (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {allTags.map(tag => {
+                  const isChecked = selectedTags.includes(tag.id)
+                  return (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => {
+                        if (isChecked) {
+                          setSelectedTags(selectedTags.filter(id => id !== tag.id))
+                        } else {
+                          setSelectedTags([...selectedTags, tag.id])
+                        }
+                      }}
+                      className={cn(
+                        "px-2.5 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer select-none active:scale-95",
+                        isChecked
+                          ? "bg-primary/10 border-primary text-primary shadow-sm"
+                          : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300"
+                      )}
+                    >
+                      {tag.name}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Media & Status */}
@@ -576,44 +615,6 @@ export function AdminRecipeEditorPage() {
             )}
           </div>
 
-          <div className="space-y-2 pt-4 border-t border-slate-100">
-            <label className="text-sm font-medium">Tags da Receita</label>
-            {isLoadingTags ? (
-              <div className="flex items-center gap-2 text-xs text-slate-400 py-1">
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-                <span>Carregando tags...</span>
-              </div>
-            ) : !allTags || allTags.length === 0 ? (
-              <p className="text-xs text-slate-400 italic">Nenhuma tag cadastrada.</p>
-            ) : (
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {allTags.map(tag => {
-                  const isChecked = selectedTags.includes(tag.id)
-                  return (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      onClick={() => {
-                        if (isChecked) {
-                          setSelectedTags(selectedTags.filter(id => id !== tag.id))
-                        } else {
-                          setSelectedTags([...selectedTags, tag.id])
-                        }
-                      }}
-                      className={cn(
-                        "px-2.5 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer select-none active:scale-95",
-                        isChecked
-                          ? "bg-primary/10 border-primary text-primary shadow-sm"
-                          : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300"
-                      )}
-                    >
-                      {tag.name}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
