@@ -8,7 +8,7 @@ import { translateAuthError } from '@/lib/auth-errors'
 export function RecoverAccessPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const isReset = searchParams.get('reset') === 'true'
+  const isReset = searchParams.get('reset') === 'true' || (typeof window !== 'undefined' && sessionStorage.getItem('isRecoveryFlow') === 'true')
 
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -25,12 +25,24 @@ export function RecoverAccessPage() {
   useEffect(() => {
     if (isReset) {
       setIsLoading(true)
-      supabase.auth.getUser()
-        .then(({ data: { user } }) => {
-          if (user?.email) {
-            setCurrentUserEmail(user.email)
+      supabase.auth.getSession()
+        .then(({ data: { session } }) => {
+          if (session?.user?.email) {
+            setCurrentUserEmail(session.user.email)
+            setError(null)
           } else {
-            setError('Sessão de recuperação inválida ou expirada. Por favor, solicite um novo link.')
+            supabase.auth.getUser()
+              .then(({ data: { user } }) => {
+                if (user?.email) {
+                  setCurrentUserEmail(user.email)
+                  setError(null)
+                } else {
+                  setError('Sessão de recuperação inválida ou expirada. Por favor, solicite um novo link.')
+                }
+              })
+              .catch(() => {
+                setError('Erro ao validar os dados da sessão de recuperação.')
+              })
           }
         })
         .catch(() => {
@@ -49,7 +61,7 @@ export function RecoverAccessPage() {
 
     try {
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/recuperar?reset=true`,
       })
 
       if (resetError) {

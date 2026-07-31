@@ -24,7 +24,7 @@ serve(async (req) => {
     }
     let redirectTo = email_data?.redirect_to || `${siteUrl}/app`
     if (emailActionType === 'recovery') {
-      redirectTo = `${siteUrl}/auth/callback?type=recovery`
+      redirectTo = `${siteUrl}/auth/recuperar?reset=true`
     }
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || 'https://wkngjvsgafmdwejmckks.supabase.co'
 

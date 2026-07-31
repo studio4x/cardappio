@@ -53,7 +53,7 @@ export function AuthCallbackPage() {
                              sessionStorage.getItem('isRecoveryFlow') === 'true'
 
           if (isRecovery) {
-            sessionStorage.removeItem('isRecoveryFlow')
+            sessionStorage.setItem('isRecoveryFlow', 'true')
             navigate('/auth/recuperar?reset=true', { replace: true })
             return
           }

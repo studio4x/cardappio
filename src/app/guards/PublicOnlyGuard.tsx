@@ -15,9 +15,14 @@ export function PublicOnlyGuard() {
   }
 
   if (isAuthenticated) {
-    // Permite que o usuário acesse a página de redefinição de senha mesmo estando autenticado
+    // Permite que o usuário acesse a página de redefinição de senha mesmo estando autenticado em sessão de recuperação
     const searchParams = new URLSearchParams(location.search)
-    if (location.pathname === '/auth/recuperar' && searchParams.get('reset') === 'true') {
+    const isResetPage = location.pathname === '/auth/recuperar' && (
+      searchParams.get('reset') === 'true' || 
+      sessionStorage.getItem('isRecoveryFlow') === 'true'
+    )
+
+    if (isResetPage) {
       return <Outlet />
     }
 

@@ -7,7 +7,9 @@ if (typeof window !== 'undefined' && window.sessionStorage) {
   const searchParams = new URLSearchParams(window.location.search)
   const isRecovery = hashParams.get('type') === 'recovery' || 
                      searchParams.get('type') === 'recovery' || 
-                     window.location.href.includes('type=recovery')
+                     window.location.href.includes('type=recovery') ||
+                     searchParams.get('reset') === 'true' ||
+                     window.location.href.includes('reset=true')
   
   if (isRecovery) {
     window.sessionStorage.setItem('isRecoveryFlow', 'true')
