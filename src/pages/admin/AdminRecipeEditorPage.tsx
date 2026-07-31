@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Sparkles, Loader2, Crown, UserCheck, Upload, X, FileText } from 'lucide-react'
+import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Sparkles, Loader2, Crown, UserCheck, Upload, X, FileText, ExternalLink } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { useRecipe, useRecipeCategories } from '@/hooks/recipes/useRecipes'
@@ -251,14 +251,27 @@ export function AdminRecipeEditorPage() {
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-20">
       <div className="flex items-center justify-between">
-        <button onClick={() => navigate('/admin/receitas')} className="flex items-center gap-2 text-sm font-semibold text-primary hover:opacity-80">
+        <button onClick={() => navigate('/admin/receitas')} className="flex items-center gap-2 text-sm font-semibold text-primary hover:opacity-80 cursor-pointer">
           <ArrowLeft className="h-4 w-4" />
           Voltar
         </button>
-        <Button onClick={handleSave} className="gap-2 px-8">
-          <Save className="h-4 w-4" />
-          Salvar Receita
-        </Button>
+        <div className="flex items-center gap-3">
+          {!isNew && recipeData.slug && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => window.open(`/app/receitas/${recipeData.slug}`, '_blank')}
+              className="gap-2 border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer"
+            >
+              <ExternalLink className="h-4 w-4 text-primary" />
+              Visualizar no Site
+            </Button>
+          )}
+          <Button onClick={handleSave} className="gap-2 px-8 cursor-pointer">
+            <Save className="h-4 w-4" />
+            Salvar Receita
+          </Button>
+        </div>
       </div>
 
       <PageHeader title={isNew ? "Nova Receita" : "Editar Receita"} />
@@ -976,10 +989,23 @@ export function AdminRecipeEditorPage() {
         <p className="text-sm text-slate-400">
           Revise os campos acima antes de salvar.
         </p>
-        <Button onClick={handleSave} className="gap-2 px-8">
-          <Save className="h-4 w-4" />
-          Salvar Receita
-        </Button>
+        <div className="flex items-center gap-3">
+          {!isNew && recipeData.slug && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => window.open(`/app/receitas/${recipeData.slug}`, '_blank')}
+              className="gap-2 border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer"
+            >
+              <ExternalLink className="h-4 w-4 text-primary" />
+              Visualizar no Site
+            </Button>
+          )}
+          <Button onClick={handleSave} className="gap-2 px-8 cursor-pointer">
+            <Save className="h-4 w-4" />
+            Salvar Receita
+          </Button>
+        </div>
       </div>
     </div>
   )

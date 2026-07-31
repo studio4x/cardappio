@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Plus, Trash2, Save, Loader2, Image as ImageIcon, Upload, FileText } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Save, Loader2, Image as ImageIcon, Upload, FileText, ExternalLink } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { useRecipeCategories } from '@/hooks/recipes/useRecipes'
 import { supabase } from '@/integrations/supabase/client'
@@ -22,6 +22,7 @@ export function UserRecipeEditorPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [coverImageUrl, setCoverImageUrl] = useState('')
+  const [recipeSlug, setRecipeSlug] = useState('')
   const [title, setTitle] = useState('')
   const [subtitle, setSubtitle] = useState('')
   const [notes, setNotes] = useState('')
@@ -57,6 +58,7 @@ export function UserRecipeEditorPage() {
             setSubtitle(recipe.subtitle || '')
             setNotes(recipe.notes || '')
             setCoverImageUrl(recipe.cover_image_url || '')
+            setRecipeSlug(recipe.slug || '')
             setPrepTime(recipe.prep_time_minutes)
             setServings(recipe.servings)
             setCategoryId(recipe.category_id || '')
@@ -285,11 +287,25 @@ export function UserRecipeEditorPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-5 py-8 pb-32">
-      <header className="flex items-center gap-4 mb-6">
-        <button onClick={() => navigate(-1)} className="hover:bg-neutral-100 p-2 rounded-full active:scale-95 transition-transform">
-          <ArrowLeft className="h-5 w-5 text-neutral-500" />
-        </button>
-        <h2 className="text-2xl font-black text-neutral-900">{id ? 'Editar Minha Receita' : 'Nova Receita'}</h2>
+      <header className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate(-1)} className="hover:bg-neutral-100 p-2 rounded-full active:scale-95 transition-transform cursor-pointer">
+            <ArrowLeft className="h-5 w-5 text-neutral-500" />
+          </button>
+          <h2 className="text-2xl font-black text-neutral-900">{id ? 'Editar Minha Receita' : 'Nova Receita'}</h2>
+        </div>
+        {id && recipeSlug && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => window.open(`/app/receitas/${recipeSlug}`, '_blank')}
+            className="rounded-full text-xs font-bold flex items-center gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer"
+          >
+            <ExternalLink className="h-3.5 w-3.5 text-primary" />
+            Visualizar no Site
+          </Button>
+        )}
       </header>
 
       <form onSubmit={handleSave} className="space-y-6">
