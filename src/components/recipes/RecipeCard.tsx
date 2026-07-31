@@ -47,7 +47,7 @@ export function RecipeCard({
         }}
       >
         {/* Image */}
-        <div className="relative aspect-video overflow-hidden w-full" style={{ backgroundColor: 'var(--color-surface-container)' }}>
+        <div className="relative aspect-[4/3] overflow-hidden w-full" style={{ backgroundColor: 'var(--color-surface-container)' }}>
           {recipe.cover_image_url ? (
             <img
               src={recipe.cover_image_url}

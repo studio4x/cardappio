@@ -11,7 +11,7 @@ export function RecipeHero({ title, subtitle, coverImageUrl }: RecipeHeroProps) 
     <>
       {/* Cover image */}
       <div
-        className="relative mb-8 aspect-video overflow-hidden rounded-[2rem] shadow-lg"
+        className="relative mb-8 aspect-[4/3] overflow-hidden rounded-[2rem] shadow-lg"
         style={{ backgroundColor: 'var(--color-surface-container)' }}
       >
         {coverImageUrl ? (
