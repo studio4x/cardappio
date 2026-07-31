@@ -45,17 +45,19 @@ export function LandingPage() {
 
   const defaultPlans: AdminPlan[] = [
     {
-      id: 'default-free',
-      name: 'Plano Gratuito',
-      slug: 'plano-gratuito',
-      description: 'Ativado após o término dos 15 dias de degustação PRO.',
-      price_monthly: 0,
-      price_yearly: 0,
+      id: 'default-pro-14',
+      name: 'Plano PRO 14 Dias',
+      slug: 'plano-pro-14-dias',
+      description: 'Liberdade total e recursos de inteligência de voz. Inclui 15 dias de degustação grátis no cadastro!',
+      price_monthly: 24.90,
+      price_yearly: 249.00,
       features: [
-        'Planejamento de 1 dia liberado por semana',
-        'Acesso a receitas básicas gratuitas',
-        'Lista de compras básica do dia liberado',
-        'Acesso contínuo sem custo'
+        '15 dias de degustação PRO GRÁTIS ao se cadastrar',
+        'Planejamento de até 14 dias (2 semanas)',
+        'Refeições e cardápios ilimitados por dia',
+        'Orientação por Voz com Assistente de IA',
+        'Catálogo completo de receitas e coleções',
+        'Lista de compras automatizada'
       ],
       is_active: true,
       stripe_price_id_monthly: null,
@@ -80,19 +82,17 @@ export function LandingPage() {
       stripe_price_id_yearly: null
     },
     {
-      id: 'default-pro-14',
-      name: 'Plano PRO 14 Dias',
-      slug: 'plano-pro-14-dias',
-      description: 'Liberdade total e recursos de inteligência de voz. Inclui 15 dias de degustação grátis no cadastro!',
-      price_monthly: 24.90,
-      price_yearly: 249.00,
+      id: 'default-free',
+      name: 'Plano Gratuito',
+      slug: 'plano-gratuito',
+      description: 'Ativado após o término dos 15 dias de degustação PRO.',
+      price_monthly: 0,
+      price_yearly: 0,
       features: [
-        '15 dias de degustação PRO GRÁTIS ao se cadastrar',
-        'Planejamento de até 14 dias (2 semanas)',
-        'Refeições e cardápios ilimitados por dia',
-        'Orientação por Voz com Assistente de IA',
-        'Catálogo completo de receitas e coleções',
-        'Lista de compras automatizada'
+        'Planejamento de 1 dia liberado por semana',
+        'Acesso a receitas básicas gratuitas',
+        'Lista de compras básica do dia liberado',
+        'Acesso contínuo sem custo'
       ],
       is_active: true,
       stripe_price_id_monthly: null,
@@ -113,10 +113,9 @@ export function LandingPage() {
     }
   })
 
-  // Map dbPlans to ensure descriptions, features and prices match current business rules
+  // Map dbPlans to ensure descriptions, features and prices match current business rules, sorted left-to-right: PRO 14, PRO 7, Free
   const plans = useMemo(() => {
-    if (!dbPlans || dbPlans.length === 0) return defaultPlans
-    return dbPlans.map(plan => {
+    const rawList = (!dbPlans || dbPlans.length === 0) ? defaultPlans : dbPlans.map(plan => {
       if (plan.slug === 'plano-gratuito' || plan.slug === 'free' || plan.price_monthly === 0) {
         return {
           ...plan,
@@ -163,6 +162,18 @@ export function LandingPage() {
       }
       return plan
     })
+
+    const orderMap: Record<string, number> = {
+      'plano-pro-14-dias': 1,
+      'plano-14-refeicoes': 1,
+      'pro': 1,
+      'plano-pro-7-dias': 2,
+      'plano-7-refeicoes': 2,
+      'plano-gratuito': 3,
+      'free': 3,
+    }
+
+    return [...rawList].sort((a, b) => (orderMap[a.slug] || 99) - (orderMap[b.slug] || 99))
   }, [dbPlans])
 
   if (isAuthLoading && isMobileSession && hasSessionToken) {

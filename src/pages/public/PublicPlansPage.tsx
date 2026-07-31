@@ -5,18 +5,22 @@ import { Button } from '@/components/ui/button'
 export function PublicPlansPage() {
   const plans = [
     {
-      name: 'Plano Gratuito',
-      price: 'R$ 0',
-      description: 'Ativado após o término dos 15 dias de degustação PRO.',
+      name: 'PRO 14 Dias',
+      price: 'R$ 24,90',
+      period: '/mês',
+      badge: '15 Dias Grátis no Cadastro',
+      description: 'Liberdade total e recursos de inteligência de voz.',
       features: [
-        'Planejamento de 1 dia liberado por semana',
-        'Acesso a receitas básicas gratuitas',
-        'Lista de compras básica',
-        'Acesso contínuo sem custo'
+        '15 dias de degustação PRO GRÁTIS ao se cadastrar',
+        'Planejamento de até 14 dias (2 semanas)',
+        'Refeições e cardápios ilimitados por dia',
+        'Orientação por Voz com Assistente de IA',
+        'Catálogo completo de receitas e coleções',
+        'Lista de compras automatizada'
       ],
-      cta: 'Começar agora',
-      href: '/auth/cadastro',
-      featured: false
+      cta: 'Experimentar 15 Dias Grátis',
+      href: '/auth/cadastro?plan=plano-pro-14-dias',
+      featured: true
     },
     {
       name: 'PRO 7 Dias',
@@ -35,22 +39,18 @@ export function PublicPlansPage() {
       featured: false
     },
     {
-      name: 'PRO 14 Dias',
-      price: 'R$ 24,90',
-      period: '/mês',
-      badge: '15 Dias Grátis no Cadastro',
-      description: 'Liberdade total e recursos de inteligência de voz.',
+      name: 'Plano Gratuito',
+      price: 'R$ 0',
+      description: 'Ativado após o término dos 15 dias de degustação PRO.',
       features: [
-        '15 dias de degustação PRO GRÁTIS ao se cadastrar',
-        'Planejamento de até 14 dias (2 semanas)',
-        'Refeições e cardápios ilimitados por dia',
-        'Orientação por Voz com Assistente de IA',
-        'Catálogo completo de receitas e coleções',
-        'Lista de compras automatizada'
+        'Planejamento de 1 dia liberado por semana',
+        'Acesso a receitas básicas gratuitas',
+        'Lista de compras básica',
+        'Acesso contínuo sem custo'
       ],
-      cta: 'Experimentar 15 Dias Grátis',
-      href: '/auth/cadastro?plan=plano-pro-14-dias',
-      featured: true
+      cta: 'Começar agora',
+      href: '/auth/cadastro',
+      featured: false
     }
   ]
 

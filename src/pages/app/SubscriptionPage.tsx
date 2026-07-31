@@ -214,109 +214,6 @@ export function SubscriptionPage() {
 
             {/* Plans Grid */}
             <div className="grid gap-8 w-full md:grid-cols-3 max-w-6xl">
-              {/* Plano Gratuito Card */}
-              <div className="bg-white border-2 border-slate-200 rounded-[2.5rem] p-8 shadow-sm transition-all flex flex-col justify-between relative overflow-hidden group">
-                <div className="space-y-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="text-2xl font-black text-slate-900">Plano Gratuito</h4>
-                      <p className="text-slate-500 text-sm mt-1">Após expirar a degustação</p>
-                    </div>
-                    <span className="bg-slate-100 text-slate-700 text-[10px] font-black uppercase px-3 py-1 rounded-full">
-                      1 Dia / Semana
-                    </span>
-                  </div>
-
-                  <div className="flex items-baseline gap-1 py-4 border-y border-slate-100">
-                    <span className="text-4xl font-black text-slate-900">R$ 0</span>
-                    <span className="text-slate-400 font-bold text-sm">/mês</span>
-                  </div>
-
-                  <ul className="space-y-4">
-                    <li className="flex items-start gap-3 text-sm text-slate-600 font-medium">
-                      <Check className="h-5 w-5 text-emerald-500 shrink-0 stroke-[3]" />
-                      <span>1 dia liberado por semana no planejador</span>
-                    </li>
-                    <li className="flex items-start gap-3 text-sm text-slate-600 font-medium">
-                      <Check className="h-5 w-5 text-emerald-500 shrink-0 stroke-[3]" />
-                      <span>Acesso a receitas gratuitas do catálogo</span>
-                    </li>
-                    <li className="flex items-start gap-3 text-sm text-slate-600 font-medium">
-                      <Check className="h-5 w-5 text-emerald-500 shrink-0 stroke-[3]" />
-                      <span>Lista de compras básica do dia liberado</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="pt-8">
-                  <Button 
-                    disabled
-                    variant="outline"
-                    className="w-full rounded-2xl py-6 font-bold border-slate-200 text-slate-400 cursor-not-allowed"
-                  >
-                    Plano Padrão (R$ 0)
-                  </Button>
-                </div>
-              </div>
-
-              {/* Plano 7 Dias Card */}
-              {planPro7 && (
-                <div className="bg-white border-2 border-slate-200 hover:border-slate-300 rounded-[2.5rem] p-8 shadow-sm transition-all flex flex-col justify-between relative overflow-hidden group">
-                  <div className="space-y-6">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="text-2xl font-black text-slate-900">{planPro7.name}</h4>
-                        <p className="text-slate-500 text-sm mt-1">Ideal para o essencial</p>
-                      </div>
-                      <span className="bg-slate-100 text-slate-700 text-[10px] font-black uppercase px-3 py-1 rounded-full">
-                        7 Refeições
-                      </span>
-                    </div>
-
-                    <div className="flex items-baseline gap-1 py-4 border-y border-slate-100">
-                      {billingInterval === 'yearly' ? (
-                        <>
-                          <span className="text-4xl font-black text-slate-900">
-                            {formatPrice(planPro7.price_yearly / 12)}
-                          </span>
-                          <span className="text-slate-400 font-bold text-sm">/mês</span>
-                          <span className="text-xs text-slate-400 block ml-2">
-                            (faturado {formatPrice(planPro7.price_yearly)}/ano)
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="text-4xl font-black text-slate-900">
-                            {formatPrice(planPro7.price_monthly)}
-                          </span>
-                          <span className="text-slate-400 font-bold text-sm">/mês</span>
-                        </>
-                      )}
-                    </div>
-
-                    <ul className="space-y-4">
-                      {planPro7.features && Array.isArray(planPro7.features) && planPro7.features.map((feature: string, idx: number) => (
-                        <li key={idx} className="flex items-start gap-3 text-sm text-slate-600 font-medium">
-                          <Check className="h-5 w-5 text-emerald-500 shrink-0 stroke-[3]" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="pt-8">
-                    <Button 
-                      onClick={() => handleUpgrade(planPro7.id, billingInterval)}
-                      disabled={checkoutMutation.isPending}
-                      className="w-full rounded-2xl py-6 font-bold bg-slate-900 text-white hover:bg-slate-800 transition-all flex items-center justify-center gap-2 group-hover:gap-3"
-                    >
-                      Assinar PRO 7 Dias
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-
               {/* Plano 14 Dias Card */}
               {planPro14 && (
                 <div className="bg-emerald-50/50 border-2 border-emerald-500 hover:border-emerald-600 rounded-[2.5rem] p-8 shadow-md transition-all flex flex-col justify-between relative overflow-hidden group">
@@ -384,6 +281,109 @@ export function SubscriptionPage() {
                   </div>
                 </div>
               )}
+
+              {/* Plano 7 Dias Card */}
+              {planPro7 && (
+                <div className="bg-white border-2 border-slate-200 hover:border-slate-300 rounded-[2.5rem] p-8 shadow-sm transition-all flex flex-col justify-between relative overflow-hidden group">
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="text-2xl font-black text-slate-900">{planPro7.name}</h4>
+                        <p className="text-slate-500 text-sm mt-1">Ideal para o essencial</p>
+                      </div>
+                      <span className="bg-slate-100 text-slate-700 text-[10px] font-black uppercase px-3 py-1 rounded-full">
+                        7 Refeições
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline gap-1 py-4 border-y border-slate-100">
+                      {billingInterval === 'yearly' ? (
+                        <>
+                          <span className="text-4xl font-black text-slate-900">
+                            {formatPrice(planPro7.price_yearly / 12)}
+                          </span>
+                          <span className="text-slate-400 font-bold text-sm">/mês</span>
+                          <span className="text-xs text-slate-400 block ml-2">
+                            (faturado {formatPrice(planPro7.price_yearly)}/ano)
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-4xl font-black text-slate-900">
+                            {formatPrice(planPro7.price_monthly)}
+                          </span>
+                          <span className="text-slate-400 font-bold text-sm">/mês</span>
+                        </>
+                      )}
+                    </div>
+
+                    <ul className="space-y-4">
+                      {planPro7.features && Array.isArray(planPro7.features) && planPro7.features.map((feature: string, idx: number) => (
+                        <li key={idx} className="flex items-start gap-3 text-sm text-slate-600 font-medium">
+                          <Check className="h-5 w-5 text-emerald-500 shrink-0 stroke-[3]" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="pt-8">
+                    <Button 
+                      onClick={() => handleUpgrade(planPro7.id, billingInterval)}
+                      disabled={checkoutMutation.isPending}
+                      className="w-full rounded-2xl py-6 font-bold bg-slate-900 text-white hover:bg-slate-800 transition-all flex items-center justify-center gap-2 group-hover:gap-3"
+                    >
+                      Assinar PRO 7 Dias
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Plano Gratuito Card */}
+              <div className="bg-white border-2 border-slate-200 rounded-[2.5rem] p-8 shadow-sm transition-all flex flex-col justify-between relative overflow-hidden group">
+                <div className="space-y-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="text-2xl font-black text-slate-900">Plano Gratuito</h4>
+                      <p className="text-slate-500 text-sm mt-1">Após expirar a degustação</p>
+                    </div>
+                    <span className="bg-slate-100 text-slate-700 text-[10px] font-black uppercase px-3 py-1 rounded-full">
+                      1 Dia / Semana
+                    </span>
+                  </div>
+
+                  <div className="flex items-baseline gap-1 py-4 border-y border-slate-100">
+                    <span className="text-4xl font-black text-slate-900">R$ 0</span>
+                    <span className="text-slate-400 font-bold text-sm">/mês</span>
+                  </div>
+
+                  <ul className="space-y-4">
+                    <li className="flex items-start gap-3 text-sm text-slate-600 font-medium">
+                      <Check className="h-5 w-5 text-emerald-500 shrink-0 stroke-[3]" />
+                      <span>1 dia liberado por semana no planejador</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-sm text-slate-600 font-medium">
+                      <Check className="h-5 w-5 text-emerald-500 shrink-0 stroke-[3]" />
+                      <span>Acesso a receitas gratuitas do catálogo</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-sm text-slate-600 font-medium">
+                      <Check className="h-5 w-5 text-emerald-500 shrink-0 stroke-[3]" />
+                      <span>Lista de compras básica do dia liberado</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="pt-8">
+                  <Button 
+                    disabled
+                    variant="outline"
+                    className="w-full rounded-2xl py-6 font-bold border-slate-200 text-slate-400 cursor-not-allowed"
+                  >
+                    Plano Padrão (R$ 0)
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
