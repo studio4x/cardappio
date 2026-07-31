@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Utensils, ArrowRight, Clock, Star, PiggyBank, Sparkles, Check, ChevronRight } from 'lucide-react'
 import { config } from '@/config'
@@ -43,7 +43,64 @@ export function LandingPage() {
     }
   }, [isAuthLoading, isAuthenticated, isAdmin, isMobileSession, navigate])
 
-  const { data: plans, isLoading } = useQuery({
+  const defaultPlans: AdminPlan[] = [
+    {
+      id: 'default-free',
+      name: 'Plano Gratuito',
+      slug: 'plano-gratuito',
+      description: 'Ativado após o término dos 15 dias de degustação PRO.',
+      price_monthly: 0,
+      price_yearly: 0,
+      features: [
+        'Planejamento de 1 dia liberado por semana',
+        'Acesso a receitas básicas gratuitas',
+        'Lista de compras básica do dia liberado',
+        'Acesso contínuo sem custo'
+      ],
+      is_active: true,
+      stripe_price_id_monthly: null,
+      stripe_price_id_yearly: null
+    },
+    {
+      id: 'default-pro-7',
+      name: 'Plano PRO 7 Dias',
+      slug: 'plano-pro-7-dias',
+      description: 'Para quem quer planejar a semana inteira com praticidade.',
+      price_monthly: 14.90,
+      price_yearly: 149.00,
+      features: [
+        'Planejamento de 7 dias por semana',
+        '2 refeições por dia (Almoço e Jantar)',
+        'Catálogo de Receitas PRO liberado',
+        'Lista de compras inteligente automatizada',
+        'Suporte prioritário'
+      ],
+      is_active: true,
+      stripe_price_id_monthly: null,
+      stripe_price_id_yearly: null
+    },
+    {
+      id: 'default-pro-14',
+      name: 'Plano PRO 14 Dias',
+      slug: 'plano-pro-14-dias',
+      description: 'Liberdade total e recursos de inteligência de voz. Inclui 15 dias de degustação grátis no cadastro!',
+      price_monthly: 24.90,
+      price_yearly: 249.00,
+      features: [
+        '15 dias de degustação PRO GRÁTIS ao se cadastrar',
+        'Planejamento de até 14 dias (2 semanas)',
+        'Refeições e cardápios ilimitados por dia',
+        'Orientação por Voz com Assistente de IA',
+        'Catálogo completo de receitas e coleções',
+        'Lista de compras automatizada'
+      ],
+      is_active: true,
+      stripe_price_id_monthly: null,
+      stripe_price_id_yearly: null
+    }
+  ]
+
+  const { data: dbPlans, isLoading } = useQuery({
     queryKey: ['public-plans'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -55,6 +112,58 @@ export function LandingPage() {
       return data as AdminPlan[]
     }
   })
+
+  // Map dbPlans to ensure descriptions, features and prices match current business rules
+  const plans = useMemo(() => {
+    if (!dbPlans || dbPlans.length === 0) return defaultPlans
+    return dbPlans.map(plan => {
+      if (plan.slug === 'plano-gratuito' || plan.slug === 'free' || plan.price_monthly === 0) {
+        return {
+          ...plan,
+          name: 'Plano Gratuito',
+          description: 'Ativado após o término dos 15 dias de degustação PRO.',
+          features: [
+            'Planejamento de 1 dia liberado por semana',
+            'Acesso a receitas básicas gratuitas',
+            'Lista de compras básica do dia liberado',
+            'Acesso contínuo sem custo'
+          ]
+        }
+      }
+      if (plan.slug === 'plano-pro-7-dias' || plan.slug === 'plano-7-refeicoes') {
+        return {
+          ...plan,
+          name: 'Plano PRO 7 Dias',
+          description: 'Para quem quer planejar a semana inteira com praticidade.',
+          price_monthly: 14.90,
+          features: [
+            'Planejamento de 7 dias por semana',
+            '2 refeições por dia (Almoço e Jantar)',
+            'Catálogo de Receitas PRO liberado',
+            'Lista de compras inteligente automatizada',
+            'Suporte prioritário'
+          ]
+        }
+      }
+      if (plan.slug === 'plano-pro-14-dias' || plan.slug === 'plano-14-refeicoes' || plan.slug === 'pro') {
+        return {
+          ...plan,
+          name: 'Plano PRO 14 Dias',
+          description: 'Liberdade total e recursos de inteligência de voz.',
+          price_monthly: 24.90,
+          features: [
+            '15 dias de degustação PRO GRÁTIS ao se cadastrar',
+            'Planejamento de até 14 dias (2 semanas)',
+            'Refeições e cardápios ilimitados por dia',
+            'Orientação por Voz com Assistente de IA',
+            'Catálogo completo de receitas e coleções',
+            'Lista de compras automatizada'
+          ]
+        }
+      }
+      return plan
+    })
+  }, [dbPlans])
 
   if (isAuthLoading && isMobileSession && hasSessionToken) {
     return <LoadingState fullScreen message="Redirecionando para o painel..." />
@@ -270,21 +379,22 @@ export function LandingPage() {
             <div className={`grid gap-8 max-w-5xl mx-auto ${
               plans && plans.length >= 3 ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'
             }`}>
-              {plans?.map((plan) => {
-                const isPro = plan.slug === 'pro'
+              {plans?.map((plan: AdminPlan) => {
+                const isPro14 = plan.slug === 'plano-pro-14-dias' || plan.slug === 'pro' || plan.slug === 'plano-14-refeicoes'
                 const isFree = plan.price_monthly === 0
+                const featuresList = Array.isArray(plan.features) ? plan.features : []
                 return (
                   <div 
                     key={plan.id}
                     className={`relative flex flex-col p-8 rounded-[2.5rem] border transition-all hover:scale-[1.02] ${
-                      isPro 
+                      isPro14 
                         ? 'border-2 bg-white border-primary shadow-2xl shadow-primary/5' 
                         : 'bg-white border-slate-200 shadow-sm hover:shadow-md'
                     }`}
                   >
-                    {isPro && (
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full">
-                        Mais Popular
+                    {isPro14 && (
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white text-[11px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full whitespace-nowrap shadow-md">
+                        15 Dias Grátis no Cadastro
                       </div>
                     )}
 
@@ -300,7 +410,7 @@ export function LandingPage() {
                     </div>
 
                     <ul className="space-y-4 mb-10 flex-grow">
-                      {(plan.features || []).map((feature, idx) => (
+                      {featuresList.map((feature: string, idx: number) => (
                         <li key={idx} className="flex items-start gap-3 text-sm text-slate-700">
                           <div className="mt-0.5 rounded-full p-0.5 bg-emerald-100 text-emerald-600">
                             <Check className="h-3.5 w-3.5" />
@@ -319,12 +429,12 @@ export function LandingPage() {
                               : `/auth/cadastro?plan=${plan.slug}`)
                       }
                       className={`px-6 py-4 rounded-2xl text-center font-bold text-sm transition-all no-underline flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-95 ${
-                        isPro
+                        isPro14
                           ? 'bg-primary text-white hover:opacity-90 shadow-xl shadow-primary/20'
                           : 'bg-white border border-border text-on-surface hover:bg-neutral-50 shadow-sm'
                       }`}
                     >
-                      {isFree ? 'Começar agora' : `Assinar ${plan.name}`} <ArrowRight className="h-4 w-4" />
+                      {isFree ? 'Começar agora' : isPro14 ? 'Experimentar 15 Dias Grátis' : `Assinar ${plan.name}`} <ArrowRight className="h-4 w-4" />
                     </Link>
                   </div>
                 )
