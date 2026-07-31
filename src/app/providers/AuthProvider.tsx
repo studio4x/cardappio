@@ -10,6 +10,7 @@ import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 import type { Profile, UserPreferences, AuthState } from '@/types/auth'
 import { toast } from 'sonner'
+import { getTrialInfo } from '@/lib/subscription'
 
 interface AuthContextValue extends AuthState {
   session: Session | null
@@ -67,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               return
             }
 
+            const fifteenDaysLater = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString()
             const { data: newProfile, error: upsertError } = await supabase
               .from('profiles')
               .upsert({
@@ -75,6 +77,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 full_name: (user.user_metadata?.full_name as string) ?? user.email?.split('@')[0] ?? '',
                 role: 'user',
                 status: 'active',
+                subscription_tier: 'plano-pro-14-dias',
+                subscription_until: fifteenDaysLater,
               }, { onConflict: 'id' })
               .select('*')
               .single()
@@ -108,7 +112,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return
       }
 
-      setProfile(data as Profile)
+      let fetchedProfile = data as Profile
+      const trialInfo = getTrialInfo(fetchedProfile)
+      if (trialInfo.isTrial && trialInfo.isExpired && fetchedProfile.subscription_tier !== 'plano-gratuito') {
+        // Auto-downgrade expired trial to plano-gratuito
+        fetchedProfile = {
+          ...fetchedProfile,
+          subscription_tier: 'plano-gratuito',
+          subscription_until: null,
+        }
+        supabase
+          .from('profiles')
+          .update({ subscription_tier: 'plano-gratuito', subscription_until: null })
+          .eq('id', userId)
+          .then(({ error: downgradeError }) => {
+            if (downgradeError) console.error('Error downgrading expired trial:', downgradeError)
+          })
+      }
+
+      setProfile(fetchedProfile)
     } catch (err: any) {
       console.error('Error fetching profile:', err)
       if (err.message === 'PROFILE_FETCH_TIMEOUT') {

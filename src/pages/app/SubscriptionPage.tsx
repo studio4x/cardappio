@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { isUserPro, getTrialInfo } from '@/lib/subscription'
 
 export function SubscriptionPage() {
   const { user: profile } = useAuth()
@@ -46,9 +47,8 @@ export function SubscriptionPage() {
 
   if (isLoading || !plans) return <LoadingState message="Verificando assinatura e planos..." />
 
-  const isPro = profile?.subscription_tier && 
-                profile.subscription_tier !== 'free' && 
-                profile.subscription_tier !== 'plano-gratuito'
+  const isPro = isUserPro(profile)
+  const trialInfo = getTrialInfo(profile)
 
   const planPro7 = plans?.find(p => p.slug === 'plano-pro-7-dias')
   const planPro14 = plans?.find(p => p.slug === 'plano-pro-14-dias')
@@ -70,8 +70,8 @@ export function SubscriptionPage() {
   const getPlanDisplayName = (tier: string | undefined | null) => {
     if (!tier) return 'Plano Gratuito'
     if (tier === 'plano-pro-7-dias') return 'PRO 7 Dias'
-    if (tier === 'plano-pro-14-dias') return 'PRO 14 Dias'
-    if (tier === 'free' || tier === 'plano-gratuito') return 'Plano Gratuito'
+    if (tier === 'plano-pro-14-dias') return trialInfo.isTrial ? 'PRO 14 Dias (Degustação 15 Dias)' : 'PRO 14 Dias'
+    if (tier === 'free' || tier === 'plano-gratuito') return 'Plano Gratuito (1 dia/semana)'
     return 'Plano Pro'
   }
 
@@ -94,9 +94,14 @@ export function SubscriptionPage() {
               <h3 className="text-3xl font-black text-slate-900">
                 {getPlanDisplayName(profile?.subscription_tier)}
               </h3>
-              {isPro && subscription?.subscription_until && (
-                <p className="text-sm text-slate-500 mt-1">
-                  Válido até {new Date(subscription.subscription_until).toLocaleDateString()}
+              {trialInfo.isTrial && !trialInfo.isExpired && (
+                <p className="text-sm font-semibold text-emerald-600 mt-1">
+                  Degustação de 15 dias ativa • {trialInfo.daysRemaining} dia(s) restante(s) (até {trialInfo.expirationDate?.toLocaleDateString('pt-BR')})
+                </p>
+              )}
+              {!isPro && (
+                <p className="text-sm text-amber-700 mt-1 font-medium">
+                  Seu teste expirou. Você está no Plano Gratuito (1 dia liberado por semana).
                 </p>
               )}
             </div>

@@ -16,9 +16,12 @@ import { toast } from 'sonner'
 import type { Recipe } from '@/types/recipes'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 
+import { isUserPro, getTrialInfo } from '@/lib/subscription'
+
 export function AppHomePage() {
   const { user, preferences } = useAuth()
-  const isPremiumUser = !!(user?.subscription_tier && user.subscription_tier !== 'free' && user.subscription_tier !== 'plano-gratuito')
+  const isPremiumUser = isUserPro(user)
+  const trialInfo = getTrialInfo(user)
   const { data: activeWeek, isLoading: weekLoading } = useActiveWeek()
   const { data: notices } = useEditorialNotices()
   

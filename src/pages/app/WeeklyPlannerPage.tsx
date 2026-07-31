@@ -1,12 +1,13 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom'
-import { Plus, ShoppingCart, Loader2, Save, SlidersVertical as Tune, ChevronRight, ChevronDown, Pencil, X } from 'lucide-react'
+import { Plus, ShoppingCart, Loader2, Save, SlidersVertical as Tune, ChevronRight, ChevronDown, Pencil, X, Lock, Crown } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { useActiveWeek, useCreateWeek, useWeek, useWeeks, useRepeatWeek, useUpdateWeek, useDeleteWeek, useAssignRecipe } from '@/hooks/planning/usePlanning'
 import { useGenerateShoppingList } from '@/hooks/shopping/useShopping'
 import { useProfile } from '@/hooks/auth'
+import { isUserPro } from '@/lib/subscription'
 import { DayPlannerCard } from '@/components/planning/DayPlannerCard'
 import { DAY_LABELS, DAY_ORDER as ALL_DAYS, type DayOfWeek } from '@/lib/constants/calendar'
 import { cn } from '@/lib/utils'
@@ -126,15 +127,20 @@ export function WeeklyPlannerPage() {
   const error = shouldQuerySpecificWeek ? specificError : activeError
   const refetch = shouldQuerySpecificWeek ? refetchSpecific : refetchActive
 
-  const [selectedDays, setSelectedDays] = useState<DayOfWeek[]>(
-    ALL_DAYS.slice(0, preferences?.default_plan_days ?? 5)
-  )
+  const isPro = isUserPro(profile)
+
+  const [selectedDays, setSelectedDays] = useState<DayOfWeek[]>(() => {
+    if (!isPro) return [ALL_DAYS[0]]
+    return ALL_DAYS.slice(0, preferences?.default_plan_days ?? 5)
+  })
 
   useEffect(() => {
-    if (preferences?.default_plan_days) {
+    if (!isPro) {
+      setSelectedDays([ALL_DAYS[0]])
+    } else if (preferences?.default_plan_days) {
       setSelectedDays(ALL_DAYS.slice(0, preferences.default_plan_days))
     }
-  }, [preferences?.default_plan_days])
+  }, [isPro, preferences?.default_plan_days])
 
   const defaultMondayStr = useMemo(() => {
     const today = new Date()
@@ -334,72 +340,71 @@ export function WeeklyPlannerPage() {
                  onChange={(e) => setCustomStartDate(e.target.value)}
                  className="w-full px-4 py-3 rounded-2xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-neutral-50 text-sm text-on-surface font-semibold"
                />
-               {customEndDate && (
-                 <p className="text-xs text-[#6d759c] font-semibold">
-                   Seu planejamento cobrirá de {formatDateToShort(customStartDate)} a {formatDateToShort(customEndDate)} (7 dias).
-                 </p>
-               )}
-             </div>
+                {customEndDate && (
+                  <p className="text-xs text-[#6d759c] font-semibold">
+                    Seu planejamento cobrirá de {formatDateToShort(customStartDate)} a {formatDateToShort(customEndDate)} (7 dias).
+                  </p>
+                )}
+              </div>
 
-             {/* Seleção de Dias */}
-             <div className="space-y-2">
-               <label className="text-xs font-bold uppercase tracking-wider text-warm-gray-medium block">
-                 Dias para Planejar
-               </label>
-               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {ALL_DAYS.map((day) => (
-                    <button
-                      key={day}
-                      onClick={() => {
-                        const isSelected = selectedDays.includes(day)
-                        const isPremium = profile?.subscription_tier && 
-                                          profile.subscription_tier !== 'free' && 
-                                          profile.subscription_tier !== 'plano-gratuito'
-                        
-                        if (!isPremium && !isSelected && selectedDays.length >= 3) {
-                          toast.error('O Plano Gratuito permite selecionar no máximo 3 dias. Faça upgrade para planejar a semana completa!')
-                          return
-                        }
-                        setSelectedDays(prev => isSelected ? prev.filter(d => d !== day) : [...prev, day])
-                      }}
-                      className={cn(
-                        "rounded-2xl border px-4 py-4 text-xs font-bold transition-all uppercase tracking-widest cursor-pointer",
-                        selectedDays.includes(day) ? "bg-emerald-50 border-primary text-primary" : "bg-neutral-50 border-transparent text-neutral-400"
-                      )}
-                    >
-                      {DAY_LABELS[day].substring(0, 3)}
-                    </button>
-                  ))}
-               </div>
-             </div>
+              {/* Seleção de Dias */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-warm-gray-medium block">
+                    Dias para Planejar
+                  </label>
+                  {!isPro && (
+                    <span className="text-[11px] font-extrabold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                      Plano Gratuito: 1 dia liberado
+                    </span>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                   {ALL_DAYS.map((day) => (
+                     <button
+                       key={day}
+                       onClick={() => {
+                         const isSelected = selectedDays.includes(day)
+                         if (!isPro && !isSelected && selectedDays.length >= 1) {
+                           toast.error('O Plano Gratuito permite planejar apenas 1 dia por semana. Assine o Plano PRO para liberar a semana completa (7 dias)!')
+                           return
+                         }
+                         setSelectedDays(prev => isSelected ? prev.filter(d => d !== day) : [...prev, day])
+                       }}
+                       className={cn(
+                         "rounded-2xl border px-4 py-4 text-xs font-bold transition-all uppercase tracking-widest cursor-pointer",
+                         selectedDays.includes(day) ? "bg-emerald-50 border-primary text-primary" : "bg-neutral-50 border-transparent text-neutral-400"
+                       )}
+                     >
+                       {DAY_LABELS[day].substring(0, 3)}
+                     </button>
+                   ))}
+                </div>
+              </div>
 
-             <Button 
-                onClick={async () => {
-                  if (!customStartDate || !customEndDate) return
-                  const isPremium = profile?.subscription_tier && 
-                                    profile.subscription_tier !== 'free' && 
-                                    profile.subscription_tier !== 'plano-gratuito'
-                  
-                  if (!isPremium && selectedDays.length > 3) {
-                    toast.error('O Plano Gratuito permite planejar no máximo 3 dias por semana. Faça upgrade para planejar a semana completa!')
-                    navigate('/app/assinatura')
-                    return
-                  }
-                  
-                  const week = await createWeek.mutateAsync({ 
-                    startDate: customStartDate, 
-                    endDate: customEndDate, 
-                    selectedDays, 
-                    mealModes,
-                    title: newWeekTitle.trim() || undefined
-                  })
-                  if(week) navigate(`/app/semana/${week.id}`)
-                }} 
-                disabled={selectedDays.length === 0 || !customStartDate}
-                className="w-full py-6 rounded-2xl text-lg font-bold"
-             >
-                Começar Planejamento
-             </Button>
+              <Button 
+                 onClick={async () => {
+                   if (!customStartDate || !customEndDate) return
+                   if (!isPro && selectedDays.length > 1) {
+                     toast.error('O Plano Gratuito permite planejar no máximo 1 dia por semana. Faça upgrade para o Plano PRO!')
+                     navigate('/app/assinatura')
+                     return
+                   }
+                   
+                   const week = await createWeek.mutateAsync({ 
+                     startDate: customStartDate, 
+                     endDate: customEndDate, 
+                     selectedDays, 
+                     mealModes,
+                     title: newWeekTitle.trim() || undefined
+                   })
+                   if(week) navigate(`/app/semana/${week.id}`)
+                 }} 
+                 disabled={selectedDays.length === 0 || !customStartDate}
+                 className="w-full py-6 rounded-2xl text-lg font-bold cursor-pointer"
+              >
+                 Começar Planejamento
+              </Button>
           </div>
         </div>
      )
@@ -590,17 +595,36 @@ export function WeeklyPlannerPage() {
 
         {/* Daily Slots */}
         <div className="space-y-12">
-          {displayDaysForList.map((day) => (
-            <DayPlannerCard 
-              key={day.id} 
-              day={day} 
-              weekId={activeWeek.id} 
-              onRemoveRecipe={handleRemoveRecipe}
-              isPassed={day.isPassed}
-              isToday={day.isToday}
-              formattedDate={day.formattedDate}
-            />
-          ))}
+          {displayDaysForList.map((day, index) => {
+            if (!isPro && index >= 1) {
+              return (
+                <div key={day.id} className="bg-amber-50/60 border border-amber-200/80 rounded-3xl p-6 text-center space-y-3 shadow-sm">
+                  <div className="mx-auto w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <p className="font-extrabold text-slate-800 text-base">Dia bloqueado no Plano Gratuito ({DAY_LABELS[day.day_of_week as DayOfWeek]})</p>
+                  <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
+                    O Plano Gratuito libera 1 dia por semana. Para planejar a semana completa com 7 dias, ative o Plano PRO.
+                  </p>
+                  <Button onClick={() => navigate('/app/assinatura')} size="sm" className="gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold cursor-pointer rounded-full px-6">
+                    <Crown className="w-4 h-4 text-amber-100" />
+                    Liberar Semana Completa (PRO)
+                  </Button>
+                </div>
+              )
+            }
+            return (
+              <DayPlannerCard 
+                key={day.id} 
+                day={day} 
+                weekId={activeWeek.id} 
+                onRemoveRecipe={handleRemoveRecipe}
+                isPassed={day.isPassed}
+                isToday={day.isToday}
+                formattedDate={day.formattedDate}
+              />
+            )
+          })}
         </div>
 
         {/* FAB */}

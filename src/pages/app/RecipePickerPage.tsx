@@ -9,6 +9,7 @@ import { useRecipes, useRecipeCategories } from '@/hooks/recipes/useRecipes'
 import { useCollections, useCollection } from '@/hooks/recipes/useCollections'
 import { useAssignRecipe } from '@/hooks/planning/usePlanning'
 import { useAuth } from '@/app/providers/AuthProvider'
+import { isUserPro } from '@/lib/subscription'
 import { supabase } from '@/integrations/supabase/client'
 import type { Recipe } from '@/types/recipes'
 import { cn } from '@/lib/utils'
@@ -36,7 +37,7 @@ type MethodType = 'catalog' | 'colecoes' | 'food_type' | 'suggestions' | 'favori
 export function RecipePickerPage() {
   const navigate = useNavigate()
   const { user, preferences } = useAuth()
-  const isPremiumUser = !!(user?.subscription_tier && user.subscription_tier !== 'free' && user.subscription_tier !== 'plano-gratuito')
+  const isPremiumUser = isUserPro(user)
   const [searchParams, setSearchParams] = useSearchParams()
   const slotId = searchParams.get('slot')
   const weekId = searchParams.get('week')

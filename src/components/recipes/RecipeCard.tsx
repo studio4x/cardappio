@@ -3,6 +3,7 @@ import type { Recipe } from '@/types/recipes'
 import { FavoriteButton } from './FavoriteButton'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/app/providers/AuthProvider'
+import { isUserPro } from '@/lib/subscription'
 
 interface RecipeCardProps {
   recipe: Recipe
@@ -20,7 +21,7 @@ export function RecipeCard({
   const { user } = useAuth()
   const resolvedIsUserPremium = isUserPremium !== undefined
     ? isUserPremium
-    : !!(user?.subscription_tier && user.subscription_tier !== 'free' && user.subscription_tier !== 'plano-gratuito')
+    : isUserPro(user)
 
   const difficultyLabels = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' }
   const difficultyColors = {
