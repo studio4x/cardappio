@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Sparkles, Loader2, Crown, UserCheck, Upload, X } from 'lucide-react'
+import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Sparkles, Loader2, Crown, UserCheck, Upload, X, FileText } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { useRecipe, useRecipeCategories } from '@/hooks/recipes/useRecipes'
@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { useGenerateNutrition } from '@/hooks/admin/useAIConfig'
 import { StepEditor } from '@/components/shared/StepEditor'
+import { RichTextEditor } from '@/components/shared/RichTextEditor'
 
 /**
  * AdminRecipeEditorPage
@@ -951,6 +952,23 @@ export function AdminRecipeEditorPage() {
             <p className="text-center py-4 text-slate-400 text-sm italic">Nenhum passo adicionado.</p>
           )}
         </div>
+      </div>
+
+      {/* Recipe Notes & Chef Tips */}
+      <div className="space-y-4 rounded-2xl border bg-white p-6 shadow-sm">
+        <div className="flex items-center gap-2 border-b pb-2 mb-2">
+          <FileText className="h-5 w-5 text-primary" />
+          <h3 className="font-bold">Notas & Dicas da Receita</h3>
+        </div>
+        <p className="text-xs text-slate-500 mb-2">
+          Adicione segredos do chefe, dicas de conservação, sugestões de harmonização ou observações importantes sobre esta preparação.
+        </p>
+        <RichTextEditor
+          value={recipeData.notes || ''}
+          onChange={(html) => setRecipeData((prev: any) => ({ ...prev, notes: html }))}
+          placeholder="Escreva aqui as notas, dicas ou observações da receita..."
+          minHeight="140px"
+        />
       </div>
 
       {/* ── Bottom Save Bar ─────────────────────────────────────── */}

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Clock, Users, Sparkles, Lock, Utensils, ShoppingBasket, Plus, BarChart3, PillIcon, Calendar, CheckCircle2, ChevronRight, Loader2, PiggyBank, Crown } from 'lucide-react'
+import { ArrowLeft, Clock, Users, Sparkles, Lock, Utensils, ShoppingBasket, Plus, BarChart3, PillIcon, Calendar, CheckCircle2, ChevronRight, Loader2, PiggyBank, Crown, FileText } from 'lucide-react'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { useRecipe } from '@/hooks/recipes/useRecipes'
@@ -370,6 +370,21 @@ export function RecipeDetailPage() {
               </div>
             )}
 
+            {/* Recipe Notes & Chef Tips */}
+            {recipe.notes && recipe.notes.trim() !== '' && (
+              <section className="bg-amber-50/70 border border-amber-200/80 rounded-3xl p-5 shadow-sm space-y-2">
+                <div className="flex items-center gap-2 text-amber-900 border-b border-amber-200/60 pb-2">
+                  <FileText className="h-4 w-4 text-amber-600 shrink-0" />
+                  <h3 className="font-bold text-xs uppercase tracking-wider text-amber-950">
+                    Notas & Dicas de Preparo
+                  </h3>
+                </div>
+                <div
+                  className="prose prose-sm max-w-none text-slate-800 text-xs leading-relaxed pt-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:font-semibold [&_strong]:text-amber-950 [&_em]:italic [&_u]:underline"
+                  dangerouslySetInnerHTML={{ __html: recipe.notes }}
+                />
+              </section>
+            )}
 
             {/* Variations / Swaps */}
             {recipe.variations && recipe.variations.length > 0 && (

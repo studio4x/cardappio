@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Plus, Trash2, Save, Loader2, Image as ImageIcon, Upload } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Save, Loader2, Image as ImageIcon, Upload, FileText } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { useRecipeCategories } from '@/hooks/recipes/useRecipes'
 import { supabase } from '@/integrations/supabase/client'
@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { RichTextEditor } from '@/components/shared/RichTextEditor'
 
 export function UserRecipeEditorPage() {
   const { id } = useParams()
@@ -23,6 +24,7 @@ export function UserRecipeEditorPage() {
   const [coverImageUrl, setCoverImageUrl] = useState('')
   const [title, setTitle] = useState('')
   const [subtitle, setSubtitle] = useState('')
+  const [notes, setNotes] = useState('')
   const [prepTime, setPrepTime] = useState(30)
   const [servings, setServings] = useState(4)
   const [categoryId, setCategoryId] = useState('')
@@ -53,6 +55,7 @@ export function UserRecipeEditorPage() {
           if (recipe) {
             setTitle(recipe.title)
             setSubtitle(recipe.subtitle || '')
+            setNotes(recipe.notes || '')
             setCoverImageUrl(recipe.cover_image_url || '')
             setPrepTime(recipe.prep_time_minutes)
             setServings(recipe.servings)
@@ -197,6 +200,7 @@ export function UserRecipeEditorPage() {
       const recipeData = {
         title,
         subtitle,
+        notes: notes || null,
         slug,
         cover_image_url: coverImageUrl || null,
         prep_time_minutes: Number(prepTime),
@@ -546,6 +550,23 @@ export function UserRecipeEditorPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Notes Block */}
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-3 shadow-sm">
+          <div className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-bold text-slate-900">Notas & Dicas da Receita</h3>
+          </div>
+          <p className="text-xs text-slate-500">
+            Adicione segredos do chefe, sugestões de substituição de ingredientes ou dicas de conservação.
+          </p>
+          <RichTextEditor
+            value={notes}
+            onChange={setNotes}
+            placeholder="Escreva aqui dicas ou observações sobre esta receita..."
+            minHeight="120px"
+          />
         </div>
 
         <Button type="submit" disabled={isLoading} className="w-full py-6 rounded-2xl text-lg font-bold flex items-center gap-2">
