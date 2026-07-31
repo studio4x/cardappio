@@ -405,7 +405,7 @@ export function buildAdminRecipeJsonExample(): string {
       prep_time_minutes: 50,
       servings: 12,
       usage_context: 'Almoço de domingo, confraternizações e festas',
-      notes: 'A batata palha deve ser adicionada apenas no momento de servir para manter a crocância.',
+      notes: '<p><strong>Dica do chefe:</strong> A batata palha deve ser adicionada apenas no momento de servir para manter a crocância.</p>',
       status: 'draft',
       is_featured: false,
       is_premium: false,
