@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Sparkles, Loader2, Crown, UserCheck, Upload, X, FileText, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Sparkles, Loader2, Crown, UserCheck, Upload, X, FileText, ExternalLink, GripVertical } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
-import { useRecipe, useRecipeCategories } from '@/hooks/recipes/useRecipes'
+import { useRecipe, useRecipeCategories, useRecipeTags } from '@/hooks/recipes/useRecipes'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
@@ -53,8 +53,11 @@ export function AdminRecipeEditorPage() {
 
   const [allCollections, setAllCollections] = useState<any[]>([])
   const [selectedCollections, setSelectedCollections] = useState<string[]>([])
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [draggedStepIndex, setDraggedStepIndex] = useState<number | null>(null)
 
   const { data: categories } = useRecipeCategories()
+  const { data: allTags, isLoading: isLoadingTags } = useRecipeTags()
   const [creatorProfile, setCreatorProfile] = useState<{ full_name: string | null; role: string | null } | null>(null)
 
   useEffect(() => {
@@ -70,15 +73,18 @@ export function AdminRecipeEditorPage() {
         setLoading(true)
         const { data } = await supabase
           .from('recipes')
-          .select('*, ingredients:recipe_ingredients(*), steps:recipe_steps(*), creator:profiles!created_by(id, full_name, role)')
+          .select('*, ingredients:recipe_ingredients(*), steps:recipe_steps(*), tags:recipe_tag_links(tag:recipe_tags(*)), creator:profiles!created_by(id, full_name, role)')
           .eq('id', id)
           .single()
         
         if (data) {
-          const { creator, ...rest } = data as any
+          const { creator, tags, ...rest } = data as any
           setRecipeData(rest)
           if (creator && creator.role !== 'admin' && creator.role !== 'super_admin') {
             setCreatorProfile(creator)
+          }
+          if (tags && tags.length > 0) {
+            setSelectedTags(tags.map((t: any) => t.tag.id))
           }
         }
 
@@ -137,6 +143,34 @@ export function AdminRecipeEditorPage() {
         fileInputRef.current.value = ''
       }
     }
+  }
+
+  const handleDragStepStart = (e: React.DragEvent, index: number) => {
+    setDraggedStepIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragStepOver = (e: React.DragEvent, hoverIndex: number) => {
+    e.preventDefault()
+    if (draggedStepIndex === null || draggedStepIndex === hoverIndex) return
+
+    const updatedSteps = [...(recipeData.steps || [])]
+    const draggedStep = updatedSteps[draggedStepIndex]
+    
+    updatedSteps.splice(draggedStepIndex, 1)
+    updatedSteps.splice(hoverIndex, 0, draggedStep)
+    
+    const renumbered = updatedSteps.map((s, idx) => ({
+      ...s,
+      step_number: idx + 1
+    }))
+    
+    setDraggedStepIndex(hoverIndex)
+    setRecipeData((prev: any) => ({ ...prev, steps: renumbered }))
+  }
+
+  const handleDragStepEnd = () => {
+    setDraggedStepIndex(null)
   }
 
   const handleSave = async () => {
@@ -198,6 +232,24 @@ export function AdminRecipeEditorPage() {
           .from('recipe_collection_items')
           .insert(itemsToInsert)
         if (collInsertError) throw collInsertError
+      }
+
+      // Sync tags
+      const { error: tagDeleteError } = await supabase
+        .from('recipe_tag_links')
+        .delete()
+        .eq('recipe_id', recipeId)
+      if (tagDeleteError) throw tagDeleteError
+
+      if (selectedTags.length > 0) {
+        const tagsToInsert = selectedTags.map(tagId => ({
+          recipe_id: recipeId,
+          tag_id: tagId
+        }))
+        const { error: tagInsertError } = await supabase
+          .from('recipe_tag_links')
+          .insert(tagsToInsert)
+        if (tagInsertError) throw tagInsertError
       }
 
       // 5. Auto-generate nutrition for NEW recipes with ingredients
@@ -518,6 +570,45 @@ export function AdminRecipeEditorPage() {
                         <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded uppercase">P</span>
                       )}
                     </label>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2 pt-4 border-t border-slate-100">
+            <label className="text-sm font-medium">Tags da Receita</label>
+            {isLoadingTags ? (
+              <div className="flex items-center gap-2 text-xs text-slate-400 py-1">
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                <span>Carregando tags...</span>
+              </div>
+            ) : !allTags || allTags.length === 0 ? (
+              <p className="text-xs text-slate-400 italic">Nenhuma tag cadastrada.</p>
+            ) : (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {allTags.map(tag => {
+                  const isChecked = selectedTags.includes(tag.id)
+                  return (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => {
+                        if (isChecked) {
+                          setSelectedTags(selectedTags.filter(id => id !== tag.id))
+                        } else {
+                          setSelectedTags([...selectedTags, tag.id])
+                        }
+                      }}
+                      className={cn(
+                        "px-2.5 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer select-none active:scale-95",
+                        isChecked
+                          ? "bg-primary/10 border-primary text-primary shadow-sm"
+                          : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300"
+                      )}
+                    >
+                      {tag.name}
+                    </button>
                   )
                 })}
               </div>
@@ -928,39 +1019,58 @@ export function AdminRecipeEditorPage() {
         </div>
         
         <div className="space-y-4">
-          {recipeData.steps?.sort((a: any, b: any) => a.step_number - b.step_number).map((step: any, index: number) => (
-            <div key={index} className="flex gap-4 items-start">
-              {/* Step number badge */}
-              <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 mt-2">
-                {index + 1}
-              </div>
-
-              {/* Rich text editor */}
-              <div className="flex-1">
-                <StepEditor
-                  value={step.content}
-                  onChange={(html) => {
-                    const newSteps = [...recipeData.steps]
-                    newSteps[index] = { ...newSteps[index], content: html }
-                    setRecipeData({ ...recipeData, steps: newSteps })
-                  }}
-                  placeholder={`Descreva o passo ${index + 1}...`}
-                />
-              </div>
-
-              {/* Delete button */}
-              <button
-                onClick={() => {
-                  const newSteps = recipeData.steps.filter((_: any, i: number) => i !== index)
-                  const renumbered = newSteps.map((s: any, i: number) => ({ ...s, step_number: i + 1 }))
-                  setRecipeData({ ...recipeData, steps: renumbered })
-                }}
-                className="p-2 text-slate-400 hover:text-red-500 transition-colors mt-2"
+          {recipeData.steps?.sort((a: any, b: any) => a.step_number - b.step_number).map((step: any, index: number) => {
+            const isDragged = draggedStepIndex === index
+            return (
+              <div
+                key={index}
+                draggable
+                onDragStart={(e) => handleDragStepStart(e, index)}
+                onDragOver={(e) => handleDragStepOver(e, index)}
+                onDragEnd={handleDragStepEnd}
+                className={cn(
+                  "flex gap-4 items-start p-2 border border-transparent rounded-2xl transition-all",
+                  isDragged
+                    ? "opacity-30 border-dashed border-primary bg-primary/5 scale-[0.98]"
+                    : "hover:bg-slate-50/50"
+                )}
               >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-          ))}
+                {/* Drag handle & step number badge */}
+                <div className="flex items-center gap-1.5 shrink-0 select-none pt-2 text-slate-400 cursor-grab active:cursor-grabbing">
+                  <GripVertical className="h-4 w-4 shrink-0" />
+                  <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
+                    {index + 1}
+                  </div>
+                </div>
+
+                {/* Rich text editor */}
+                <div className="flex-1">
+                  <StepEditor
+                    value={step.content}
+                    onChange={(html) => {
+                      const newSteps = [...recipeData.steps]
+                      newSteps[index] = { ...newSteps[index], content: html }
+                      setRecipeData({ ...recipeData, steps: newSteps })
+                    }}
+                    placeholder={`Descreva o passo ${index + 1}...`}
+                  />
+                </div>
+
+                {/* Delete button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newSteps = recipeData.steps.filter((_: any, i: number) => i !== index)
+                    const renumbered = newSteps.map((s: any, i: number) => ({ ...s, step_number: i + 1 }))
+                    setRecipeData({ ...recipeData, steps: renumbered })
+                  }}
+                  className="p-2 text-slate-400 hover:text-red-500 transition-colors mt-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            )
+          })}
           {(!recipeData.steps || recipeData.steps.length === 0) && (
             <p className="text-center py-4 text-slate-400 text-sm italic">Nenhum passo adicionado.</p>
           )}

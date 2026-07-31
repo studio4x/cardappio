@@ -127,3 +127,23 @@ export function useRecipeCategories() {
     },
   })
 }
+
+/**
+ * Fetch active recipe tags.
+ */
+export function useRecipeTags() {
+  return useQuery({
+    queryKey: ['recipe-tags'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('recipe_tags')
+        .select('*')
+        .eq('is_active', true)
+        .order('name')
+
+      if (error) throw error
+      return data ?? []
+    },
+  })
+}
+

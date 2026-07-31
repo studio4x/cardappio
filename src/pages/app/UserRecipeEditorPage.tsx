@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Plus, Trash2, Save, Loader2, Image as ImageIcon, Upload, FileText, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Save, Loader2, Image as ImageIcon, Upload, FileText, ExternalLink, GripVertical } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { useRecipeCategories } from '@/hooks/recipes/useRecipes'
+import { useRecipeCategories, useRecipeTags } from '@/hooks/recipes/useRecipes'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
@@ -17,12 +17,15 @@ export function UserRecipeEditorPage() {
   const navigate = useNavigate()
   const { supabaseUser, user } = useAuth()
   const { data: categories } = useRecipeCategories()
+  const { data: allTags, isLoading: isLoadingTags } = useRecipeTags()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [isLoading, setIsLoading] = useState(false)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [coverImageUrl, setCoverImageUrl] = useState('')
   const [recipeSlug, setRecipeSlug] = useState('')
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [title, setTitle] = useState('')
   const [subtitle, setSubtitle] = useState('')
   const [notes, setNotes] = useState('')
@@ -48,7 +51,7 @@ export function UserRecipeEditorPage() {
         try {
           const { data: recipe, error: recipeError } = await supabase
             .from('recipes')
-            .select('*, ingredients:recipe_ingredients(*), steps:recipe_steps(*)')
+            .select('*, ingredients:recipe_ingredients(*), steps:recipe_steps(*), tags:recipe_tag_links(tag:recipe_tags(*))')
             .eq('id', id)
             .single()
 
@@ -81,6 +84,11 @@ export function UserRecipeEditorPage() {
                 recipe.steps
                   .sort((a: any, b: any) => a.step_number - b.step_number)
                   .map((s: any) => s.content)
+              )
+            }
+            if (recipe.tags && recipe.tags.length > 0) {
+              setSelectedTags(
+                recipe.tags.map((t: any) => t.tag.id)
               )
             }
           }
@@ -167,6 +175,29 @@ export function UserRecipeEditorPage() {
       copy[index] = value
       return copy
     })
+  }
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e: React.DragEvent, hoverIndex: number) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === hoverIndex) return
+
+    const updatedSteps = [...steps]
+    const draggedStep = updatedSteps[draggedIndex]
+    
+    updatedSteps.splice(draggedIndex, 1)
+    updatedSteps.splice(hoverIndex, 0, draggedStep)
+    
+    setDraggedIndex(hoverIndex)
+    setSteps(updatedSteps)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null)
   }
 
   const handleSave = async (e: React.FormEvent) => {
@@ -273,6 +304,28 @@ export function UserRecipeEditorPage() {
           .from('recipe_steps')
           .insert(stepsData)
         if (stepError) throw stepError
+      }
+
+      // Save tags
+      if (recipeId) {
+        const { error: tagDeleteError } = await supabase
+          .from('recipe_tag_links')
+          .delete()
+          .eq('recipe_id', recipeId)
+        
+        if (tagDeleteError) throw tagDeleteError
+
+        if (selectedTags.length > 0) {
+          const tagLinksData = selectedTags.map(tagId => ({
+            recipe_id: recipeId!,
+            tag_id: tagId
+          }))
+          const { error: tagInsertError } = await supabase
+            .from('recipe_tag_links')
+            .insert(tagLinksData)
+          
+          if (tagInsertError) throw tagInsertError
+        }
       }
 
       toast.success(id ? 'Receita atualizada!' : 'Receita criada!')
@@ -434,6 +487,52 @@ export function UserRecipeEditorPage() {
           </div>
         </div>
 
+        {/* Tags Block */}
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-4 shadow-sm">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">Tags da Receita</h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Selecione uma ou mais tags para ajudar na classificação e busca da sua receita.
+            </p>
+          </div>
+
+          {isLoadingTags ? (
+            <div className="flex items-center gap-2 text-sm text-slate-400 py-2">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <span>Carregando tags...</span>
+            </div>
+          ) : !allTags || allTags.length === 0 ? (
+            <p className="text-xs text-slate-400 italic">Nenhuma tag ativa encontrada.</p>
+          ) : (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {allTags.map((tag) => {
+                const isSelected = selectedTags.includes(tag.id)
+                return (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedTags(prev => prev.filter(id => id !== tag.id))
+                      } else {
+                        setSelectedTags(prev => [...prev, tag.id])
+                      }
+                    }}
+                    className={cn(
+                      "px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer select-none active:scale-95",
+                      isSelected
+                        ? "bg-primary/10 border-primary text-primary shadow-sm"
+                        : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300"
+                    )}
+                  >
+                    {tag.name}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
         {/* Ingredients Block */}
         <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-4 shadow-sm">
           <div className="flex items-center justify-between">
@@ -546,25 +645,45 @@ export function UserRecipeEditorPage() {
           </div>
 
           <div className="space-y-3">
-            {steps.map((step, idx) => (
-              <div key={idx} className="flex gap-3 items-start">
-                <span className="font-bold text-slate-400 pt-2 text-sm">#{idx + 1}</span>
-                <div className="flex-1">
-                  <textarea 
-                    value={step} 
-                    onChange={e => handleStepChange(idx, e.target.value)} 
-                    placeholder="Instruções deste passo..." 
-                    required 
-                    className="w-full min-h-[70px] rounded-xl border p-2.5 text-sm border-slate-200 outline-none"
-                  />
+            {steps.map((step, idx) => {
+              const isDragged = draggedIndex === idx
+              return (
+                <div
+                  key={idx}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, idx)}
+                  onDragOver={(e) => handleDragOver(e, idx)}
+                  onDragEnd={handleDragEnd}
+                  className={cn(
+                    "flex gap-3 items-start p-2 rounded-2xl transition-all border border-transparent",
+                    isDragged
+                      ? "opacity-30 border-dashed border-primary bg-primary/5 scale-[0.98]"
+                      : "hover:bg-slate-50/50"
+                  )}
+                >
+                  {/* Drag handle & step number badge */}
+                  <div className="flex items-center gap-1 shrink-0 select-none pt-2 text-slate-400 cursor-grab active:cursor-grabbing">
+                    <GripVertical className="h-4 w-4 shrink-0" />
+                    <span className="font-bold text-sm">#{idx + 1}</span>
+                  </div>
+
+                  <div className="flex-1">
+                    <textarea 
+                      value={step} 
+                      onChange={e => handleStepChange(idx, e.target.value)} 
+                      placeholder="Instruções deste passo..." 
+                      required 
+                      className="w-full min-h-[70px] rounded-xl border p-2.5 text-sm border-slate-200 outline-none bg-white"
+                    />
+                  </div>
+                  {steps.length > 1 && (
+                    <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveStep(idx)} className="text-red-500 rounded-full mt-1">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
-                {steps.length > 1 && (
-                  <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveStep(idx)} className="text-red-500 rounded-full mt-1">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 
