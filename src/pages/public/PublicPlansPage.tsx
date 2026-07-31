@@ -5,34 +5,51 @@ import { Button } from '@/components/ui/button'
 export function PublicPlansPage() {
   const plans = [
     {
-      name: 'Gratuito',
+      name: 'Plano Gratuito',
       price: 'R$ 0',
-      description: 'Perfeito para quem está começando a se organizar.',
+      description: 'Ativado após o término dos 15 dias de degustação PRO.',
       features: [
-        'Planejamento de até 3 dias/semana',
-        'Acesso a 50 receitas básicas',
+        'Planejamento de 1 dia liberado por semana',
+        'Acesso a receitas básicas gratuitas',
         'Lista de compras básica',
-        '1 perfil de usuário'
+        'Acesso contínuo sem custo'
       ],
       cta: 'Começar agora',
-      href: '/cadastrar',
+      href: '/auth/cadastro',
       featured: false
     },
     {
-      name: 'Pro',
-      price: 'R$ 19,90',
+      name: 'PRO 7 Dias',
+      price: 'R$ 14,90',
       period: '/mês',
-      description: 'O planejador completo para sua rotina diária.',
+      description: 'Para quem quer planejar a semana toda com facilidade.',
       features: [
-        'Planejamento de 7 dias (ilimitado)',
-        'Catálogo Premium (+500 receitas)',
+        'Planejamento completo de 7 dias por semana',
+        '2 refeições por dia (Almoço e Jantar)',
+        'Catálogo de Receitas PRO liberado',
         'Lista de compras inteligente e editável',
-        'Trocas e Sugestões inteligentes',
-        'Histórico ilimitado',
-        'Acesso prioritário a novas coleções'
+        'Suporte prioritário'
       ],
-      cta: 'Assinar Pro',
-      href: '/cadastrar?plan=pro',
+      cta: 'Assinar PRO 7 Dias',
+      href: '/auth/cadastro?plan=plano-pro-7-dias',
+      featured: false
+    },
+    {
+      name: 'PRO 14 Dias',
+      price: 'R$ 24,90',
+      period: '/mês',
+      badge: '15 Dias Grátis no Cadastro',
+      description: 'Liberdade total e recursos de inteligência de voz.',
+      features: [
+        '15 dias de degustação PRO GRÁTIS ao se cadastrar',
+        'Planejamento de até 14 dias (2 semanas)',
+        'Refeições e cardápios ilimitados por dia',
+        'Orientação por Voz com Assistente de IA',
+        'Catálogo completo de receitas e coleções',
+        'Lista de compras automatizada'
+      ],
+      cta: 'Experimentar 15 Dias Grátis',
+      href: '/auth/cadastro?plan=plano-pro-14-dias',
       featured: true
     }
   ]
@@ -49,7 +66,7 @@ export function PublicPlansPage() {
           </p>
         </div>
 
-        <div className="grid gap-8 sm:grid-cols-2 max-w-4xl mx-auto">
+        <div className="grid gap-8 md:grid-cols-3 max-w-6xl mx-auto">
           {plans.map((plan, idx) => (
             <div 
               key={idx} 
@@ -59,9 +76,9 @@ export function PublicPlansPage() {
                 : 'bg-white border-slate-200'
               }`}
             >
-              {plan.featured && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full">
-                  Mais Popular
+              {(plan.featured || plan.badge) && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[11px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full whitespace-nowrap shadow-md">
+                  {plan.badge || 'Mais Popular'}
                 </div>
               )}
 

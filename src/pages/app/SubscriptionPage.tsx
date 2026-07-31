@@ -213,7 +213,52 @@ export function SubscriptionPage() {
             </div>
 
             {/* Plans Grid */}
-            <div className="grid gap-8 w-full md:grid-cols-2 max-w-5xl">
+            <div className="grid gap-8 w-full md:grid-cols-3 max-w-6xl">
+              {/* Plano Gratuito Card */}
+              <div className="bg-white border-2 border-slate-200 rounded-[2.5rem] p-8 shadow-sm transition-all flex flex-col justify-between relative overflow-hidden group">
+                <div className="space-y-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="text-2xl font-black text-slate-900">Plano Gratuito</h4>
+                      <p className="text-slate-500 text-sm mt-1">Após expirar a degustação</p>
+                    </div>
+                    <span className="bg-slate-100 text-slate-700 text-[10px] font-black uppercase px-3 py-1 rounded-full">
+                      1 Dia / Semana
+                    </span>
+                  </div>
+
+                  <div className="flex items-baseline gap-1 py-4 border-y border-slate-100">
+                    <span className="text-4xl font-black text-slate-900">R$ 0</span>
+                    <span className="text-slate-400 font-bold text-sm">/mês</span>
+                  </div>
+
+                  <ul className="space-y-4">
+                    <li className="flex items-start gap-3 text-sm text-slate-600 font-medium">
+                      <Check className="h-5 w-5 text-emerald-500 shrink-0 stroke-[3]" />
+                      <span>1 dia liberado por semana no planejador</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-sm text-slate-600 font-medium">
+                      <Check className="h-5 w-5 text-emerald-500 shrink-0 stroke-[3]" />
+                      <span>Acesso a receitas gratuitas do catálogo</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-sm text-slate-600 font-medium">
+                      <Check className="h-5 w-5 text-emerald-500 shrink-0 stroke-[3]" />
+                      <span>Lista de compras básica do dia liberado</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="pt-8">
+                  <Button 
+                    disabled
+                    variant="outline"
+                    className="w-full rounded-2xl py-6 font-bold border-slate-200 text-slate-400 cursor-not-allowed"
+                  >
+                    Plano Padrão (R$ 0)
+                  </Button>
+                </div>
+              </div>
+
               {/* Plano 7 Dias Card */}
               {planPro7 && (
                 <div className="bg-white border-2 border-slate-200 hover:border-slate-300 rounded-[2.5rem] p-8 shadow-sm transition-all flex flex-col justify-between relative overflow-hidden group">
@@ -277,7 +322,7 @@ export function SubscriptionPage() {
                 <div className="bg-emerald-50/50 border-2 border-emerald-500 hover:border-emerald-600 rounded-[2.5rem] p-8 shadow-md transition-all flex flex-col justify-between relative overflow-hidden group">
                   {/* Popular Badge */}
                   <div className="absolute top-0 right-0 bg-emerald-600 text-white text-[9px] font-black uppercase px-4 py-1.5 rounded-bl-2xl tracking-wider shadow">
-                    Mais Popular
+                    15 Dias Grátis no Cadastro
                   </div>
 
                   <div className="space-y-6">
