@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Sparkles, Loader2, Crown, UserCheck, Upload, X, FileText, ExternalLink, GripVertical } from 'lucide-react'
+import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Sparkles, Loader2, Crown, UserCheck, Upload, X, FileText, ExternalLink, GripVertical, Link2 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { useRecipe, useRecipeCategories, useRecipeTags } from '@/hooks/recipes/useRecipes'
@@ -12,6 +12,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useGenerateNutrition } from '@/hooks/admin/useAIConfig'
 import { StepEditor } from '@/components/shared/StepEditor'
 import { RichTextEditor } from '@/components/shared/RichTextEditor'
+import { RecipeLinkModal } from '@/components/shared/RecipeLinkModal'
 
 /**
  * AdminRecipeEditorPage
@@ -55,6 +56,8 @@ export function AdminRecipeEditorPage() {
   const [selectedCollections, setSelectedCollections] = useState<string[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [draggedStepIndex, setDraggedStepIndex] = useState<number | null>(null)
+  /** Index of the ingredient currently waiting for a recipe link selection (-1 = none) */
+  const [ingredientLinkIndex, setIngredientLinkIndex] = useState<number>(-1)
 
   const { data: categories } = useRecipeCategories()
   const { data: allTags, isLoading: isLoadingTags } = useRecipeTags()
@@ -196,6 +199,7 @@ export function AdminRecipeEditorPage() {
           name: ing.name,
           quantity_label: ing.quantity_label,
           unit: ing.unit || null,
+          linked_recipe_id: ing.linked_recipe_id || null,
           sort_order: idx
         }))
         const { error: ingError } = await supabase.from('recipe_ingredients').insert(ingredientsToInsert)
@@ -638,118 +642,161 @@ export function AdminRecipeEditorPage() {
         
         <div className="space-y-3">
           {recipeData.ingredients?.map((ing: any, index: number) => (
-            <div key={index} className="flex gap-3 items-start">
-              <div className="flex-1">
-                <input
-                  placeholder="Nome do ingrediente"
-                  value={ing.name}
-                  onChange={(e) => {
-                    const newIngs = [...recipeData.ingredients]
-                    newIngs[index].name = e.target.value
-                    setRecipeData({...recipeData, ingredients: newIngs})
+            <div key={index} className="space-y-1.5">
+              <div className="flex gap-3 items-start">
+                <div className="flex-1">
+                  <input
+                    placeholder="Nome do ingrediente"
+                    value={ing.name}
+                    onChange={(e) => {
+                      const newIngs = [...recipeData.ingredients]
+                      newIngs[index].name = e.target.value
+                      setRecipeData({...recipeData, ingredients: newIngs})
+                    }}
+                    className="w-full rounded-lg border p-2 text-sm outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+                <div className="w-28">
+                  <input
+                    placeholder="Qtd (Ex: 200)"
+                    value={ing.quantity_label || ''}
+                    onChange={(e) => {
+                      const newIngs = [...recipeData.ingredients]
+                      newIngs[index].quantity_label = e.target.value
+                      setRecipeData({...recipeData, ingredients: newIngs})
+                    }}
+                    className="w-full rounded-lg border p-2 text-sm outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+                <div className="w-40">
+                  <select
+                    value={ing.unit || ''}
+                    onChange={(e) => {
+                      const newIngs = [...recipeData.ingredients]
+                      newIngs[index].unit = e.target.value || null
+                      setRecipeData({...recipeData, ingredients: newIngs})
+                    }}
+                    className="w-full rounded-lg border p-2 text-sm outline-none focus:ring-1 focus:ring-primary bg-white cursor-pointer"
+                  >
+                    <option value="">Sem unidade</option>
+                    {/* Antigas mantidas */}
+                    <option value="g">Gramas (g)</option>
+                    <option value="kg">Quilogramas (kg)</option>
+                    <option value="ml">Mililitros (ml)</option>
+                    <option value="l">Litros (l)</option>
+                    <option value="unidade">Unidade(s)</option>
+                    <option value="colher de sopa">Colher(es) de sopa</option>
+                    <option value="colher de chá">Colher(es) de chá</option>
+                    <option value="colher de sobremesa">Colher(es) de sobremesa</option>
+                    <option value="colher de café">Colher(es) de café</option>
+                    <option value="xícara">Xícara(s)</option>
+                    <option value="xícara de chá">Xícara(s) de chá</option>
+                    <option value="dente">Dente(s)</option>
+                    <option value="fatia">Fatia(s)</option>
+                    <option value="copo">Copo(s)</option>
+                    <option value="pitada">Pitada(s)</option>
+                    <option value="lata">Lata(s)</option>
+                    <option value="caixa">Caixa(s)</option>
+                    <option value="pacote">Pacote(s)</option>
+                    <option value="vidro">Vidro(s)</option>
+                    <option value="maço">Maço(s)</option>
+                    <option value="pedaço">Pedaço(s)</option>
+                    <option value="folha">Folha(s)</option>
+                    <option value="ramo">Ramo(s)</option>
+                    <option value="a gosto">A gosto</option>
+                    {/* Novas unidades adicionadas */}
+                    <option value="quilo">Quilo (quilo)</option>
+                    <option value="quilos">Quilos (quilos)</option>
+                    <option value="grama">Grama (grama)</option>
+                    <option value="gramas">Gramas (gramas)</option>
+                    <option value="mg">Miligramas (mg)</option>
+                    <option value="milligrama">Miligrama (milligrama)</option>
+                    <option value="milligramas">Miligramas (milligramas)</option>
+                    <option value="liter">Liter (liter)</option>
+                    <option value="litros">Litros (litros)</option>
+                    <option value="dl">Decilitros (dl)</option>
+                    <option value="decilitro">Decilitro (decilitro)</option>
+                    <option value="decilitros">Decilitros (decilitros)</option>
+                    <option value="cl">Centilitros (cl)</option>
+                    <option value="centilitro">Centilitro (centilitro)</option>
+                    <option value="centilitros">Centilitros (centilitros)</option>
+                    <option value="millilitro">Mililitro (millilitro)</option>
+                    <option value="millilitros">Mililitros (millilitros)</option>
+                    <option value="xícaras">Xícaras (xícaras)</option>
+                    <option value="colher (sopa)">Colher (sopa)</option>
+                    <option value="colheres (sopa)">Colheres (sopa)</option>
+                    <option value="colher (chá)">Colher (chá)</option>
+                    <option value="colheres (chá)">Colheres (chá)</option>
+                    <option value="colher (sobremesa)">Colher (sobremesa)</option>
+                    <option value="colheres (sobremesa)">Colheres (sobremesa)</option>
+                    <option value="colher (café)">Colher (café)</option>
+                    <option value="colheres (café)">Colheres (café)</option>
+                    <option value="cm">Centímetro(s) (cm)</option>
+                    <option value="centímetro">Centímetro (centímetro)</option>
+                    <option value="centímetros">Centímetros (centímetros)</option>
+                    <option value="mm">Milímetro(s) (mm)</option>
+                    <option value="milímetro">Milímetro (milímetro)</option>
+                    <option value="milímetros">Milímetros (milímetros)</option>
+                    <option value="dentes">Dentes (dentes)</option>
+                    <option value="molho">Molho (molho)</option>
+                    <option value="molhos">Molhos (molhos)</option>
+                    <option value="folhas">Folhas (folhas)</option>
+                    <option value="fatias">Fatias (fatias)</option>
+                    <option value="pedaços">Pedaços (pedaços)</option>
+                    <option value="porção">Porção (porção)</option>
+                  </select>
+                </div>
+
+                {/* Link to recipe button */}
+                <button
+                  type="button"
+                  title={ing.linked_recipe_id ? 'Remover vínculo com receita' : 'Vincular a uma receita-base'}
+                  onClick={() => {
+                    if (ing.linked_recipe_id) {
+                      // Remove link
+                      const newIngs = [...recipeData.ingredients]
+                      newIngs[index] = { ...newIngs[index], linked_recipe_id: null, linked_recipe: null }
+                      setRecipeData({ ...recipeData, ingredients: newIngs })
+                    } else {
+                      setIngredientLinkIndex(index)
+                    }
                   }}
-                  className="w-full rounded-lg border p-2 text-sm outline-none focus:ring-1 focus:ring-primary"
-                />
-              </div>
-              <div className="w-28">
-                <input
-                  placeholder="Qtd (Ex: 200)"
-                  value={ing.quantity_label || ''}
-                  onChange={(e) => {
-                    const newIngs = [...recipeData.ingredients]
-                    newIngs[index].quantity_label = e.target.value
-                    setRecipeData({...recipeData, ingredients: newIngs})
-                  }}
-                  className="w-full rounded-lg border p-2 text-sm outline-none focus:ring-1 focus:ring-primary"
-                />
-              </div>
-              <div className="w-40">
-                <select
-                  value={ing.unit || ''}
-                  onChange={(e) => {
-                    const newIngs = [...recipeData.ingredients]
-                    newIngs[index].unit = e.target.value || null
-                    setRecipeData({...recipeData, ingredients: newIngs})
-                  }}
-                  className="w-full rounded-lg border p-2 text-sm outline-none focus:ring-1 focus:ring-primary bg-white cursor-pointer"
+                  className={cn(
+                    'p-2 rounded-lg transition-colors shrink-0',
+                    ing.linked_recipe_id
+                      ? 'text-primary bg-primary/10 hover:bg-red-50 hover:text-red-500'
+                      : 'text-slate-400 hover:text-primary hover:bg-primary/10'
+                  )}
                 >
-                  <option value="">Sem unidade</option>
-                  {/* Antigas mantidas */}
-                  <option value="g">Gramas (g)</option>
-                  <option value="kg">Quilogramas (kg)</option>
-                  <option value="ml">Mililitros (ml)</option>
-                  <option value="l">Litros (l)</option>
-                  <option value="unidade">Unidade(s)</option>
-                  <option value="colher de sopa">Colher(es) de sopa</option>
-                  <option value="colher de chá">Colher(es) de chá</option>
-                  <option value="colher de sobremesa">Colher(es) de sobremesa</option>
-                  <option value="colher de café">Colher(es) de café</option>
-                  <option value="xícara">Xícara(s)</option>
-                  <option value="xícara de chá">Xícara(s) de chá</option>
-                  <option value="dente">Dente(s)</option>
-                  <option value="fatia">Fatia(s)</option>
-                  <option value="copo">Copo(s)</option>
-                  <option value="pitada">Pitada(s)</option>
-                  <option value="lata">Lata(s)</option>
-                  <option value="caixa">Caixa(s)</option>
-                  <option value="pacote">Pacote(s)</option>
-                  <option value="vidro">Vidro(s)</option>
-                  <option value="maço">Maço(s)</option>
-                  <option value="pedaço">Pedaço(s)</option>
-                  <option value="folha">Folha(s)</option>
-                  <option value="ramo">Ramo(s)</option>
-                  <option value="a gosto">A gosto</option>
-                  {/* Novas unidades adicionadas */}
-                  <option value="quilo">Quilo (quilo)</option>
-                  <option value="quilos">Quilos (quilos)</option>
-                  <option value="grama">Grama (grama)</option>
-                  <option value="gramas">Gramas (gramas)</option>
-                  <option value="mg">Miligramas (mg)</option>
-                  <option value="milligrama">Miligrama (milligrama)</option>
-                  <option value="milligramas">Miligramas (milligramas)</option>
-                  <option value="liter">Liter (liter)</option>
-                  <option value="litros">Litros (litros)</option>
-                  <option value="dl">Decilitros (dl)</option>
-                  <option value="decilitro">Decilitro (decilitro)</option>
-                  <option value="decilitros">Decilitros (decilitros)</option>
-                  <option value="cl">Centilitros (cl)</option>
-                  <option value="centilitro">Centilitro (centilitro)</option>
-                  <option value="centilitros">Centilitros (centilitros)</option>
-                  <option value="millilitro">Mililitro (millilitro)</option>
-                  <option value="millilitros">Mililitros (millilitros)</option>
-                  <option value="xícaras">Xícaras (xícaras)</option>
-                  <option value="colher (sopa)">Colher (sopa)</option>
-                  <option value="colheres (sopa)">Colheres (sopa)</option>
-                  <option value="colher (chá)">Colher (chá)</option>
-                  <option value="colheres (chá)">Colheres (chá)</option>
-                  <option value="colher (sobremesa)">Colher (sobremesa)</option>
-                  <option value="colheres (sobremesa)">Colheres (sobremesa)</option>
-                  <option value="colher (café)">Colher (café)</option>
-                  <option value="colheres (café)">Colheres (café)</option>
-                  <option value="cm">Centímetro(s) (cm)</option>
-                  <option value="centímetro">Centímetro (centímetro)</option>
-                  <option value="centímetros">Centímetros (centímetros)</option>
-                  <option value="mm">Milímetro(s) (mm)</option>
-                  <option value="milímetro">Milímetro (milímetro)</option>
-                  <option value="milímetros">Milímetros (milímetros)</option>
-                  <option value="dentes">Dentes (dentes)</option>
-                  <option value="molho">Molho (molho)</option>
-                  <option value="molhos">Molhos (molhos)</option>
-                  <option value="folhas">Folhas (folhas)</option>
-                  <option value="fatias">Fatias (fatias)</option>
-                  <option value="pedaços">Pedaços (pedaços)</option>
-                  <option value="porção">Porção (porção)</option>
-                </select>
+                  <Link2 className="h-4 w-4" />
+                </button>
+
+                <button 
+                  onClick={() => {
+                    const newIngs = recipeData.ingredients.filter((_: any, i: number) => i !== index)
+                    setRecipeData({...recipeData, ingredients: newIngs})
+                  }}
+                  className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
-              <button 
-                onClick={() => {
-                  const newIngs = recipeData.ingredients.filter((_: any, i: number) => i !== index)
-                  setRecipeData({...recipeData, ingredients: newIngs})
-                }}
-                className="p-2 text-slate-400 hover:text-red-500 transition-colors"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+
+              {/* Linked recipe badge */}
+              {ing.linked_recipe_id && ing.linked_recipe && (
+                <div className="ml-1 flex items-center gap-1.5">
+                  <Link2 className="h-3 w-3 text-primary shrink-0" />
+                  <span className="text-xs text-primary font-medium">
+                    Receita base: <strong>{ing.linked_recipe.title}</strong>
+                  </span>
+                </div>
+              )}
+              {ing.linked_recipe_id && !ing.linked_recipe && (
+                <div className="ml-1 flex items-center gap-1.5">
+                  <Link2 className="h-3 w-3 text-primary shrink-0" />
+                  <span className="text-xs text-primary font-medium">Receita base vinculada</span>
+                </div>
+              )}
             </div>
           ))}
           {(!recipeData.ingredients || recipeData.ingredients.length === 0) && (
@@ -1092,6 +1139,7 @@ export function AdminRecipeEditorPage() {
           onChange={(html) => setRecipeData((prev: any) => ({ ...prev, notes: html }))}
           placeholder="Escreva aqui as notas, dicas ou observações da receita..."
           minHeight="140px"
+          enableRecipeLinks
         />
       </div>
 
@@ -1118,6 +1166,25 @@ export function AdminRecipeEditorPage() {
           </Button>
         </div>
       </div>
+
+      {/* Recipe Link Modal — for ingredient linking */}
+      <RecipeLinkModal
+        open={ingredientLinkIndex >= 0}
+        title="Vincular Receita-Base ao Ingrediente"
+        onClose={() => setIngredientLinkIndex(-1)}
+        onSelect={(recipe) => {
+          if (ingredientLinkIndex < 0) return
+          const newIngs = [...recipeData.ingredients]
+          newIngs[ingredientLinkIndex] = {
+            ...newIngs[ingredientLinkIndex],
+            linked_recipe_id: recipe.id,
+            linked_recipe: recipe,
+          }
+          setRecipeData({ ...recipeData, ingredients: newIngs })
+          setIngredientLinkIndex(-1)
+        }}
+      />
     </div>
   )
 }
+

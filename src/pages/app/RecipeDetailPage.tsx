@@ -381,7 +381,7 @@ export function RecipeDetailPage() {
                   </h3>
                 </div>
                 <div
-                  className="prose prose-sm max-w-none text-slate-800 text-xs leading-relaxed pt-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:font-semibold [&_strong]:text-amber-950 [&_em]:italic [&_u]:underline"
+                  className="prose prose-sm max-w-none text-slate-800 text-xs leading-relaxed pt-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:font-semibold [&_strong]:text-amber-950 [&_em]:italic [&_u]:underline [&_a]:text-primary [&_a]:font-semibold [&_a]:underline [&_a]:underline-offset-2 [&_a:hover]:opacity-80"
                   dangerouslySetInnerHTML={{ __html: recipe.notes }}
                 />
               </section>

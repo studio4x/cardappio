@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import type { Recipe } from '@/types/recipes'
 
@@ -16,7 +16,16 @@ export function useRecipes(filters?: {
   isPremium?: boolean
 }) {
   return useQuery({
-    queryKey: ['recipes', filters],
+    queryKey: [
+      'recipes',
+      filters?.search ?? '',
+      filters?.categoryId ?? '',
+      filters?.difficulty ?? '',
+      filters?.status ?? 'published',
+      filters?.isPremium ?? null,
+      filters?.page ?? 1,
+      filters?.pageSize ?? 10,
+    ],
     queryFn: async () => {
       const page = filters?.page || 1
       const pageSize = filters?.pageSize || 10
@@ -28,7 +37,7 @@ export function useRecipes(filters?: {
         .select(`
           *,
           category:recipe_categories(*),
-          ingredients:recipe_ingredients(*),
+          ingredients:recipe_ingredients(*, linked_recipe:recipes!linked_recipe_id(id, slug, title)),
           steps:recipe_steps(*),
           tags:recipe_tag_links(tag:recipe_tags(*)),
           creator:profiles!created_by(id, full_name, role)
@@ -72,6 +81,12 @@ export function useRecipes(filters?: {
         count: count || 0
       }
     },
+    /**
+     * Keep the previous page's data visible while the new query loads.
+     * This prevents the list from going blank on every keystroke or page change.
+     */
+    placeholderData: keepPreviousData,
+    staleTime: 10_000, // 10 s — avoid redundant refetches within same browsing session
   })
 }
 
@@ -89,7 +104,7 @@ export function useRecipe(slug: string | undefined) {
         .select(`
           *,
           category:recipe_categories(*),
-          ingredients:recipe_ingredients(*),
+          ingredients:recipe_ingredients(*, linked_recipe:recipes!linked_recipe_id(id, slug, title)),
           steps:recipe_steps(*),
           tags:recipe_tag_links(tag:recipe_tags(*)),
           variations:recipe_variations!parent_recipe_id(*),

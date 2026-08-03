@@ -1,5 +1,6 @@
 import type { RecipeIngredient } from '@/types/recipes'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, Link2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 interface RecipeIngredientsProps {
   ingredients: RecipeIngredient[]
@@ -93,6 +94,16 @@ export function RecipeIngredients({ ingredients, servings, householdSize }: Reci
                       (opcional)
                     </span>
                   )}
+                  {/* Linked recipe reference */}
+                  {ing.linked_recipe && (
+                    <Link
+                      to={`/app/receitas/${ing.linked_recipe.slug}`}
+                      className="ml-2 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline transition-colors"
+                    >
+                      <Link2 className="h-3 w-3 shrink-0" />
+                      ver receita: {ing.linked_recipe.title}
+                    </Link>
+                  )}
                 </div>
               </li>
             ))}
@@ -102,3 +113,4 @@ export function RecipeIngredients({ ingredients, servings, householdSize }: Reci
     </section>
   )
 }
+

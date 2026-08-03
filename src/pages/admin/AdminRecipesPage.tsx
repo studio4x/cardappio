@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { 
   Plus, 
   Search, 
@@ -59,9 +59,23 @@ export function AdminRecipesPage() {
   const [togglingPremiumId, setTogglingPremiumId] = useState<string | null>(null)
   const [premiumFilter, setPremiumFilter] = useState<'all' | 'premium' | 'free'>('all')
   const pageSize = 10
+
+  /**
+   * Debounced search: the input value updates immediately (searchTerm)
+   * so the cursor stays in the field, but we only send a new query
+   * after 400ms of inactivity (debouncedSearch).
+   */
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm)
+      setPage(1) // reset to page 1 when search changes
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
   
-  const { data, isLoading, refetch } = useRecipes({ 
-    search: searchTerm || undefined,
+  const { data, isLoading, isFetching, refetch } = useRecipes({ 
+    search: debouncedSearch || undefined,
     categoryId: categoryFilter === 'all' ? undefined : categoryFilter,
     isPremium: premiumFilter === 'all' ? undefined : premiumFilter === 'premium',
     status: 'all',
@@ -402,7 +416,8 @@ export function AdminRecipesPage() {
     }
   }
 
-  if (isLoading) return <LoadingState message="Carregando receitas..." />
+  // NOTE: intentionally NOT returning <LoadingState> here — doing so would unmount the
+  // search input and cause it to lose focus on every keystroke. Loading is shown inline.
 
   return (
     <div className="space-y-6">
@@ -560,10 +575,7 @@ export function AdminRecipesPage() {
             type="text"
             placeholder="Buscar por título..."
             value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value)
-              setPage(1)
-            }}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full rounded-xl border p-2.5 pl-10 focus:outline-none focus:ring-2 focus:ring-primary"
             style={{ borderColor: 'var(--color-outline-variant)' }}
           />
@@ -621,7 +633,16 @@ export function AdminRecipesPage() {
               </tr>
             </thead>
             <tbody className="divide-y" style={{ borderColor: 'var(--color-outline-variant)' }}>
-              {recipes.length === 0 ? (
+              {(isLoading || isFetching) && recipes.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center">
+                    <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm">Carregando receitas...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : recipes.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground italic">
                     Nenhuma receita encontrada.

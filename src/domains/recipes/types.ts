@@ -106,6 +106,9 @@ export interface RecipeIngredient {
   sort_order: number
   is_optional: boolean
   created_at: string
+  /** Optional link to another recipe (e.g. a base recipe) */
+  linked_recipe_id?: string | null
+  linked_recipe?: { id: string; slug: string; title: string } | null
 }
 
 export interface RecipeStep {
