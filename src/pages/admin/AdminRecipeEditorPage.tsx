@@ -74,11 +74,17 @@ export function AdminRecipeEditorPage() {
 
       if (!isNew) {
         setLoading(true)
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('recipes')
-          .select('*, ingredients:recipe_ingredients(*), steps:recipe_steps(*), tags:recipe_tag_links(tag:recipe_tags(*)), creator:profiles!created_by(id, full_name, role)')
+          .select('*, ingredients:recipe_ingredients!recipe_ingredients_recipe_id_fkey(*), steps:recipe_steps(*), tags:recipe_tag_links(tag:recipe_tags(*)), creator:profiles!created_by(id, full_name, role)')
           .eq('id', id)
           .single()
+
+        if (error) {
+          toast.error('Não foi possível carregar os dados internos da receita.')
+          setLoading(false)
+          return
+        }
         
         if (data) {
           const { creator, tags, ...rest } = data as any
@@ -1187,4 +1193,3 @@ export function AdminRecipeEditorPage() {
     </div>
   )
 }
-

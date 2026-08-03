@@ -51,7 +51,7 @@ export function UserRecipeEditorPage() {
         try {
           const { data: recipe, error: recipeError } = await supabase
             .from('recipes')
-            .select('*, ingredients:recipe_ingredients(*), steps:recipe_steps(*), tags:recipe_tag_links(tag:recipe_tags(*))')
+            .select('*, ingredients:recipe_ingredients!recipe_ingredients_recipe_id_fkey(*), steps:recipe_steps(*), tags:recipe_tag_links(tag:recipe_tags(*))')
             .eq('id', id)
             .single()
 
