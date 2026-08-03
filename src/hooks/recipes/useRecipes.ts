@@ -37,7 +37,7 @@ export function useRecipes(filters?: {
         .select(`
           *,
           category:recipe_categories(*),
-          ingredients:recipe_ingredients(*, linked_recipe:recipes!linked_recipe_id(id, slug, title)),
+          ingredients:recipe_ingredients!recipe_ingredients_recipe_id_fkey(*, linked_recipe:recipes!linked_recipe_id(id, slug, title)),
           steps:recipe_steps(*),
           tags:recipe_tag_links(tag:recipe_tags(*)),
           creator:profiles!created_by(id, full_name, role)
@@ -104,7 +104,7 @@ export function useRecipe(slug: string | undefined) {
         .select(`
           *,
           category:recipe_categories(*),
-          ingredients:recipe_ingredients(*, linked_recipe:recipes!linked_recipe_id(id, slug, title)),
+          ingredients:recipe_ingredients!recipe_ingredients_recipe_id_fkey(*, linked_recipe:recipes!linked_recipe_id(id, slug, title)),
           steps:recipe_steps(*),
           tags:recipe_tag_links(tag:recipe_tags(*)),
           variations:recipe_variations!parent_recipe_id(*),
@@ -161,4 +161,3 @@ export function useRecipeTags() {
     },
   })
 }
-
