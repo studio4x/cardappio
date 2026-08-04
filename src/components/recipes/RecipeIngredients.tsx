@@ -1,18 +1,37 @@
+import { useState, useEffect } from 'react'
 import type { RecipeIngredient } from '@/types/recipes'
-import { Sparkles, Link2 } from 'lucide-react'
+import { Sparkles, Link2, Minus, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 interface RecipeIngredientsProps {
   ingredients: RecipeIngredient[]
   servings?: number
-  householdSize?: number
 }
 
-export function RecipeIngredients({ ingredients, servings, householdSize }: RecipeIngredientsProps) {
+export function RecipeIngredients({ ingredients, servings = 2 }: RecipeIngredientsProps) {
+  const [currentServings, setCurrentServings] = useState<number>(servings || 2)
+  
+  // Atualiza as porções se a receita mudar (por exemplo, ao navegar entre receitas)
+  useEffect(() => {
+    if (servings) {
+      setCurrentServings(servings)
+    }
+  }, [servings])
+
   const sortedIngredients = [...ingredients].sort((a, b) => a.sort_order - b.sort_order)
 
-  // Calcule o fator de escala (se o perfil tiver tamanho de família diferente das porções originais)
-  const scaleFactor = (householdSize && servings && servings > 0) ? (householdSize / servings) : 1
+  // O fator de escala é calculado com base nas porções selecionadas vs original
+  const scaleFactor = (servings && servings > 0) ? (currentServings / servings) : 1
+
+  const handleDecrease = () => {
+    if (currentServings > 1) {
+      setCurrentServings(prev => prev - 1)
+    }
+  }
+
+  const handleIncrease = () => {
+    setCurrentServings(prev => prev + 1)
+  }
 
   const formatQuantity = (qty: string | null, unit: string | null) => {
     if (!qty && !unit) return ''
@@ -23,8 +42,9 @@ export function RecipeIngredients({ ingredients, servings, householdSize }: Reci
       const num = parseFloat(qty.replace(',', '.'))
       if (!isNaN(num) && num > 0) {
         const scaled = num * scaleFactor
-        // Formata com no máximo 2 casas decimais e substitui ponto por vírgula se necessário
-        displayQty = Number(scaled.toFixed(2)).toString().replace('.', ',')
+        // Sempre arredondar para cima
+        const ceiled = Math.ceil(scaled)
+        displayQty = ceiled.toString().replace('.', ',')
       }
     }
 
@@ -39,26 +59,47 @@ export function RecipeIngredients({ ingredients, servings, householdSize }: Reci
 
   return (
     <section className="mb-10">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-        <h2
-          className="text-xl font-bold"
-          style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-on-surface)' }}
-        >
-          Ingredientes
-        </h2>
-        {scaleFactor !== 1 && householdSize && (
-          <span className="text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-xl flex items-center gap-1">
-            <Sparkles className="h-3 w-3" />
-            Ajustado para {householdSize} pessoas
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 border-b pb-4" style={{ borderColor: 'var(--color-outline-variant)' }}>
+        <div>
+          <h2
+            className="text-xl font-bold"
+            style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-on-surface)' }}
+          >
+            Ingredientes
+          </h2>
+          <p className="text-xs text-slate-400 mt-0.5 font-medium">
+            Porções da receita original: {servings} {servings === 1 ? 'pessoa' : 'pessoas'}
+          </p>
+        </div>
+        
+        {/* Seletor de Porções (Calculadora) */}
+        <div className="flex items-center gap-3 bg-slate-50 border border-slate-200/80 p-1 rounded-full shrink-0 shadow-sm self-start sm:self-auto">
+          <button 
+            onClick={handleDecrease}
+            disabled={currentServings <= 1}
+            className="w-8 h-8 rounded-full bg-white hover:bg-slate-50 border border-slate-100 flex items-center justify-center font-bold text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition-all shadow-sm"
+          >
+            <Minus className="h-3.5 w-3.5" />
+          </button>
+          
+          <span className="text-xs font-black text-slate-800 px-2 min-w-[70px] text-center uppercase tracking-wider select-none">
+            {currentServings} {currentServings === 1 ? 'Pessoa' : 'Pessoas'}
           </span>
-        )}
+          
+          <button 
+            onClick={handleIncrease}
+            className="w-8 h-8 rounded-full bg-white hover:bg-slate-50 border border-slate-100 flex items-center justify-center font-bold text-slate-600 active:scale-95 transition-all shadow-sm"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
 
-      {scaleFactor !== 1 && householdSize && servings && (
-        <div className="mb-4 text-xs font-semibold bg-primary/5 text-primary border border-primary/10 px-4 py-3 rounded-2xl flex items-center gap-2 shadow-sm">
-          <Sparkles className="h-4 w-4 shrink-0 text-primary" />
+      {scaleFactor !== 1 && (
+        <div className="mb-5 text-[11px] font-semibold bg-amber-500/5 text-amber-600 border border-amber-500/10 px-4 py-2.5 rounded-2xl flex items-center gap-2">
+          <Sparkles className="h-3.5 w-3.5 shrink-0 text-amber-500 animate-pulse" />
           <span>
-            Quantidades multiplicadas por <strong>{scaleFactor.toFixed(1).replace('.0', '')}x</strong> para cozinhar para a sua família de <strong>{householdSize} pessoas</strong> (receita original: {servings} {servings === 1 ? 'porção' : 'porções'}).
+            Quantidades ajustadas em <strong>{scaleFactor.toFixed(2).replace('.00', '')}x</strong> para cozinhar para <strong>{currentServings} {currentServings === 1 ? 'pessoa' : 'pessoas'}</strong> (arredondado para cima).
           </span>
         </div>
       )}

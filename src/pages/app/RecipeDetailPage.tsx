@@ -487,7 +487,6 @@ export function RecipeDetailPage() {
                       <RecipeIngredients 
                         ingredients={recipe.ingredients ?? []} 
                         servings={recipe.servings}
-                        householdSize={preferences?.household_size}
                       />
                     ) : (
                       <RecipeSteps steps={recipe.steps ?? []} />
