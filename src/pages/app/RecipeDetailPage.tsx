@@ -225,20 +225,31 @@ export function RecipeDetailPage() {
           
           {/* Left Column: Cover Image, Info Bento, Nutrition, Variations */}
           <div className="col-span-12 md:col-span-5 space-y-6">
-            {/* Hero Section */}
-            <section className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-sm">
-              {recipe.cover_image_url && (
+            {/* Hero Section (Cover Image) */}
+            <section className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-sm bg-neutral-100 flex items-center justify-center">
+              {recipe.cover_image_url ? (
                 <img src={recipe.cover_image_url} alt={recipe.title} className="w-full h-full object-cover" />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-6">
-                <div className="text-white">
-                  <span className="inline-block bg-fresh-green text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full mb-2">
-                    {recipe.category?.name || 'Receita'}
-                  </span>
-                  <h2 className="text-2xl md:text-3xl font-bold text-white leading-tight">{recipe.title}</h2>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-neutral-400 gap-2">
+                  <Utensils className="h-16 w-16 opacity-30" />
                 </div>
-              </div>
+              )}
             </section>
+
+            {/* Title & Category Info */}
+            <div className="mt-5 px-1">
+              <span className="inline-block bg-fresh-green/10 text-fresh-green text-[10px] uppercase font-extrabold px-3 py-1 rounded-full mb-2 tracking-wider">
+                {recipe.category?.name || 'Receita'}
+              </span>
+              <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
+                {recipe.title}
+              </h1>
+              {recipe.subtitle && (
+                <p className="mt-2 text-sm text-slate-500 leading-relaxed font-medium">
+                  {recipe.subtitle}
+                </p>
+              )}
+            </div>
 
              {/* Quick Info Bento */}
             <section className="mt-4">
