@@ -12,6 +12,72 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { RichTextEditor } from '@/components/shared/RichTextEditor'
 
+const INGREDIENT_UNITS = [
+  { value: "a gosto", label: "A gosto" },
+  { value: "caixa", label: "Caixa(s)" },
+  { value: "centilitro", label: "Centilitro (centilitro)" },
+  { value: "centilitros", label: "Centilitros (centilitros)" },
+  { value: "cl", label: "Centilitros (cl)" },
+  { value: "centímetro", label: "Centímetro (centímetro)" },
+  { value: "centímetros", label: "Centímetros (centímetros)" },
+  { value: "cm", label: "Centímetro(s) (cm)" },
+  { value: "colher (café)", label: "Colher (café)" },
+  { value: "colher (chá)", label: "Colher (chá)" },
+  { value: "colher (sobremesa)", label: "Colher (sobremesa)" },
+  { value: "colher (sopa)", label: "Colher (sopa)" },
+  { value: "colher de café", label: "Colher(es) de café" },
+  { value: "colher de chá", label: "Colher(es) de chá" },
+  { value: "colher de sobremesa", label: "Colher(es) de sobremesa" },
+  { value: "colher de sopa", label: "Colher(es) de sopa" },
+  { value: "colheres (café)", label: "Colheres (café)" },
+  { value: "colheres (chá)", label: "Colheres (chá)" },
+  { value: "colheres (sobremesa)", label: "Colheres (sobremesa)" },
+  { value: "colheres (sopa)", label: "Colheres (sopa)" },
+  { value: "copo", label: "Copo(s)" },
+  { value: "decilitro", label: "Decilitro (decilitro)" },
+  { value: "decilitros", label: "Decilitros (decilitros)" },
+  { value: "dl", label: "Decilitros (dl)" },
+  { value: "dente", label: "Dente(s)" },
+  { value: "dentes", label: "Dentes (dentes)" },
+  { value: "fatia", label: "Fatia(s)" },
+  { value: "fatias", label: "Fatias (fatias)" },
+  { value: "folha", label: "Folha(s)" },
+  { value: "folhas", label: "Folhas (folhas)" },
+  { value: "grama", label: "Grama (grama)" },
+  { value: "g", label: "Gramas (g)" },
+  { value: "gramas", label: "Gramas (gramas)" },
+  { value: "lata", label: "Lata(s)" },
+  { value: "liter", label: "Liter (liter)" },
+  { value: "l", label: "Litros (l)" },
+  { value: "litros", label: "Litros (litros)" },
+  { value: "maço", label: "Maço(s)" },
+  { value: "milligrama", label: "Miligrama (milligrama)" },
+  { value: "mg", label: "Miligramas (mg)" },
+  { value: "milligramas", label: "Miligramas (milligramas)" },
+  { value: "millilitro", label: "Mililitro (millilitro)" },
+  { value: "millilitros", label: "Mililitros (millilitros)" },
+  { value: "ml", label: "Mililitros (ml)" },
+  { value: "milímetro", label: "Milímetro (milímetro)" },
+  { value: "milímetros", label: "Milímetros (milímetros)" },
+  { value: "mm", label: "Milímetro(s) (mm)" },
+  { value: "molho", label: "Molho (molho)" },
+  { value: "molhos", label: "Molhos (molhos)" },
+  { value: "pacote", label: "Pacote(s)" },
+  { value: "pedaço", label: "Pedaço(s)" },
+  { value: "pedaços", label: "Pedaços (pedaços)" },
+  { value: "pitada", label: "Pitada(s)" },
+  { value: "porção", label: "Porção (porção)" },
+  { value: "quilo", label: "Quilo (quilo)" },
+  { value: "kg", label: "Quilogramas (kg)" },
+  { value: "quilos", label: "Quilos (quilos)" },
+  { value: "ramo", label: "Ramo(s)" },
+  { value: "unidade", label: "Unidade(s)" },
+  { value: "vidro", label: "Vidro(s)" },
+  { value: "xícara", label: "Xícara(s)" },
+  { value: "xícaras", label: "Xícaras (xícaras)" },
+  { value: "xícara de chá", label: "Xícara(s) de chá" }
+]
+
 export function UserRecipeEditorPage() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -558,71 +624,11 @@ export function UserRecipeEditorPage() {
                     className="w-full rounded-xl border p-2.5 text-sm border-slate-200 outline-none bg-white cursor-pointer"
                   >
                     <option value="">Sem unidade</option>
-                    {/* Antigas mantidas */}
-                    <option value="g">Gramas (g)</option>
-                    <option value="kg">Quilogramas (kg)</option>
-                    <option value="ml">Mililitros (ml)</option>
-                    <option value="l">Litros (l)</option>
-                    <option value="unidade">Unidade(s)</option>
-                    <option value="colher de sopa">Colher(es) de sopa</option>
-                    <option value="colher de chá">Colher(es) de chá</option>
-                    <option value="colher de sobremesa">Colher(es) de sobremesa</option>
-                    <option value="colher de café">Colher(es) de café</option>
-                    <option value="xícara">Xícara(s)</option>
-                    <option value="xícara de chá">Xícara(s) de chá</option>
-                    <option value="dente">Dente(s)</option>
-                    <option value="fatia">Fatia(s)</option>
-                    <option value="copo">Copo(s)</option>
-                    <option value="pitada">Pitada(s)</option>
-                    <option value="lata">Lata(s)</option>
-                    <option value="caixa">Caixa(s)</option>
-                    <option value="pacote">Pacote(s)</option>
-                    <option value="vidro">Vidro(s)</option>
-                    <option value="maço">Maço(s)</option>
-                    <option value="pedaço">Pedaço(s)</option>
-                    <option value="folha">Folha(s)</option>
-                    <option value="ramo">Ramo(s)</option>
-                    <option value="a gosto">A gosto</option>
-                    {/* Novas unidades adicionadas */}
-                    <option value="quilo">Quilo (quilo)</option>
-                    <option value="quilos">Quilos (quilos)</option>
-                    <option value="grama">Grama (grama)</option>
-                    <option value="gramas">Gramas (gramas)</option>
-                    <option value="mg">Miligramas (mg)</option>
-                    <option value="milligrama">Miligrama (milligrama)</option>
-                    <option value="milligramas">Miligramas (milligramas)</option>
-                    <option value="liter">Liter (liter)</option>
-                    <option value="litros">Litros (litros)</option>
-                    <option value="dl">Decilitros (dl)</option>
-                    <option value="decilitro">Decilitro (decilitro)</option>
-                    <option value="decilitros">Decilitros (decilitros)</option>
-                    <option value="cl">Centilitros (cl)</option>
-                    <option value="centilitro">Centilitro (centilitro)</option>
-                    <option value="centilitros">Centilitros (centilitros)</option>
-                    <option value="millilitro">Mililitro (millilitro)</option>
-                    <option value="millilitros">Mililitros (millilitros)</option>
-                    <option value="xícaras">Xícaras (xícaras)</option>
-                    <option value="colher (sopa)">Colher (sopa)</option>
-                    <option value="colheres (sopa)">Colheres (sopa)</option>
-                    <option value="colher (chá)">Colher (chá)</option>
-                    <option value="colheres (chá)">Colheres (chá)</option>
-                    <option value="colher (sobremesa)">Colher (sobremesa)</option>
-                    <option value="colheres (sobremesa)">Colheres (sobremesa)</option>
-                    <option value="colher (café)">Colher (café)</option>
-                    <option value="colheres (café)">Colheres (café)</option>
-                    <option value="cm">Centímetro(s) (cm)</option>
-                    <option value="centímetro">Centímetro (centímetro)</option>
-                    <option value="centímetros">Centímetros (centímetros)</option>
-                    <option value="mm">Milímetro(s) (mm)</option>
-                    <option value="milímetro">Milímetro (milímetro)</option>
-                    <option value="milímetros">Milímetros (milímetros)</option>
-                    <option value="dentes">Dentes (dentes)</option>
-                    <option value="molho">Molho (molho)</option>
-                    <option value="molhos">Molhos (molhos)</option>
-                    <option value="folhas">Folhas (folhas)</option>
-                    <option value="fatias">Fatias (fatias)</option>
-                    <option value="pedaços">Pedaços (pedaços)</option>
-                    <option value="porção">Porção (porção)</option>
+                    {INGREDIENT_UNITS.map(unit => (
+                      <option key={unit.value} value={unit.value}>
+                        {unit.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 {ingredients.length > 1 && (
