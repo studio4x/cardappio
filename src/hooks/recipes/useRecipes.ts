@@ -14,6 +14,8 @@ export function useRecipes(filters?: {
   page?: number
   pageSize?: number
   isPremium?: boolean
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
 }) {
   return useQuery({
     queryKey: [
@@ -25,6 +27,8 @@ export function useRecipes(filters?: {
       filters?.isPremium ?? null,
       filters?.page ?? 1,
       filters?.pageSize ?? 10,
+      filters?.sortBy ?? 'created_at',
+      filters?.sortOrder ?? 'desc',
     ],
     queryFn: async () => {
       const page = filters?.page || 1
@@ -42,7 +46,14 @@ export function useRecipes(filters?: {
           tags:recipe_tag_links(tag:recipe_tags(*)),
           creator:profiles!created_by(id, full_name, role)
         `, { count: 'exact' })
-        .order('created_at', { ascending: false }) // Novas primeiro
+
+      // Ordenação dinâmica com base nos filtros
+      const sortBy = filters?.sortBy || 'created_at'
+      const sortOrder = filters?.sortOrder || 'desc'
+      query = query.order(sortBy, { ascending: sortOrder === 'asc' })
+
+      // Mantém a ordenação dos relacionamentos internos
+      query = query
         .order('sort_order', { foreignTable: 'recipe_ingredients' })
         .order('step_number', { foreignTable: 'recipe_steps' })
 

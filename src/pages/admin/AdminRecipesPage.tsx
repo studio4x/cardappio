@@ -19,6 +19,9 @@ import {
   Crown,
   AlertTriangle,
   CheckCircle2,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -60,6 +63,42 @@ export function AdminRecipesPage() {
   const [premiumFilter, setPremiumFilter] = useState<'all' | 'premium' | 'free'>('all')
   const pageSize = 10
 
+  const [sortBy, setSortBy] = useState<string>('created_at')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortBy(field)
+      setSortOrder('desc')
+    }
+    setPage(1)
+  }
+
+  const renderSortHeader = (field: string, label: string) => {
+    const isCurrent = sortBy === field
+    return (
+      <th 
+        onClick={() => handleSort(field)}
+        className="px-6 py-4 font-bold uppercase tracking-wider cursor-pointer hover:bg-slate-100/80 transition-colors select-none"
+      >
+        <div className="flex items-center gap-1.5">
+          <span>{label}</span>
+          {isCurrent ? (
+            sortOrder === 'asc' ? (
+              <ArrowUp className="h-3.5 w-3.5 text-primary" />
+            ) : (
+              <ArrowDown className="h-3.5 w-3.5 text-primary" />
+            )
+          ) : (
+            <ArrowUpDown className="h-3.5 w-3.5 text-slate-300 opacity-60" />
+          )}
+        </div>
+      </th>
+    )
+  }
+
   /**
    * Debounced search: the input value updates immediately (searchTerm)
    * so the cursor stays in the field, but we only send a new query
@@ -80,7 +119,9 @@ export function AdminRecipesPage() {
     isPremium: premiumFilter === 'all' ? undefined : premiumFilter === 'premium',
     status: 'all',
     page,
-    pageSize
+    pageSize,
+    sortBy,
+    sortOrder
   })
 
   const recipes = data?.recipes || []
@@ -625,9 +666,10 @@ export function AdminRecipesPage() {
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 border-b" style={{ borderColor: 'var(--color-outline-variant)', color: 'var(--color-outline)' }}>
               <tr>
-                <th className="px-6 py-4 font-bold uppercase tracking-wider">Título</th>
-                <th className="px-6 py-4 font-bold uppercase tracking-wider">Categoria</th>
-                <th className="px-6 py-4 font-bold uppercase tracking-wider">Status</th>
+                {renderSortHeader('title', 'Título')}
+                {renderSortHeader('category_id', 'Categoria')}
+                {renderSortHeader('status', 'Status')}
+                {renderSortHeader('created_at', 'Data de Inserção')}
                 <th className="px-6 py-4 font-bold uppercase tracking-wider">Conteúdo</th>
                 <th className="px-6 py-4 font-bold uppercase tracking-wider text-right">Ações</th>
               </tr>
@@ -635,7 +677,7 @@ export function AdminRecipesPage() {
             <tbody className="divide-y" style={{ borderColor: 'var(--color-outline-variant)' }}>
               {(isLoading || isFetching) && recipes.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
+                  <td colSpan={6} className="px-6 py-12 text-center">
                     <div className="flex items-center justify-center gap-2 text-muted-foreground">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       <span className="text-sm">Carregando receitas...</span>
@@ -644,7 +686,7 @@ export function AdminRecipesPage() {
                 </tr>
               ) : recipes.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground italic">
+                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground italic">
                     Nenhuma receita encontrada.
                   </td>
                 </tr>
@@ -675,6 +717,9 @@ export function AdminRecipesPage() {
                       )}>
                         {recipe.status === 'published' ? 'Publicado' : 'Rascunho'}
                       </Badge>
+                    </td>
+                    <td className="px-6 py-4 text-xs font-semibold text-slate-500 whitespace-nowrap">
+                      {recipe.created_at ? new Date(recipe.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-'}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
