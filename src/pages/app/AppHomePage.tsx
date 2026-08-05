@@ -875,7 +875,7 @@ export function AppHomePage() {
                   className="bg-white rounded-2xl overflow-hidden border shadow-sm hover:shadow-md transition-shadow group cursor-pointer no-underline block" 
                   style={{ borderColor: 'var(--color-outline-variant)' }}
                 >
-                  <div className="h-28 md:h-44 relative overflow-hidden bg-slate-100">
+                  <div className="aspect-[4/3] w-full relative overflow-hidden bg-slate-100">
                     <button
                       onClick={(e) => {
                         e.preventDefault();
