@@ -47,12 +47,26 @@ export function RecipeImage({ src, alt, className }: RecipeImageProps) {
         const ctx = canvas.getContext('2d')
         if (!ctx) throw new Error('Não foi possível obter o contexto 2D do canvas')
 
-        // Define a resolução nativa do canvas como sendo a da imagem original
-        canvas.width = img.naturalWidth || img.width
-        canvas.height = img.naturalHeight || img.height
+        // Superamostragem (Upscaling para alta definição) para evitar que o logotipo perca nitidez
+        let targetWidth = img.naturalWidth || img.width
+        let targetHeight = img.naturalHeight || img.height
+        const minHDWidth = 1600
 
-        // Desenha a imagem de capa original da receita
-        ctx.drawImage(img, 0, 0)
+        if (targetWidth < minHDWidth) {
+          const ratio = minHDWidth / targetWidth
+          targetWidth = minHDWidth
+          targetHeight = targetHeight * ratio
+        }
+
+        canvas.width = targetWidth
+        canvas.height = targetHeight
+
+        // Habilita interpolação bicúbica/bilinear de alta qualidade para o redimensionamento do canvas
+        ctx.imageSmoothingEnabled = true
+        ctx.imageSmoothingQuality = 'high'
+
+        // Desenha a imagem de capa original da receita redimensionada
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
 
         // Tamanho da marca d'água (porcentagem da largura da imagem original, vinda do banco ou padrão de 24%)
         const sizePercent = visualIdentity?.watermark_size || 24
@@ -81,11 +95,11 @@ export function RecipeImage({ src, alt, className }: RecipeImageProps) {
           y = (canvas.height - watermarkHeight) / 2
         }
 
-        // Desenha o logotipo da marca d'água no canvas
+        // Desenha o logotipo da marca d'água no canvas com alta qualidade de interpolação
         ctx.drawImage(watermark, x, y, watermarkWidth, watermarkHeight)
 
-        // Exporta a imagem combinada com qualidade de 92%
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.92)
+        // Exporta a imagem combinada com qualidade de 98% (quase sem perda de compressão)
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.98)
         
         if (isMounted) {
           setProcessedSrc(dataUrl)
