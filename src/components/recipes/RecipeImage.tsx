@@ -54,9 +54,9 @@ export function RecipeImage({ src, alt, className }: RecipeImageProps) {
         // Desenha a imagem de capa original da receita
         ctx.drawImage(img, 0, 0)
 
-        // Calcula as dimensões e posição da marca d'água no canto superior esquerdo
-        // Proporção sugerida: 24% da largura da imagem original, mantendo a proporção de aspecto
-        const watermarkWidth = canvas.width * 0.24
+        // Tamanho da marca d'água (porcentagem da largura da imagem original, vinda do banco ou padrão de 24%)
+        const sizePercent = visualIdentity?.watermark_size || 24
+        const watermarkWidth = canvas.width * (sizePercent / 100)
         const scale = watermarkWidth / watermark.naturalWidth
         const watermarkHeight = watermark.naturalHeight * scale
 
@@ -64,8 +64,25 @@ export function RecipeImage({ src, alt, className }: RecipeImageProps) {
         const marginX = Math.max(canvas.width * 0.04, 16)
         const marginY = Math.max(canvas.height * 0.04, 16)
 
+        // Calcula a posição do logotipo com base no watermark_position
+        const position = visualIdentity?.watermark_position || 'top_left'
+        let x = marginX
+        let y = marginY
+
+        if (position === 'top_right') {
+          x = canvas.width - watermarkWidth - marginX
+        } else if (position === 'bottom_left') {
+          y = canvas.height - watermarkHeight - marginY
+        } else if (position === 'bottom_right') {
+          x = canvas.width - watermarkWidth - marginX
+          y = canvas.height - watermarkHeight - marginY
+        } else if (position === 'center') {
+          x = (canvas.width - watermarkWidth) / 2
+          y = (canvas.height - watermarkHeight) / 2
+        }
+
         // Desenha o logotipo da marca d'água no canvas
-        ctx.drawImage(watermark, marginX, marginY, watermarkWidth, watermarkHeight)
+        ctx.drawImage(watermark, x, y, watermarkWidth, watermarkHeight)
 
         // Exporta a imagem combinada com qualidade de 92%
         const dataUrl = canvas.toDataURL('image/jpeg', 0.92)
@@ -90,7 +107,7 @@ export function RecipeImage({ src, alt, className }: RecipeImageProps) {
     return () => {
       isMounted = false
     }
-  }, [src, visualIdentity?.watermark_url])
+  }, [src, visualIdentity?.watermark_url, visualIdentity?.watermark_size, visualIdentity?.watermark_position])
 
   // Helper em Promise para carregar uma imagem
   const loadImage = (url: string, useCors = false): Promise<HTMLImageElement> => {
@@ -116,6 +133,36 @@ export function RecipeImage({ src, alt, className }: RecipeImageProps) {
   // Enquanto processa o canvas, exibe a imagem original como um placeholder imediato
   const displaySrc = processedSrc || src
 
+  // Estilo inline para o fallback de HTML (caso ocorra erro CORS)
+  const sizePercent = visualIdentity?.watermark_size || 24
+  const position = visualIdentity?.watermark_position || 'top_left'
+  
+  let overlayStyle: React.CSSProperties = {
+    width: `${sizePercent}%`,
+    position: 'absolute',
+    pointerEvents: 'none',
+    userSelect: 'none',
+    zIndex: 10
+  }
+
+  if (position === 'top_left') {
+    overlayStyle.top = '4%'
+    overlayStyle.left = '4%'
+  } else if (position === 'top_right') {
+    overlayStyle.top = '4%'
+    overlayStyle.right = '4%'
+  } else if (position === 'bottom_left') {
+    overlayStyle.bottom = '4%'
+    overlayStyle.left = '4%'
+  } else if (position === 'bottom_right') {
+    overlayStyle.bottom = '4%'
+    overlayStyle.right = '4%'
+  } else if (position === 'center') {
+    overlayStyle.top = '50%'
+    overlayStyle.left = '50%'
+    overlayStyle.transform = 'translate(-50%, -50%)'
+  }
+
   return (
     <div className={cn("relative w-full h-full overflow-hidden", className)}>
       <img
@@ -126,9 +173,9 @@ export function RecipeImage({ src, alt, className }: RecipeImageProps) {
       
       {/* Fallback visual: Se houve falha de CORS ao desenhar no canvas,
           desenhamos a marca d'água como um elemento HTML absolute por cima da imagem.
-          Assim o logotipo é exibido perfeitamente na interface de qualquer forma. */}
+          Assim o logotipo é exibido na posição e tamanho configurados perfeitamente. */}
       {hasError && visualIdentity?.watermark_url && (
-        <div className="absolute top-[4%] left-[4%] w-[24%] select-none pointer-events-none z-10 animate-fade-in">
+        <div style={overlayStyle} className="animate-fade-in">
           <img
             src={visualIdentity.watermark_url}
             alt=""

@@ -16,6 +16,36 @@ export function AdminSettingsPage() {
     setVercelUrlInput(vercelWebhookUrl || '')
   }, [vercelWebhookUrl])
 
+  // Calculadora de estilos para a pré-visualização da marca d'água
+  const sizePercent = visualIdentity?.watermark_size || 24
+  const position = visualIdentity?.watermark_position || 'top_left'
+  
+  let previewWatermarkStyle: React.CSSProperties = {
+    width: `${sizePercent}%`,
+    position: 'absolute',
+    pointerEvents: 'none',
+    userSelect: 'none',
+    zIndex: 10
+  }
+
+  if (position === 'top_left') {
+    previewWatermarkStyle.top = '4%'
+    previewWatermarkStyle.left = '4%'
+  } else if (position === 'top_right') {
+    previewWatermarkStyle.top = '4%'
+    previewWatermarkStyle.right = '4%'
+  } else if (position === 'bottom_left') {
+    previewWatermarkStyle.bottom = '4%'
+    previewWatermarkStyle.left = '4%'
+  } else if (position === 'bottom_right') {
+    previewWatermarkStyle.bottom = '4%'
+    previewWatermarkStyle.right = '4%'
+  } else if (position === 'center') {
+    previewWatermarkStyle.top = '50%'
+    previewWatermarkStyle.left = '50%'
+    previewWatermarkStyle.transform = 'translate(-50%, -50%)'
+  }
+
   const [isSaving, setIsSaving] = useState(false)
   const [activeTab, setActiveTab] = useState('visual')
 
@@ -197,36 +227,128 @@ export function AdminSettingsPage() {
               <p className="text-[11px] text-slate-400">Ícone exibido na aba do navegador (32x32px sugerido).</p>
             </div>
 
-            {/* Marca d'água */}
-            <div className="rounded-2xl border bg-white p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-sm uppercase tracking-wider text-slate-500">Marca d'água de Receitas</h3>
-                <span className="text-[10px] bg-slate-100 px-2 py-1 rounded-full font-bold">Nas Capas</span>
+          </div>
+
+          {/* Seção Completa da Marca d'água */}
+          <div className="col-span-full rounded-2xl border bg-white p-6 shadow-sm space-y-6">
+            <div className="flex items-center gap-3 border-b pb-4">
+              <div className="p-2 bg-primary/10 text-primary rounded-lg">
+                <ImageIcon className="h-5 w-5" />
               </div>
-              <div className="aspect-video rounded-xl bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center relative group overflow-hidden transition-all hover:border-primary/50">
-                {visualIdentity.watermark_url ? (
-                  <>
-                    <img src={visualIdentity.watermark_url} alt="Marca d'água" className="max-h-[70%] max-w-[80%] object-contain" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <button 
-                        onClick={() => handleRemoveAsset('watermark_url')}
-                        className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <label className="flex flex-col items-center gap-2 cursor-pointer w-full h-full justify-center">
-                    <ImageIcon className="h-8 w-8 text-slate-300" />
-                    <span className="text-xs text-slate-400 font-medium">Upload Marca d'água</span>
-                    <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'watermark_url')} />
-                  </label>
-                )}
+              <div>
+                <h3 className="font-bold text-sm text-slate-800">Marca d'água de Receitas</h3>
+                <p className="text-xs text-slate-500">Adicione e posicione o logotipo da sua marca sobre todas as fotos de capa do aplicativo.</p>
               </div>
-              <p className="text-[11px] text-slate-400">Logotipo aplicado no canto superior esquerdo de todas as capas de receitas.</p>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Controles */}
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Arquivo do Logotipo</label>
+                  <div className="h-32 rounded-xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center relative group overflow-hidden transition-all hover:border-primary/50">
+                    {visualIdentity.watermark_url ? (
+                      <>
+                        <img src={visualIdentity.watermark_url} alt="Marca d'água" className="max-h-[80%] max-w-[80%] object-contain" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <button 
+                            onClick={() => handleRemoveAsset('watermark_url')}
+                            className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <label className="flex flex-col items-center gap-2 cursor-pointer w-full h-full justify-center">
+                        <ImageIcon className="h-8 w-8 text-slate-300" />
+                        <span className="text-xs text-slate-400 font-medium">Fazer Upload do Logotipo</span>
+                        <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'watermark_url')} />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                {visualIdentity.watermark_url && (
+                  <>
+                    {/* Posição */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Posição do Logotipo</label>
+                      <select
+                        value={visualIdentity.watermark_position || 'top_left'}
+                        onChange={(e) => {
+                          updateVisualIdentity({
+                            ...visualIdentity,
+                            watermark_position: e.target.value
+                          })
+                        }}
+                        className="w-full text-sm border rounded-xl px-3 py-2.5 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer font-medium"
+                      >
+                        <option value="top_left">Superior Esquerdo</option>
+                        <option value="top_right">Superior Direito</option>
+                        <option value="bottom_left">Inferior Esquerdo</option>
+                        <option value="bottom_right">Inferior Direito</option>
+                        <option value="center">Centralizado</option>
+                      </select>
+                    </div>
+
+                    {/* Tamanho */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tamanho do Logotipo</label>
+                        <span className="text-xs font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                          {visualIdentity.watermark_size || 24}%
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="10"
+                        max="50"
+                        value={visualIdentity.watermark_size || 24}
+                        onChange={(e) => {
+                          updateVisualIdentity({
+                            ...visualIdentity,
+                            watermark_size: parseInt(e.target.value)
+                          })
+                        }}
+                        className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary"
+                      />
+                      <div className="flex justify-between text-[10px] text-slate-400 font-medium">
+                        <span>Compacto (10%)</span>
+                        <span>Grande (50%)</span>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Preview Interativo */}
+              <div className="flex flex-col justify-center items-center space-y-3">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider self-start">Pré-visualização em Tempo Real</label>
+                <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden border border-slate-200 shadow bg-slate-100 select-none">
+                  {/* Imagem de prato de comida de demonstração */}
+                  <img 
+                    src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=600&auto=format&fit=crop" 
+                    alt="Demonstração" 
+                    className="w-full h-full object-cover"
+                  />
+                  
+                  {/* Logotipo da Marca d'água posicionado dinamicamente */}
+                  {visualIdentity.watermark_url && (
+                    <div style={previewWatermarkStyle} className="transition-all duration-200">
+                      <img 
+                        src={visualIdentity.watermark_url} 
+                        alt="Marca d'água Preview" 
+                        className="w-full h-auto object-contain"
+                      />
+                    </div>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-400 text-center leading-relaxed">
+                  A pré-visualização simula como o logotipo é fundido graficamente no aplicativo.
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="rounded-2xl border border-amber-100 bg-amber-50/50 p-6">

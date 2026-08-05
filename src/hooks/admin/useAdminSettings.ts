@@ -7,6 +7,8 @@ export interface VisualIdentity {
   logo_light_url: string
   favicon_url: string
   watermark_url?: string
+  watermark_size?: number
+  watermark_position?: string
 }
 
 export function useAdminSettings() {
@@ -15,7 +17,9 @@ export function useAdminSettings() {
     logo_dark_url: '',
     logo_light_url: '',
     favicon_url: '',
-    watermark_url: ''
+    watermark_url: '',
+    watermark_size: 24,
+    watermark_position: 'top_left'
   })
   const [vercelWebhookUrl, setVercelWebhookUrl] = useState('')
 

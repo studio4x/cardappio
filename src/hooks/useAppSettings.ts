@@ -7,6 +7,8 @@ export interface VisualIdentity {
   logo_light_url: string
   favicon_url: string
   watermark_url?: string
+  watermark_size?: number
+  watermark_position?: string
 }
 
 export function useAppSettings() {
