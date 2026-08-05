@@ -419,7 +419,7 @@ export function AppHomePage() {
           ) : weekLoading ? (
             <div className="h-24 animate-pulse bg-slate-100 rounded-2xl" />
           ) : (
-            <div className="flex overflow-x-auto no-scrollbar gap-2.5 pb-1 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-7 md:gap-3">
+            <div className="flex overflow-x-auto no-scrollbar gap-2.5 py-1.5 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-7 md:gap-3">
               {[...(activeWeek?.days ?? [])]
                 .sort((a, b) => a.sort_order - b.sort_order)
                 .slice(0, 7)
