@@ -569,7 +569,20 @@ export function WeeklyPlannerPage() {
           <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
             {chronoDays.map((day, idx) => {
               const hasToday = processedDays.some(d => d.isToday)
-              const isHighlighted = hasToday ? day.isToday : idx === 0
+              
+              let isHighlighted = false
+              if (hasToday) {
+                isHighlighted = day.isToday
+              } else {
+                const todayOfWeek = new Date().getDay() // 0 = Domingo, 1 = Segunda, ..., 6 = Sábado
+                const todaySortOrder = todayOfWeek === 0 ? 6 : todayOfWeek - 1
+                const hasMatchingDayOfWeek = chronoDays.some(d => d.sort_order === todaySortOrder)
+                if (hasMatchingDayOfWeek) {
+                  isHighlighted = day.sort_order === todaySortOrder
+                } else {
+                  isHighlighted = idx === 0
+                }
+              }
               
               return (
                 <div 
