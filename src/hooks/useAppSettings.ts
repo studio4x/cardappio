@@ -6,6 +6,7 @@ export interface VisualIdentity {
   logo_dark_url: string
   logo_light_url: string
   favicon_url: string
+  watermark_url?: string
 }
 
 export function useAppSettings() {

@@ -15,6 +15,7 @@ import { useRecipes } from '@/hooks/recipes/useRecipes'
 import { toast } from 'sonner'
 import type { Recipe } from '@/types/recipes'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import { RecipeImage } from '@/components/recipes/RecipeImage'
 
 import { isUserPro, getTrialInfo } from '@/lib/subscription'
 
@@ -480,7 +481,7 @@ export function AppHomePage() {
                   >
                     <div className="h-12 w-12 rounded-lg overflow-hidden shrink-0 bg-slate-100">
                       {recipe.cover_image_url ? (
-                        <img src={recipe.cover_image_url} alt={recipe.title} className="h-full w-full object-cover" />
+                        <RecipeImage src={recipe.cover_image_url} alt={recipe.title} className="h-full w-full object-cover" />
                       ) : (
                         <div className="h-full w-full flex items-center justify-center text-slate-300">
                           <ChefHat className="h-6 w-6" />
@@ -893,7 +894,7 @@ export function AppHomePage() {
                       />
                     </button>
                     {recipe.cover_image_url ? (
-                      <img 
+                      <RecipeImage 
                         src={recipe.cover_image_url} 
                         alt={recipe.title} 
                         className={cn("h-full w-full object-cover group-hover:scale-105 transition-transform duration-300", isLocked && "brightness-50")}

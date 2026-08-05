@@ -4,6 +4,7 @@ import { FavoriteButton } from './FavoriteButton'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { isUserPro } from '@/lib/subscription'
+import { RecipeImage } from './RecipeImage'
 
 interface RecipeCardProps {
   recipe: Recipe
@@ -50,7 +51,7 @@ export function RecipeCard({
         {/* Image */}
         <div className="relative aspect-[4/3] overflow-hidden w-full" style={{ backgroundColor: 'var(--color-surface-container)' }}>
           {recipe.cover_image_url ? (
-            <img
+            <RecipeImage
               src={recipe.cover_image_url}
               alt={recipe.title}
               className={cn("h-full w-full object-cover transition-transform", !isLocked && "group-hover:scale-105", isLocked && "brightness-50")}

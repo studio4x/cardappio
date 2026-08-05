@@ -1,0 +1,141 @@
+import { useState, useEffect } from 'react'
+import { useAppSettings } from '@/hooks/useAppSettings'
+import { Utensils } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+interface RecipeImageProps {
+  src?: string | null
+  alt: string
+  className?: string
+}
+
+export function RecipeImage({ src, alt, className }: RecipeImageProps) {
+  const { visualIdentity } = useAppSettings() as any
+  const [processedSrc, setProcessedSrc] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
+
+  useEffect(() => {
+    if (!src) {
+      setLoading(false)
+      return
+    }
+
+    const watermarkUrl = visualIdentity?.watermark_url
+
+    // Se não houver marca d'água configurada, exibe a imagem original
+    if (!watermarkUrl) {
+      setProcessedSrc(src)
+      setLoading(false)
+      return
+    }
+
+    let isMounted = true
+    setLoading(true)
+
+    const applyWatermark = async () => {
+      try {
+        const [img, watermark] = await Promise.all([
+          loadImage(src, true), // Tenta carregar a imagem original da receita com CORS habilitado
+          loadImage(watermarkUrl, true) // Tenta carregar a marca d'água com CORS habilitado
+        ])
+
+        if (!isMounted) return
+
+        // Cria canvas em memória
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        if (!ctx) throw new Error('Não foi possível obter o contexto 2D do canvas')
+
+        // Define a resolução nativa do canvas como sendo a da imagem original
+        canvas.width = img.naturalWidth || img.width
+        canvas.height = img.naturalHeight || img.height
+
+        // Desenha a imagem de capa original da receita
+        ctx.drawImage(img, 0, 0)
+
+        // Calcula as dimensões e posição da marca d'água no canto superior esquerdo
+        // Proporção sugerida: 24% da largura da imagem original, mantendo a proporção de aspecto
+        const watermarkWidth = canvas.width * 0.24
+        const scale = watermarkWidth / watermark.naturalWidth
+        const watermarkHeight = watermark.naturalHeight * scale
+
+        // Adiciona margem de 4% da largura/altura da imagem de capa (mínimo de 16px)
+        const marginX = Math.max(canvas.width * 0.04, 16)
+        const marginY = Math.max(canvas.height * 0.04, 16)
+
+        // Desenha o logotipo da marca d'água no canvas
+        ctx.drawImage(watermark, marginX, marginY, watermarkWidth, watermarkHeight)
+
+        // Exporta a imagem combinada com qualidade de 92%
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.92)
+        
+        if (isMounted) {
+          setProcessedSrc(dataUrl)
+          setLoading(false)
+        }
+      } catch (err) {
+        console.warn('Erro CORS ou falha ao desenhar marca d\'água no canvas. Ativando fallback visual HTML:', err)
+        if (isMounted) {
+          // Se falhar (ex: bloqueio CORS de domínios externos), exibe a imagem original e ativa o overlay CSS
+          setProcessedSrc(src)
+          setHasError(true)
+          setLoading(false)
+        }
+      }
+    }
+
+    applyWatermark()
+
+    return () => {
+      isMounted = false
+    }
+  }, [src, visualIdentity?.watermark_url])
+
+  // Helper em Promise para carregar uma imagem
+  const loadImage = (url: string, useCors = false): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      if (useCors) {
+        img.crossOrigin = 'anonymous'
+      }
+      img.onload = () => resolve(img)
+      img.onerror = (e) => reject(e)
+      img.src = url
+    })
+  }
+
+  if (!src) {
+    return (
+      <div className={cn("flex h-full w-full items-center justify-center bg-neutral-100 text-neutral-400", className)}>
+        <Utensils className="h-10 w-10 opacity-30" />
+      </div>
+    )
+  }
+
+  // Enquanto processa o canvas, exibe a imagem original como um placeholder imediato
+  const displaySrc = processedSrc || src
+
+  return (
+    <div className={cn("relative w-full h-full overflow-hidden", className)}>
+      <img
+        src={displaySrc}
+        alt={alt}
+        className="w-full h-full object-cover"
+      />
+      
+      {/* Fallback visual: Se houve falha de CORS ao desenhar no canvas,
+          desenhamos a marca d'água como um elemento HTML absolute por cima da imagem.
+          Assim o logotipo é exibido perfeitamente na interface de qualquer forma. */}
+      {hasError && visualIdentity?.watermark_url && (
+        <div className="absolute top-[4%] left-[4%] w-[24%] select-none pointer-events-none z-10 animate-fade-in">
+          <img
+            src={visualIdentity.watermark_url}
+            alt=""
+            className="w-full h-auto object-contain"
+          />
+        </div>
+      )}
+    </div>
+  )
+}

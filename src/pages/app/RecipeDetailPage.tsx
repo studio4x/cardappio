@@ -7,6 +7,7 @@ import { useRecipe } from '@/hooks/recipes/useRecipes'
 import { FavoriteButton } from '@/components/recipes/FavoriteButton'
 import { RecipeIngredients } from '@/components/recipes/RecipeIngredients'
 import { RecipeSteps } from '@/components/recipes/RecipeSteps'
+import { RecipeImage } from '@/components/recipes/RecipeImage'
 import { AudioPlayerRecipe } from '@/components/recipes/AudioPlayerRecipe'
 import { RecipeShare } from '@/components/recipes/RecipeShare'
 import { useAuth } from '@/app/providers/AuthProvider'
@@ -228,7 +229,7 @@ export function RecipeDetailPage() {
             {/* Hero Section (Cover Image) */}
             <section className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-sm bg-neutral-100 flex items-center justify-center">
               {recipe.cover_image_url ? (
-                <img src={recipe.cover_image_url} alt={recipe.title} className="w-full h-full object-cover" />
+                <RecipeImage src={recipe.cover_image_url} alt={recipe.title} className="w-full h-full object-cover" />
               ) : (
                 <div className="flex flex-col items-center justify-center text-neutral-400 gap-2">
                   <Utensils className="h-16 w-16 opacity-30" />

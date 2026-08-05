@@ -48,7 +48,7 @@ export function AdminSettingsPage() {
     setAIFormDirty(false)
   }
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo_dark_url' | 'logo_light_url' | 'favicon_url') => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo_dark_url' | 'logo_light_url' | 'favicon_url' | 'watermark_url') => {
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -61,7 +61,7 @@ export function AdminSettingsPage() {
     }
   }
 
-  const handleRemoveAsset = async (type: 'logo_dark_url' | 'logo_light_url' | 'favicon_url') => {
+  const handleRemoveAsset = async (type: 'logo_dark_url' | 'logo_light_url' | 'favicon_url' | 'watermark_url') => {
     if (confirm('Tem certeza que deseja remover este item?')) {
       await updateVisualIdentity({
         ...visualIdentity,
@@ -195,6 +195,36 @@ export function AdminSettingsPage() {
                 )}
               </div>
               <p className="text-[11px] text-slate-400">Ícone exibido na aba do navegador (32x32px sugerido).</p>
+            </div>
+
+            {/* Marca d'água */}
+            <div className="rounded-2xl border bg-white p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-sm uppercase tracking-wider text-slate-500">Marca d'água de Receitas</h3>
+                <span className="text-[10px] bg-slate-100 px-2 py-1 rounded-full font-bold">Nas Capas</span>
+              </div>
+              <div className="aspect-video rounded-xl bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center relative group overflow-hidden transition-all hover:border-primary/50">
+                {visualIdentity.watermark_url ? (
+                  <>
+                    <img src={visualIdentity.watermark_url} alt="Marca d'água" className="max-h-[70%] max-w-[80%] object-contain" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <button 
+                        onClick={() => handleRemoveAsset('watermark_url')}
+                        className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <label className="flex flex-col items-center gap-2 cursor-pointer w-full h-full justify-center">
+                    <ImageIcon className="h-8 w-8 text-slate-300" />
+                    <span className="text-xs text-slate-400 font-medium">Upload Marca d'água</span>
+                    <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'watermark_url')} />
+                  </label>
+                )}
+              </div>
+              <p className="text-[11px] text-slate-400">Logotipo aplicado no canto superior esquerdo de todas as capas de receitas.</p>
             </div>
 
           </div>

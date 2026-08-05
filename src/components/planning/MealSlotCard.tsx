@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Clock, Star, RefreshCw, Trash2, Plus, Utensils } from 'lucide-react'
 import type { MealPlanSlot } from '@/types/planning'
 import { cn } from '@/lib/utils'
+import { RecipeImage } from '../recipes/RecipeImage'
 
 interface MealSlotCardProps {
   slot: MealPlanSlot
@@ -42,7 +43,7 @@ export function MealSlotCard({ slot, weekId, onRemove }: MealSlotCardProps) {
       <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden flex transition-transform active:scale-[0.98]">
         <div className="w-24 h-24 flex-shrink-0 bg-neutral-100">
           {slot.recipe.cover_image_url && (
-            <img
+            <RecipeImage
               src={slot.recipe.cover_image_url}
               alt={slot.recipe.title}
               className="w-full h-full object-cover"
