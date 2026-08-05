@@ -101,6 +101,8 @@ export function RecipePickerPage() {
 
   const [search, setSearch] = useState('')
   const [difficultyFilter, setDifficultyFilter] = useState<string>('')
+  const [sortBy, setSortBy] = useState<string>('created_at')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
   // Access filter via URL slug: 'acesso=todos|gratuitas|pro'
   const ACCESS_SLUGS: Record<string, 'all' | 'free' | 'premium'> = {
@@ -136,6 +138,8 @@ export function RecipePickerPage() {
     categoryId: categoryFilter || undefined,
     difficulty: difficultyFilter || undefined,
     isPremium: accessFilter === 'all' ? undefined : accessFilter === 'premium',
+    sortBy,
+    sortOrder,
   })
   
   const allRecipes = data?.recipes || []
@@ -489,6 +493,88 @@ export function RecipePickerPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Ordenar Por Section (Mobile) */}
+              <div className="space-y-2 border-t border-slate-100 pt-4">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-1">Ordenar Por</span>
+                <div className="flex flex-col gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSortBy('created_at')
+                      setSortOrder('desc')
+                    }}
+                    className={cn(
+                      'flex items-center w-full px-4 py-3 text-sm font-bold rounded-xl transition-all cursor-pointer text-left border-none outline-none',
+                      sortBy === 'created_at' && sortOrder === 'desc'
+                        ? 'bg-primary/10 text-primary' 
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                    )}
+                  >
+                    <span>Mais novas primeiro</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSortBy('created_at')
+                      setSortOrder('asc')
+                    }}
+                    className={cn(
+                      'flex items-center w-full px-4 py-3 text-sm font-bold rounded-xl transition-all cursor-pointer text-left border-none outline-none',
+                      sortBy === 'created_at' && sortOrder === 'asc'
+                        ? 'bg-primary/10 text-primary' 
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                    )}
+                  >
+                    <span>Mais antigas</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSortBy('title')
+                      setSortOrder('asc')
+                    }}
+                    className={cn(
+                      'flex items-center w-full px-4 py-3 text-sm font-bold rounded-xl transition-all cursor-pointer text-left border-none outline-none',
+                      sortBy === 'title' && sortOrder === 'asc'
+                        ? 'bg-primary/10 text-primary' 
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                    )}
+                  >
+                    <span>Nome (A-Z)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSortBy('title')
+                      setSortOrder('desc')
+                    }}
+                    className={cn(
+                      'flex items-center w-full px-4 py-3 text-sm font-bold rounded-xl transition-all cursor-pointer text-left border-none outline-none',
+                      sortBy === 'title' && sortOrder === 'desc'
+                        ? 'bg-primary/10 text-primary' 
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                    )}
+                  >
+                    <span>Nome (Z-A)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSortBy('category_id')
+                      setSortOrder('asc')
+                    }}
+                    className={cn(
+                      'flex items-center w-full px-4 py-3 text-sm font-bold rounded-xl transition-all cursor-pointer text-left border-none outline-none',
+                      sortBy === 'category_id'
+                        ? 'bg-primary/10 text-primary' 
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                    )}
+                  >
+                    <span>Categoria</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Footer Buttons */}
@@ -684,6 +770,88 @@ export function RecipePickerPage() {
                   >
                     <Crown className="h-3.5 w-3.5" />
                     Apenas PRO (Premium)
+                  </button>
+                </div>
+              </div>
+
+              {/* Sort Filters (Desktop) */}
+              <div className="space-y-1.5 border-t border-slate-100 pt-3">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-1">Ordenar Por</span>
+                <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSortBy('created_at')
+                      setSortOrder('desc')
+                    }}
+                    className={cn(
+                      'shrink-0 rounded-full border px-4.5 py-1.5 text-xs font-bold transition-all cursor-pointer',
+                      sortBy === 'created_at' && sortOrder === 'desc'
+                        ? 'bg-slate-800 border-slate-800 text-white shadow-sm' 
+                        : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                    )}
+                  >
+                    Mais novas primeiro
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSortBy('created_at')
+                      setSortOrder('asc')
+                    }}
+                    className={cn(
+                      'shrink-0 rounded-full border px-4.5 py-1.5 text-xs font-bold transition-all cursor-pointer',
+                      sortBy === 'created_at' && sortOrder === 'asc'
+                        ? 'bg-slate-800 border-slate-800 text-white shadow-sm' 
+                        : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                    )}
+                  >
+                    Mais antigas
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSortBy('title')
+                      setSortOrder('asc')
+                    }}
+                    className={cn(
+                      'shrink-0 rounded-full border px-4.5 py-1.5 text-xs font-bold transition-all cursor-pointer',
+                      sortBy === 'title' && sortOrder === 'asc'
+                        ? 'bg-slate-800 border-slate-800 text-white shadow-sm' 
+                        : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                    )}
+                  >
+                    Nome (A-Z)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSortBy('title')
+                      setSortOrder('desc')
+                    }}
+                    className={cn(
+                      'shrink-0 rounded-full border px-4.5 py-1.5 text-xs font-bold transition-all cursor-pointer',
+                      sortBy === 'title' && sortOrder === 'desc'
+                        ? 'bg-slate-800 border-slate-800 text-white shadow-sm' 
+                        : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                    )}
+                  >
+                    Nome (Z-A)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSortBy('category_id')
+                      setSortOrder('asc')
+                    }}
+                    className={cn(
+                      'shrink-0 rounded-full border px-4.5 py-1.5 text-xs font-bold transition-all cursor-pointer',
+                      sortBy === 'category_id'
+                        ? 'bg-slate-800 border-slate-800 text-white shadow-sm' 
+                        : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                    )}
+                  >
+                    Categoria
                   </button>
                 </div>
               </div>
