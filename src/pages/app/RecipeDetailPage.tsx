@@ -120,7 +120,7 @@ export function RecipeDetailPage() {
         {/* Back navigation */}
         <div className="flex items-center justify-between mb-6 w-full max-w-2xl">
           <button 
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/app/receitas')}
             className="active:scale-95 transition-transform hover:bg-neutral-100 py-2 px-3 rounded-full cursor-pointer flex items-center gap-1.5 text-xs font-bold uppercase text-slate-500"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -211,7 +211,7 @@ export function RecipeDetailPage() {
       {/* Back navigation & favorite button row */}
       <div className="flex items-center justify-between mb-6 w-full">
         <button 
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/app/receitas')}
           className="active:scale-95 transition-transform hover:bg-neutral-100 py-2 px-3 rounded-full cursor-pointer flex items-center gap-1.5 text-xs font-bold uppercase text-slate-500"
         >
           <ArrowLeft className="h-4 w-4" />
