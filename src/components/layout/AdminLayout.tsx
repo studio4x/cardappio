@@ -173,7 +173,7 @@ export function AdminLayout() {
 
           {/* Public Site Button */}
           <Link
-            to="/"
+            to="/app"
             target="_blank"
             className="px-4 py-2 border border-slate-200 rounded-full text-xs font-semibold text-slate-600 bg-white hover:bg-slate-50 hover:text-slate-800 flex items-center gap-1.5 transition-all active:scale-95 shadow-sm no-underline"
           >
