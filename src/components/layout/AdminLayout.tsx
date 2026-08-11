@@ -95,9 +95,9 @@ export function AdminLayout() {
   // Track expanded groups
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     'VISÃO GERAL': true,
-    'CONTEÚDO': false,
-    'OPERAÇÃO': false,
-    'SISTEMA': false,
+    'CONTEÚDO': true,
+    'OPERAÇÃO': true,
+    'SISTEMA': true,
   })
 
   // Auto-expand group containing the active path on load or route change
