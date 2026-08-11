@@ -19,8 +19,9 @@ import {
   type MeasurementUnit,
   type MeasurementUnitInput
 } from '@/hooks/admin/useAdminMeasurementUnits'
-import { Plus, Edit2, Trash2, Search, Scale, CheckCircle2, XCircle, ArrowUpDown, Filter, RotateCw } from 'lucide-react'
+import { Plus, Edit2, Trash2, Search, Scale, CheckCircle2, XCircle, ArrowUpDown, Filter, RotateCw, AlertTriangle, Copy, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 const CATEGORY_OPTIONS = [
   'Geral',
@@ -34,15 +35,40 @@ const CATEGORY_OPTIONS = [
   'Outro'
 ]
 
+const SQL_MIGRATION_SCRIPT = `-- Migration 045: Create measurement_units table
+CREATE TABLE IF NOT EXISTS public.measurement_units (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name        TEXT NOT NULL,
+  symbol      TEXT NOT NULL UNIQUE,
+  category    TEXT DEFAULT 'Geral',
+  sort_order  INT NOT NULL DEFAULT 0,
+  is_active   BOOLEAN NOT NULL DEFAULT true,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.measurement_units ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "measurement_units_select_policy"
+  ON public.measurement_units FOR SELECT USING (true);
+
+CREATE POLICY "measurement_units_admin_all_policy"
+  ON public.measurement_units FOR ALL
+  USING (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role IN ('admin', 'super_admin')))
+  WITH CHECK (EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role IN ('admin', 'super_admin')));`
+
 export function AdminUnitsPage() {
   const {
     units,
     isLoading,
+    isTableMissing,
     saveMutation,
     deleteMutation,
     toggleActiveMutation,
     seedDefaultsMutation
   } = useAdminMeasurementUnits()
+
+  const [copiedSql, setCopiedSql] = useState(false)
 
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL')
@@ -155,6 +181,35 @@ export function AdminUnitsPage() {
           </div>
         }
       />
+
+      {/* Table Missing Warning Banner */}
+      {isTableMissing && (
+        <div className="bg-amber-50 border border-amber-200 rounded-3xl p-5 shadow-sm flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          <div className="flex gap-3">
+            <AlertTriangle className="h-6 w-6 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-bold text-amber-900 text-sm">Tabela 'measurement_units' pendente no Supabase</h4>
+              <p className="text-xs text-amber-700 mt-1 max-w-2xl leading-relaxed">
+                A tabela de unidades ainda não foi criada no banco de dados do seu projeto Supabase (Erro 404). 
+                As 63 unidades estão ativas em exibição local. Para cadastrar novas unidades e salvá-las no banco, basta executar o script SQL no <strong>SQL Editor</strong> do Supabase.
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => {
+              navigator.clipboard.writeText(SQL_MIGRATION_SCRIPT)
+              setCopiedSql(true)
+              toast.success('Script SQL copiado com sucesso!')
+              setTimeout(() => setCopiedSql(false), 3000)
+            }}
+            className="rounded-full px-5 bg-amber-600 hover:bg-amber-700 text-white shrink-0 font-medium text-xs shadow-sm"
+          >
+            {copiedSql ? <Check className="h-3.5 w-3.5 mr-1.5" /> : <Copy className="h-3.5 w-3.5 mr-1.5" />}
+            {copiedSql ? 'SQL Copiado!' : 'Copiar SQL da Migration'}
+          </Button>
+        </div>
+      )}
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

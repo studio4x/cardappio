@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 import { DEFAULT_MEASUREMENT_UNITS_DATA } from '@/hooks/recipes/useMeasurementUnits'
+import { useState } from 'react'
 
 export interface MeasurementUnit {
   id: string
@@ -27,11 +28,18 @@ const FALLBACK_ADMIN_UNITS: MeasurementUnit[] = DEFAULT_MEASUREMENT_UNITS_DATA.m
   is_active: true
 }))
 
+function isTableNotFoundError(err: any) {
+  const msg = err?.message || err?.details || ''
+  const code = err?.code || ''
+  return code === '42P01' || code === 'PGRST204' || msg.includes('measurement_units') || msg.includes('schema cache') || msg.includes('404')
+}
+
 /**
  * Hook for managing measurement units in Admin Panel
  */
 export function useAdminMeasurementUnits() {
   const queryClient = useQueryClient()
+  const [isTableMissing, setIsTableMissing] = useState(false)
 
   const query = useQuery({
     queryKey: ['admin-measurement-units'],
@@ -43,9 +51,13 @@ export function useAdminMeasurementUnits() {
         .order('name', { ascending: true })
 
       if (error) {
-        console.warn('Error or table missing for admin measurement units, using fallback:', error.message)
+        if (isTableNotFoundError(error)) {
+          setIsTableMissing(true)
+        }
         return FALLBACK_ADMIN_UNITS
       }
+
+      setIsTableMissing(false)
 
       if (!data || data.length === 0) {
         return FALLBACK_ADMIN_UNITS
@@ -77,13 +89,19 @@ export function useAdminMeasurementUnits() {
       return data as MeasurementUnit
     },
     onSuccess: () => {
+      setIsTableMissing(false)
       queryClient.invalidateQueries({ queryKey: ['admin-measurement-units'] })
       queryClient.invalidateQueries({ queryKey: ['measurement-units'] })
       toast.success('Unidade de medida salva com sucesso!')
     },
     onError: (err: any) => {
       console.error('Error saving measurement unit:', err)
-      toast.error(err.message || 'Erro ao salvar unidade de medida.')
+      if (isTableNotFoundError(err)) {
+        setIsTableMissing(true)
+        toast.error('Tabela measurement_units não encontrada no banco. Execute a migration 045 no Supabase SQL Editor.')
+      } else {
+        toast.error(err.message || 'Erro ao salvar unidade de medida.')
+      }
     }
   })
 
@@ -107,20 +125,26 @@ export function useAdminMeasurementUnits() {
       return data
     },
     onSuccess: (data) => {
+      setIsTableMissing(false)
       queryClient.invalidateQueries({ queryKey: ['admin-measurement-units'] })
       queryClient.invalidateQueries({ queryKey: ['measurement-units'] })
-      toast.success(`${data?.length || DEFAULT_MEASUREMENT_UNITS_DATA.length} unidades padrão sincronizadas com sucesso no banco!`)
+      toast.success(`${data?.length || DEFAULT_MEASUREMENT_UNITS_DATA.length} unidades padrão sincronizadas no banco!`)
     },
     onError: (err: any) => {
       console.error('Error seeding default measurement units:', err)
-      toast.error(err.message || 'Erro ao sincronizar unidades padrão no banco de dados.')
+      if (isTableNotFoundError(err)) {
+        setIsTableMissing(true)
+        toast.error('Tabela measurement_units não encontrada no banco Supabase. Execute a migration 045 no SQL Editor.')
+      } else {
+        toast.error(err.message || 'Erro ao sincronizar unidades padrão no banco de dados.')
+      }
     }
   })
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       if (id.startsWith('default-')) {
-        throw new Error('Esta unidade ainda não está salva no banco de dados. Clique em "Sincronizar Unidades Padrão" primeiro.')
+        throw new Error('Esta unidade ainda não está salva no banco de dados. Execute a migration 045 no Supabase.')
       }
 
       const { error } = await supabase
@@ -137,14 +161,18 @@ export function useAdminMeasurementUnits() {
     },
     onError: (err: any) => {
       console.error('Error deleting measurement unit:', err)
-      toast.error(err.message || 'Erro ao remover unidade de medida.')
+      if (isTableNotFoundError(err)) {
+        setIsTableMissing(true)
+        toast.error('Tabela measurement_units não encontrada no banco. Execute a migration 045 no Supabase SQL Editor.')
+      } else {
+        toast.error(err.message || 'Erro ao remover unidade de medida.')
+      }
     }
   })
 
   const toggleActiveMutation = useMutation({
     mutationFn: async ({ id, is_active, unit }: { id: string; is_active: boolean; unit?: MeasurementUnit }) => {
       if (id.startsWith('default-') && unit) {
-        // Save to DB first with updated is_active
         const payload = {
           name: unit.name,
           symbol: unit.symbol,
@@ -168,13 +196,19 @@ export function useAdminMeasurementUnits() {
       if (error) throw error
     },
     onSuccess: () => {
+      setIsTableMissing(false)
       queryClient.invalidateQueries({ queryKey: ['admin-measurement-units'] })
       queryClient.invalidateQueries({ queryKey: ['measurement-units'] })
       toast.success('Status da unidade atualizado!')
     },
     onError: (err: any) => {
       console.error('Error toggling measurement unit status:', err)
-      toast.error(err.message || 'Erro ao alterar status da unidade.')
+      if (isTableNotFoundError(err)) {
+        setIsTableMissing(true)
+        toast.error('Tabela measurement_units não encontrada no banco. Execute a migration 045 no Supabase SQL Editor.')
+      } else {
+        toast.error(err.message || 'Erro ao alterar status da unidade.')
+      }
     }
   })
 
@@ -183,6 +217,7 @@ export function useAdminMeasurementUnits() {
     isLoading: query.isLoading,
     isError: query.isError,
     error: query.error,
+    isTableMissing,
     refetch: query.refetch,
     saveMutation,
     deleteMutation,
