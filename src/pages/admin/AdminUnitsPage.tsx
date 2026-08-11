@@ -91,18 +91,20 @@ export function AdminUnitsPage() {
 
   if (isLoading) return <LoadingState />
 
-  const filteredUnits = units.filter(unit => {
-    const matchesSearch = 
-      unit.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      unit.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (unit.category && unit.category.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredUnits = units
+    .filter(unit => {
+      const matchesSearch = 
+        unit.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        unit.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (unit.category && unit.category.toLowerCase().includes(searchTerm.toLowerCase()))
 
-    const matchesCategory = 
-      selectedCategory === 'ALL' || 
-      (unit.category || 'Geral').toLowerCase() === selectedCategory.toLowerCase()
+      const matchesCategory = 
+        selectedCategory === 'ALL' || 
+        (unit.category || 'Geral').toLowerCase() === selectedCategory.toLowerCase()
 
-    return matchesSearch && matchesCategory
-  })
+      return matchesSearch && matchesCategory
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
 
   const totalCount = units.length
   const activeCount = units.filter(u => u.is_active).length
@@ -294,7 +296,6 @@ export function AdminUnitsPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                <th className="py-4 px-6">Ordem</th>
                 <th className="py-4 px-6">Nome / Rótulo</th>
                 <th className="py-4 px-6">Sigla / Símbolo</th>
                 <th className="py-4 px-6">Categoria</th>
@@ -311,15 +312,13 @@ export function AdminUnitsPage() {
                     !unit.is_active && "opacity-60 bg-slate-50/40"
                   )}
                 >
-                  <td className="py-4 px-6 font-mono text-xs text-slate-400">
-                    <span className="inline-flex items-center gap-1">
-                      <ArrowUpDown className="h-3 w-3 text-slate-300" />
-                      {unit.sort_order}
-                    </span>
-                  </td>
-
                   <td className="py-4 px-6">
-                    <span className="font-bold text-slate-900">{unit.name}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="h-7 w-7 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold flex items-center justify-center shrink-0 uppercase font-mono">
+                        {unit.name.charAt(0)}
+                      </span>
+                      <span className="font-bold text-slate-900">{unit.name}</span>
+                    </div>
                   </td>
 
                   <td className="py-4 px-6">
@@ -433,36 +432,20 @@ export function AdminUnitsPage() {
               <p className="text-[11px] text-slate-400">Identificador interno da unidade salvo na receita.</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="unit-category" className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Categoria
-                </Label>
-                <select
-                  id="unit-category"
-                  value={formData.category || 'Geral'}
-                  onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                >
-                  {CATEGORY_OPTIONS.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="unit-order" className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Ordem de Exibição
-                </Label>
-                <Input
-                  id="unit-order"
-                  type="number"
-                  min={0}
-                  value={formData.sort_order}
-                  onChange={(e) => setFormData(prev => ({ ...prev, sort_order: parseInt(e.target.value) || 0 }))}
-                  className="rounded-xl border-slate-200"
-                />
-              </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="unit-category" className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Categoria
+              </Label>
+              <select
+                id="unit-category"
+                value={formData.category || 'Geral'}
+                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              >
+                {CATEGORY_OPTIONS.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
             </div>
 
             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200 mt-2">

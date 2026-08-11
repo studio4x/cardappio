@@ -26,7 +26,7 @@ const FALLBACK_ADMIN_UNITS: MeasurementUnit[] = DEFAULT_MEASUREMENT_UNITS_DATA.m
   category: item.category,
   sort_order: item.sort_order,
   is_active: true
-}))
+})).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
 
 function isTableNotFoundError(err: any) {
   const msg = err?.message || err?.details || ''
@@ -47,7 +47,6 @@ export function useAdminMeasurementUnits() {
       const { data, error } = await supabase
         .from('measurement_units')
         .select('*')
-        .order('sort_order', { ascending: true })
         .order('name', { ascending: true })
 
       if (error) {
@@ -63,7 +62,7 @@ export function useAdminMeasurementUnits() {
         return FALLBACK_ADMIN_UNITS
       }
 
-      return data as MeasurementUnit[]
+      return [...(data as MeasurementUnit[])].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
     }
   })
 

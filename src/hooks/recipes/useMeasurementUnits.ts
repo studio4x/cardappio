@@ -7,7 +7,7 @@ export interface IngredientUnitOption {
   category?: string | null
 }
 
-export const DEFAULT_MEASUREMENT_UNITS_DATA = [
+const RAW_MEASUREMENT_UNITS_DATA = [
   { symbol: "a gosto", name: "A gosto", category: "Geral", sort_order: 1 },
   { symbol: "caixa", name: "Caixa(s)", category: "Recipiente", sort_order: 2 },
   { symbol: "centilitro", name: "Centilitro (centilitro)", category: "Volume", sort_order: 3 },
@@ -73,6 +73,10 @@ export const DEFAULT_MEASUREMENT_UNITS_DATA = [
   { symbol: "xícara de chá", name: "Xícara(s) de chá", category: "Xícaras e Copos", sort_order: 63 }
 ]
 
+export const DEFAULT_MEASUREMENT_UNITS_DATA = [...RAW_MEASUREMENT_UNITS_DATA].sort((a, b) => 
+  a.name.localeCompare(b.name, 'pt-BR')
+)
+
 export const FALLBACK_INGREDIENT_UNITS: IngredientUnitOption[] = DEFAULT_MEASUREMENT_UNITS_DATA.map(item => ({
   value: item.symbol,
   label: item.name,
@@ -90,7 +94,6 @@ export function useMeasurementUnits() {
         .from('measurement_units')
         .select('name, symbol, category, sort_order')
         .eq('is_active', true)
-        .order('sort_order', { ascending: true })
         .order('name', { ascending: true })
 
       if (error) {
@@ -102,7 +105,9 @@ export function useMeasurementUnits() {
         return FALLBACK_INGREDIENT_UNITS
       }
 
-      return data.map(item => ({
+      const sortedData = [...data].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+
+      return sortedData.map(item => ({
         value: item.symbol,
         label: item.name,
         category: item.category
