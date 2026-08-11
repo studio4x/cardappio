@@ -19,7 +19,7 @@ import {
   type MeasurementUnit,
   type MeasurementUnitInput
 } from '@/hooks/admin/useAdminMeasurementUnits'
-import { Plus, Edit2, Trash2, Search, Scale, CheckCircle2, XCircle, ArrowUpDown, Filter } from 'lucide-react'
+import { Plus, Edit2, Trash2, Search, Scale, CheckCircle2, XCircle, ArrowUpDown, Filter, RotateCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const CATEGORY_OPTIONS = [
@@ -40,7 +40,8 @@ export function AdminUnitsPage() {
     isLoading,
     saveMutation,
     deleteMutation,
-    toggleActiveMutation
+    toggleActiveMutation,
+    seedDefaultsMutation
   } = useAdminMeasurementUnits()
 
   const [searchTerm, setSearchTerm] = useState('')
@@ -133,13 +134,25 @@ export function AdminUnitsPage() {
         title="Unidades de Medida"
         subtitle="Cadastre, edite e organize as unidades de medida para ingredientes das receitas."
         actions={
-          <Button 
-            onClick={handleOpenCreate} 
-            className="rounded-full px-6 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Unidade
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => seedDefaultsMutation.mutate()}
+              disabled={seedDefaultsMutation.isPending}
+              className="rounded-full px-5 border-slate-200 hover:bg-slate-50 text-slate-700 font-medium"
+              title="Salvar todas as 63 unidades padrão no banco de dados Supabase"
+            >
+              <RotateCw className={cn("h-4 w-4 mr-2", seedDefaultsMutation.isPending && "animate-spin")} />
+              {seedDefaultsMutation.isPending ? 'Sincronizando...' : 'Sincronizar Padrões'}
+            </Button>
+            <Button 
+              onClick={handleOpenCreate} 
+              className="rounded-full px-6 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Unidade
+            </Button>
+          </div>
         }
       />
 
@@ -271,7 +284,7 @@ export function AdminUnitsPage() {
                       <Switch
                         checked={unit.is_active}
                         onCheckedChange={(checked) => 
-                          toggleActiveMutation.mutate({ id: unit.id, is_active: checked })
+                          toggleActiveMutation.mutate({ id: unit.id, is_active: checked, unit })
                         }
                       />
                       <span className={cn(
