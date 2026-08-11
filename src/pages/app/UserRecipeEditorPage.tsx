@@ -11,74 +11,10 @@ import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { RichTextEditor } from '@/components/shared/RichTextEditor'
-
-const INGREDIENT_UNITS = [
-  { value: "a gosto", label: "A gosto" },
-  { value: "caixa", label: "Caixa(s)" },
-  { value: "centilitro", label: "Centilitro (centilitro)" },
-  { value: "centilitros", label: "Centilitros (centilitros)" },
-  { value: "cl", label: "Centilitros (cl)" },
-  { value: "centímetro", label: "Centímetro (centímetro)" },
-  { value: "centímetros", label: "Centímetros (centímetros)" },
-  { value: "cm", label: "Centímetro(s) (cm)" },
-  { value: "colher (café)", label: "Colher (café)" },
-  { value: "colher (chá)", label: "Colher (chá)" },
-  { value: "colher (sobremesa)", label: "Colher (sobremesa)" },
-  { value: "colher (sopa)", label: "Colher (sopa)" },
-  { value: "colher de café", label: "Colher(es) de café" },
-  { value: "colher de chá", label: "Colher(es) de chá" },
-  { value: "colher de sobremesa", label: "Colher(es) de sobremesa" },
-  { value: "colher de sopa", label: "Colher(es) de sopa" },
-  { value: "colheres (café)", label: "Colheres (café)" },
-  { value: "colheres (chá)", label: "Colheres (chá)" },
-  { value: "colheres (sobremesa)", label: "Colheres (sobremesa)" },
-  { value: "colheres (sopa)", label: "Colheres (sopa)" },
-  { value: "copo", label: "Copo(s)" },
-  { value: "decilitro", label: "Decilitro (decilitro)" },
-  { value: "decilitros", label: "Decilitros (decilitros)" },
-  { value: "dl", label: "Decilitros (dl)" },
-  { value: "dente", label: "Dente(s)" },
-  { value: "dentes", label: "Dentes (dentes)" },
-  { value: "fatia", label: "Fatia(s)" },
-  { value: "fatias", label: "Fatias (fatias)" },
-  { value: "folha", label: "Folha(s)" },
-  { value: "folhas", label: "Folhas (folhas)" },
-  { value: "grama", label: "Grama (grama)" },
-  { value: "g", label: "Gramas (g)" },
-  { value: "gramas", label: "Gramas (gramas)" },
-  { value: "lata", label: "Lata(s)" },
-  { value: "liter", label: "Liter (liter)" },
-  { value: "l", label: "Litros (l)" },
-  { value: "litros", label: "Litros (litros)" },
-  { value: "maço", label: "Maço(s)" },
-  { value: "milligrama", label: "Miligrama (milligrama)" },
-  { value: "mg", label: "Miligramas (mg)" },
-  { value: "milligramas", label: "Miligramas (milligramas)" },
-  { value: "millilitro", label: "Mililitro (millilitro)" },
-  { value: "millilitros", label: "Mililitros (millilitros)" },
-  { value: "ml", label: "Mililitros (ml)" },
-  { value: "milímetro", label: "Milímetro (milímetro)" },
-  { value: "milímetros", label: "Milímetros (milímetros)" },
-  { value: "mm", label: "Milímetro(s) (mm)" },
-  { value: "molho", label: "Molho (molho)" },
-  { value: "molhos", label: "Molhos (molhos)" },
-  { value: "pacote", label: "Pacote(s)" },
-  { value: "pedaço", label: "Pedaço(s)" },
-  { value: "pedaços", label: "Pedaços (pedaços)" },
-  { value: "pitada", label: "Pitada(s)" },
-  { value: "porção", label: "Porção (porção)" },
-  { value: "quilo", label: "Quilo (quilo)" },
-  { value: "kg", label: "Quilogramas (kg)" },
-  { value: "quilos", label: "Quilos (quilos)" },
-  { value: "ramo", label: "Ramo(s)" },
-  { value: "unidade", label: "Unidade(s)" },
-  { value: "vidro", label: "Vidro(s)" },
-  { value: "xícara", label: "Xícara(s)" },
-  { value: "xícaras", label: "Xícaras (xícaras)" },
-  { value: "xícara de chá", label: "Xícara(s) de chá" }
-]
+import { useMeasurementUnits } from '@/hooks/recipes/useMeasurementUnits'
 
 export function UserRecipeEditorPage() {
+  const { units: INGREDIENT_UNITS } = useMeasurementUnits()
   const { id } = useParams()
   const navigate = useNavigate()
   const { supabaseUser, user } = useAuth()

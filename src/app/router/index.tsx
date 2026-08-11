@@ -61,6 +61,7 @@ import { AdminReportsPage } from '@/pages/admin/AdminReportsPage'
 import { AdminLogsPage } from '@/pages/admin/AdminLogsPage'
 import { AdminStripePage } from '@/pages/admin/AdminStripePage'
 import { AdminEmailsPage } from '@/pages/admin/AdminEmailsPage'
+import { AdminUnitsPage } from '@/pages/admin/AdminUnitsPage'
 
 export const router = createBrowserRouter([
   // ==========================================
@@ -174,6 +175,7 @@ export const router = createBrowserRouter([
               { path: '/admin/receitas/:id', element: <AdminRecipeEditorPage /> },
               { path: '/admin/categorias', element: <AdminCategoriesPage /> },
               { path: '/admin/tags', element: <AdminTagsPage /> },
+              { path: '/admin/unidades', element: <AdminUnitsPage /> },
               { path: '/admin/colecoes', element: <AdminCollectionsPage /> },
               { path: '/admin/dicas-alertas', element: <AdminNoticesPage /> },
               { path: '/admin/usuarios', element: <AdminUsersPage /> },

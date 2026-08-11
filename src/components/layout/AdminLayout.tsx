@@ -22,7 +22,8 @@ import {
   HardDrive,
   RotateCw,
   ExternalLink,
-  Mail
+  Mail,
+  Scale
 } from 'lucide-react'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { cn } from '@/lib/utils'
@@ -60,6 +61,7 @@ const adminNavGroups: NavGroup[] = [
       { label: 'Receitas', icon: UtensilsCrossed, href: '/admin/receitas' },
       { label: 'Categorias', icon: Layers, href: '/admin/categorias' },
       { label: 'Tags', icon: Tags, href: '/admin/tags' },
+      { label: 'Unidades de Medida', icon: Scale, href: '/admin/unidades' },
       { label: 'Coleções', icon: FolderOpen, href: '/admin/colecoes' },
       { label: 'Dicas e alertas', icon: Lightbulb, href: '/admin/dicas-alertas' },
     ],
