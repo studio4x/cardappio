@@ -16,8 +16,8 @@ import {
 } from '@/components/ui/dialog'
 import {
   useAdminMeasurementUnits,
-  MeasurementUnit,
-  MeasurementUnitInput
+  type MeasurementUnit,
+  type MeasurementUnitInput
 } from '@/hooks/admin/useAdminMeasurementUnits'
 import { Plus, Edit2, Trash2, Search, Scale, CheckCircle2, XCircle, ArrowUpDown, Filter } from 'lucide-react'
 import { cn } from '@/lib/utils'
