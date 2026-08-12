@@ -17,3 +17,10 @@ enabled = true
 # disabled because n8n does not receive a Supabase user or service-role token.
 verify_jwt = false
 entrypoint = "./functions/import-recipe-draft/index.ts"
+
+[functions.recipe-import-reference-data]
+enabled = true
+# Read-only server-to-server endpoint. Authentication and replay protection use
+# the same HMAC/timestamp/nonce contract as import-recipe-draft.
+verify_jwt = false
+entrypoint = "./functions/recipe-import-reference-data/index.ts"
