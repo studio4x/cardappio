@@ -53,6 +53,7 @@ export interface Recipe {
   status: RecipeStatus
   is_featured: boolean
   is_premium: boolean
+  is_automation_created: boolean
   published_at: string | null
   created_by: string | null
   updated_by: string | null
