@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Sparkles, Loader2, Crown, UserCheck, Upload, X, FileText, ExternalLink, GripVertical, Link2 } from 'lucide-react'
+import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Sparkles, Bot, Loader2, Crown, UserCheck, Upload, X, FileText, ExternalLink, GripVertical, Link2 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { useRecipe, useRecipeCategories, useRecipeTags } from '@/hooks/recipes/useRecipes'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -45,6 +46,7 @@ export function AdminRecipeEditorPage() {
     category_id: '',
     cover_image_url: '',
     is_premium: false,
+    is_automation_created: false,
     calories_per_serving: null,
     protein_per_serving: null,
     fat_per_serving: null,
@@ -338,7 +340,19 @@ export function AdminRecipeEditorPage() {
         </div>
       </div>
 
-      <PageHeader title={isNew ? "Nova Receita" : "Editar Receita"} />
+      <div className="flex flex-wrap items-center gap-3">
+        <PageHeader title={isNew ? "Nova Receita" : "Editar Receita"} />
+        {!isNew && recipeData.is_automation_created && (
+          <Badge
+            variant="outline"
+            className="gap-1.5 border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700"
+            title="Receita criada pelo workflow automatizado de importação"
+          >
+            <Bot className="h-3.5 w-3.5" />
+            Criada por Automação
+          </Badge>
+        )}
+      </div>
 
       {/* Basic Info */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
