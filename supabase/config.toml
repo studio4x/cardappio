@@ -9,3 +9,11 @@ entrypoint = "./functions/get-invoice-url/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/get-invoice-url/*.html" ]
+
+[functions.import-recipe-draft]
+enabled = true
+# Server-to-server authentication is enforced in the function with HMAC,
+# timestamp and a one-time nonce. Supabase JWT verification is intentionally
+# disabled because n8n does not receive a Supabase user or service-role token.
+verify_jwt = false
+entrypoint = "./functions/import-recipe-draft/index.ts"
