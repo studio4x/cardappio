@@ -9,6 +9,7 @@ import {
   Utensils, 
   ListChecks, 
   Sparkles, 
+  Bot,
   Loader2,
   ChevronLeft,
   ChevronRight,
@@ -704,7 +705,19 @@ export function AdminRecipesPage() {
                             </div>
                           )}
                         </div>
-                        <span className="font-semibold text-foreground">{recipe.title}</span>
+                        <div className="min-w-0">
+                          <span className="block font-semibold text-foreground">{recipe.title}</span>
+                          {recipe.is_automation_created && (
+                            <Badge
+                              variant="outline"
+                              className="mt-1 gap-1 border-indigo-200 bg-indigo-50 text-[10px] font-semibold text-indigo-700"
+                              title="Receita criada pelo workflow automatizado de importação"
+                            >
+                              <Bot className="h-3 w-3" />
+                              Criada por Automação
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
