@@ -18,9 +18,33 @@ enabled = true
 verify_jwt = false
 entrypoint = "./functions/import-recipe-draft/index.ts"
 
+[functions.import-recipe-draft-v2]
+enabled = true
+# V2 preserves the HMAC/replay contract and accepts any active recipe category.
+verify_jwt = false
+entrypoint = "./functions/import-recipe-draft-v2/index.ts"
+
 [functions.recipe-import-reference-data]
 enabled = true
 # Read-only server-to-server endpoint. Authentication and replay protection use
 # the same HMAC/timestamp/nonce contract as import-recipe-draft.
 verify_jwt = false
 entrypoint = "./functions/recipe-import-reference-data/index.ts"
+
+[functions.recipe-import-candidate-status]
+enabled = true
+# Read-only server-to-server preflight for duplicate candidate URLs.
+verify_jwt = false
+entrypoint = "./functions/recipe-import-candidate-status/index.ts"
+
+[functions.recipe-automation-runtime]
+enabled = true
+# n8n scheduler/runtime endpoint authenticated by HMAC, timestamp and nonce.
+verify_jwt = false
+entrypoint = "./functions/recipe-automation-runtime/index.ts"
+
+[functions.recipe-automation-admin]
+enabled = true
+# Browser/admin endpoint. Requires a valid Supabase JWT and admin/super_admin role.
+verify_jwt = true
+entrypoint = "./functions/recipe-automation-admin/index.ts"
