@@ -31,6 +31,12 @@ export interface RecipeAutomationRunLog {
   created_at: string
 }
 
+export interface RecipeAutomationGeneratedRecipe {
+  id: string
+  title: string
+  created_at: string
+}
+
 export interface RecipeAutomationState {
   ok: boolean
   config: RecipeAutomationConfig
@@ -63,6 +69,7 @@ export interface RecipeAutomationState {
   }
   categories: RecipeAutomationCategory[]
   recent_runs: RecipeAutomationRunLog[]
+  generated_recipes: RecipeAutomationGeneratedRecipe[]
   limits: {
     max_recipes_per_run: number
     timezone: 'America/Sao_Paulo'
