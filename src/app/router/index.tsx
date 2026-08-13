@@ -48,6 +48,7 @@ import { CozinheiraShowcasePage } from '@/pages/app/CozinheiraShowcasePage'
 import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage'
 import { AdminRecipesPage } from '@/pages/admin/AdminRecipesPage'
 import { AdminRecipeEditorPage } from '@/pages/admin/AdminRecipeEditorPage'
+import { AdminRecipeAutomationPage } from '@/pages/admin/AdminRecipeAutomationPage'
 import { AdminUsersPage } from '@/pages/admin/AdminUsersPage'
 import { AdminPlansPage } from '@/pages/admin/AdminPlansPage'
 import { AdminCategoriesPage } from '@/pages/admin/AdminCategoriesPage'
@@ -173,6 +174,7 @@ export const router = createBrowserRouter([
               { path: '/admin/receitas', element: <AdminRecipesPage /> },
               { path: '/admin/receitas/nova', element: <AdminRecipeEditorPage /> },
               { path: '/admin/receitas/:id', element: <AdminRecipeEditorPage /> },
+              { path: '/admin/automacao-receitas', element: <AdminRecipeAutomationPage /> },
               { path: '/admin/categorias', element: <AdminCategoriesPage /> },
               { path: '/admin/tags', element: <AdminTagsPage /> },
               { path: '/admin/unidades', element: <AdminUnitsPage /> },
