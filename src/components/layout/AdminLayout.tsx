@@ -3,6 +3,7 @@ import { Outlet, NavLink, Link, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
   UtensilsCrossed,
+  Bot,
   Layers,
   Tags,
   FolderOpen,
@@ -59,6 +60,7 @@ const adminNavGroups: NavGroup[] = [
     description: 'Catálogo, receitas e controle de conteúdo público.',
     items: [
       { label: 'Receitas', icon: UtensilsCrossed, href: '/admin/receitas' },
+      { label: 'Automação de Receitas', icon: Bot, href: '/admin/automacao-receitas' },
       { label: 'Categorias', icon: Layers, href: '/admin/categorias' },
       { label: 'Tags', icon: Tags, href: '/admin/tags' },
       { label: 'Unidades de Medida', icon: Scale, href: '/admin/unidades' },
