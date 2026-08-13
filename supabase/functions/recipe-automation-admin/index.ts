@@ -32,6 +32,11 @@ function response(status: number, payload: Record<string, unknown>) {
   })
 }
 
+function isUuid(value: unknown): value is string {
+  return typeof value === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+}
+
 function normalizeConfig(value: unknown) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new HttpError(422, "invalid_config", "config must be an object")
@@ -177,6 +182,53 @@ Deno.serve(async (request: Request) => {
           generated_recipe_history: HISTORY_LIMIT,
           timezone: TIMEZONE,
         },
+      })
+    }
+
+    if (action === "get_recipe_source") {
+      const recipeId = String(body?.recipe_id || "").trim()
+      if (!isUuid(recipeId)) {
+        throw new HttpError(422, "invalid_recipe_id", "recipe_id must be a UUID")
+      }
+
+      const { data: recipe, error: recipeError } = await serviceClient
+        .from("recipes")
+        .select("id,is_automation_created")
+        .eq("id", recipeId)
+        .maybeSingle()
+
+      if (recipeError) {
+        throw new HttpError(500, "recipe_query_failed", "Could not load recipe")
+      }
+
+      if (!recipe || recipe.is_automation_created !== true) {
+        return response(200, { ok: true, source: null })
+      }
+
+      const { data: source, error: sourceError } = await serviceClient
+        .from("recipe_import_runs")
+        .select("source_url,canonical_url,completed_at,created_at")
+        .eq("recipe_id", recipeId)
+        .eq("status", "succeeded")
+        .not("source_url", "is", null)
+        .order("completed_at", { ascending: false, nullsFirst: false })
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (sourceError) {
+        throw new HttpError(500, "recipe_source_query_failed", "Could not load recipe source")
+      }
+
+      return response(200, {
+        ok: true,
+        source: source
+          ? {
+              source_url: source.source_url,
+              canonical_url: source.canonical_url || null,
+              imported_at: source.completed_at || source.created_at || null,
+            }
+          : null,
       })
     }
 
