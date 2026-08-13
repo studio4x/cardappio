@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.95.0"
 
 const MAX_RECIPES = 20
+const HISTORY_LIMIT = 100
 const TIMEZONE = "America/Sao_Paulo"
 const cors = {
   "access-control-allow-origin": "*",
@@ -146,14 +147,21 @@ Deno.serve(async (request: Request) => {
     })
 
     if (action === "get") {
-      const [configResult, runtimeResult, categoriesResult, logsResult] = await Promise.all([
+      const [configResult, runtimeResult, categoriesResult, logsResult, recipesResult] = await Promise.all([
         serviceClient.from("app_settings").select("value_json,updated_at").eq("setting_key", "recipe_automation_config").single(),
         serviceClient.from("app_settings").select("value_json,updated_at").eq("setting_key", "recipe_automation_runtime").single(),
         serviceClient.from("recipe_categories").select("name,slug,sort_order").eq("is_active", true).order("sort_order").order("name"),
         serviceClient.from("cron_execution_logs").select("status,processed_count,metadata_json,created_at").eq("job_name", "recipe_automation").order("created_at", { ascending: false }).limit(10),
+        serviceClient.from("recipes").select("id,title,created_at").eq("is_automation_created", true).order("created_at", { ascending: false }).limit(HISTORY_LIMIT),
       ])
 
-      if (configResult.error || runtimeResult.error || categoriesResult.error) {
+      if (
+        configResult.error ||
+        runtimeResult.error ||
+        categoriesResult.error ||
+        logsResult.error ||
+        recipesResult.error
+      ) {
         throw new HttpError(500, "state_query_failed", "Could not load state")
       }
 
@@ -163,7 +171,12 @@ Deno.serve(async (request: Request) => {
         runtime: runtimeResult.data?.value_json || {},
         categories: categoriesResult.data || [],
         recent_runs: logsResult.data || [],
-        limits: { max_recipes_per_run: MAX_RECIPES, timezone: TIMEZONE },
+        generated_recipes: recipesResult.data || [],
+        limits: {
+          max_recipes_per_run: MAX_RECIPES,
+          generated_recipe_history: HISTORY_LIMIT,
+          timezone: TIMEZONE,
+        },
       })
     }
 
