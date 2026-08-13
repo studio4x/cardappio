@@ -122,7 +122,6 @@ export function useRecipe(slug: string | undefined) {
           creator:profiles!created_by(id, full_name, role)
         `)
         .eq('slug', slug)
-        .eq('status', 'published')
         .order('sort_order', { foreignTable: 'recipe_ingredients' })
         .order('step_number', { foreignTable: 'recipe_steps' })
         .maybeSingle()

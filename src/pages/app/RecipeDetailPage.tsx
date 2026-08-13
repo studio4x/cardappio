@@ -30,7 +30,7 @@ export function RecipeDetailPage() {
   const { recipeSlug } = useParams()
   const navigate = useNavigate()
   const { data: recipe, isLoading, error, refetch } = useRecipe(recipeSlug)
-  const { user, preferences } = useAuth() 
+  const { user, preferences, isAdmin } = useAuth() 
   const [activeTab, setActiveTab] = useState<'ingredients' | 'instructions'>('ingredients')
   
   // States for adding to plan modal wizard
@@ -219,6 +219,42 @@ export function RecipeDetailPage() {
         </button>
         <FavoriteButton recipeId={recipe.id} />
       </div>
+
+      {/* Draft Notice Banner */}
+      {recipe.status !== 'published' && (
+        <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center shrink-0">
+              <FileText className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-amber-900">
+                Receita em Modo {recipe.status === 'draft' ? 'Rascunho' : 'Arquivado'}
+              </p>
+              <p className="text-xs text-amber-700 font-medium">
+                Esta receita não está visível no catálogo público para usuários normais.
+              </p>
+            </div>
+          </div>
+          {isAdmin ? (
+            <Button
+              onClick={() => navigate(`/admin/receitas/${recipe.id}`)}
+              size="sm"
+              className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shrink-0"
+            >
+              Editar no Painel Admin
+            </Button>
+          ) : user?.id === recipe.created_by ? (
+            <Button
+              onClick={() => navigate(`/app/receitas/editar/${recipe.id}`)}
+              size="sm"
+              className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shrink-0"
+            >
+              Editar Receita
+            </Button>
+          ) : null}
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="w-full">
