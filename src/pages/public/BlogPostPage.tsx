@@ -24,7 +24,7 @@ export function BlogPostPage() {
   const categoryName = post.category?.name || post.category_name || 'Cardappio'
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20 pt-4 md:pt-8">
+    <div className="min-h-screen bg-slate-50/50 pb-20 pt-28 md:pt-32">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         
         {/* Back navigation button */}

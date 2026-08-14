@@ -35,7 +35,7 @@ export function BlogHomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20 pt-6 md:pt-10">
+    <div className="min-h-screen bg-slate-50/50 pb-20 pt-28 md:pt-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Header Hero Section */}
