@@ -2,9 +2,10 @@ import { useState, useEffect, type FormEvent } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { 
   ArrowLeft, Save, Eye, EyeOff, BookOpen, Clock, FileText, Image as ImageIcon,
-  Sparkles, Calendar, Search, Globe, Share2, Smartphone, Monitor, CheckCircle2
+  Sparkles, Calendar, Search, Globe, Share2, Smartphone, Monitor, CheckCircle2, Code
 } from 'lucide-react'
 import { useBlogPost, useBlogCategories, useAdminBlogMutations, slugify } from '@/hooks/blog/useBlog'
+import { RichTextEditor } from '@/components/shared/RichTextEditor'
 import { Button } from '@/components/ui/button'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { toast } from 'sonner'
@@ -22,6 +23,7 @@ export function AdminBlogPostEditorPage() {
 
   // Active Tab: 'content' | 'seo' | 'publishing' | 'preview'
   const [activeTab, setActiveTab] = useState<'content' | 'seo' | 'publishing' | 'preview'>('content')
+  const [contentEditorMode, setContentEditorMode] = useState<'visual' | 'code'>('visual')
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop')
 
   // Form Fields State
@@ -290,25 +292,65 @@ export function AdminBlogPostEditorPage() {
             </div>
 
             {/* Rich Content Editor */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-3 shadow-sm">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                 <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600">
-                  Conteúdo do Artigo (HTML)
+                  Conteúdo do Artigo
                 </label>
-                <div className="flex items-center gap-3 text-[11px] font-semibold text-slate-400">
-                  <span>{wordCount} palavras</span>
-                  <span>·</span>
-                  <span>{readTimeMinutes} min de leitura</span>
+
+                <div className="flex items-center gap-3">
+                  {/* Mode Switcher Buttons */}
+                  <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => setContentEditorMode('visual')}
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                        contentEditorMode === 'visual'
+                          ? 'bg-white text-emerald-700 shadow-sm'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                      Editor Visual
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setContentEditorMode('code')}
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                        contentEditorMode === 'code'
+                          ? 'bg-white text-emerald-700 shadow-sm'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      <Code className="h-3.5 w-3.5" />
+                      Código HTML
+                    </button>
+                  </div>
+
+                  <div className="hidden md:flex items-center gap-2 text-[11px] font-semibold text-slate-400 border-l border-slate-200 pl-3">
+                    <span>{wordCount} palavras</span>
+                    <span>·</span>
+                    <span>{readTimeMinutes} min de leitura</span>
+                  </div>
                 </div>
               </div>
 
-              <textarea
-                value={contentHtml}
-                onChange={(e) => setContentHtml(e.target.value)}
-                placeholder="<p>Escreva o conteúdo formatado em HTML aqui...</p>"
-                rows={16}
-                className="w-full rounded-xl border border-slate-200 p-4 text-xs font-mono leading-relaxed text-slate-900 outline-none focus:border-emerald-500"
-              />
+              {contentEditorMode === 'visual' ? (
+                <RichTextEditor
+                  value={contentHtml}
+                  onChange={setContentHtml}
+                  placeholder="Escreva e formate o artigo do blog aqui com títulos, negrito, listas e links..."
+                  minHeight="320px"
+                />
+              ) : (
+                <textarea
+                  value={contentHtml}
+                  onChange={(e) => setContentHtml(e.target.value)}
+                  placeholder="<p>Insira ou edite o código HTML bruto aqui...</p>"
+                  rows={16}
+                  className="w-full rounded-2xl border border-slate-800 p-4 text-xs font-mono leading-relaxed bg-slate-900 text-emerald-400 outline-none focus:border-emerald-500 shadow-inner"
+                />
+              )}
             </div>
 
             {/* Summary / Meta Description */}

@@ -7,6 +7,8 @@ import {
   Bold,
   Italic,
   UnderlineIcon,
+  Heading2,
+  Heading3,
   List,
   ListOrdered,
   AlignLeft,
@@ -57,7 +59,7 @@ function ToolbarButton({
       }}
       className={cn(
         'rounded p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 disabled:opacity-30 cursor-pointer',
-        active && 'bg-primary/10 text-primary'
+        active && 'bg-primary/10 text-primary font-bold'
       )}
     >
       {children}
@@ -78,7 +80,7 @@ export function RichTextEditor({
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        heading: false,
+        heading: { levels: [2, 3] },
         codeBlock: false,
         code: false,
         blockquote: false,
@@ -178,6 +180,24 @@ export function RichTextEditor({
             active={editor.isActive('underline')}
           >
             <UnderlineIcon className={iconSize} />
+          </ToolbarButton>
+
+          <div className="mx-1 h-4 w-px bg-slate-200" />
+
+          {/* Headings */}
+          <ToolbarButton
+            title="Título Secundário (H2)"
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            active={editor.isActive('heading', { level: 2 })}
+          >
+            <Heading2 className={iconSize} />
+          </ToolbarButton>
+          <ToolbarButton
+            title="Subtítulo (H3)"
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            active={editor.isActive('heading', { level: 3 })}
+          >
+            <Heading3 className={iconSize} />
           </ToolbarButton>
 
           <div className="mx-1 h-4 w-px bg-slate-200" />
