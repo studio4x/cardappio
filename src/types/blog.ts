@@ -16,6 +16,15 @@ export interface BlogCategory {
   updated_at: string
 }
 
+export interface BlogTag {
+  id: string
+  name: string
+  slug: string
+  description?: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface BlogPost {
   id: string
   title: string
@@ -115,4 +124,18 @@ export interface SubmitCommentInput {
   lastName: string
   email: string
   content: string
+}
+
+export interface CreateBlogCategoryInput {
+  name: string
+  slug?: string
+  description?: string | null
+  sort_order?: number
+  is_active?: boolean
+}
+
+export interface CreateBlogTagInput {
+  name: string
+  slug?: string
+  description?: string | null
 }

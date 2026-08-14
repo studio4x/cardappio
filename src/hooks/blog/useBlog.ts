@@ -3,9 +3,12 @@ import { supabase } from '@/integrations/supabase/client'
 import type { 
   BlogPost, 
   BlogCategory, 
+  BlogTag,
   BlogComment, 
   BlogPostFilters, 
   CreateBlogPostInput, 
+  CreateBlogCategoryInput,
+  CreateBlogTagInput,
   SubmitCommentInput 
 } from '@/types/blog'
 
@@ -292,4 +295,139 @@ export function useAdminBlogComments(status?: 'pending' | 'approved' | 'rejected
       return (data ?? []) as BlogComment[]
     }
   })
+}
+
+/**
+ * Hook to fetch all blog tags
+ */
+export function useBlogTags() {
+  return useQuery({
+    queryKey: ['blog-tags'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('blog_tags')
+        .select('*')
+        .order('name', { ascending: true })
+
+      if (error) throw error
+      return (data ?? []) as BlogTag[]
+    },
+    staleTime: 60_000
+  })
+}
+
+/**
+ * Admin Mutations for Blog Categories CRUD
+ */
+export function useAdminBlogCategoriesMutations() {
+  const queryClient = useQueryClient()
+
+  const saveCategory = useMutation({
+    mutationFn: async ({ id, ...input }: CreateBlogCategoryInput & { id?: string }) => {
+      const slug = input.slug || slugify(input.name)
+      const payload = {
+        name: input.name.trim(),
+        slug,
+        description: input.description?.trim() || null,
+        sort_order: input.sort_order ?? 0,
+        is_active: input.is_active ?? true,
+        updated_at: new Date().toISOString()
+      }
+
+      if (id) {
+        const { data, error } = await supabase
+          .from('blog_categories')
+          .update(payload)
+          .eq('id', id)
+          .select()
+          .single()
+        if (error) throw error
+        return data as BlogCategory
+      } else {
+        const { data, error } = await supabase
+          .from('blog_categories')
+          .insert({
+            ...payload,
+            created_at: new Date().toISOString()
+          })
+          .select()
+          .single()
+        if (error) throw error
+        return data as BlogCategory
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blog-categories'] })
+    }
+  })
+
+  const deleteCategory = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('blog_categories').delete().eq('id', id)
+      if (error) throw error
+      return id
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blog-categories'] })
+    }
+  })
+
+  return { saveCategory, deleteCategory }
+}
+
+/**
+ * Admin Mutations for Blog Tags CRUD
+ */
+export function useAdminBlogTagsMutations() {
+  const queryClient = useQueryClient()
+
+  const saveTag = useMutation({
+    mutationFn: async ({ id, ...input }: CreateBlogTagInput & { id?: string }) => {
+      const slug = input.slug || slugify(input.name)
+      const payload = {
+        name: input.name.trim(),
+        slug,
+        description: input.description?.trim() || null,
+        updated_at: new Date().toISOString()
+      }
+
+      if (id) {
+        const { data, error } = await supabase
+          .from('blog_tags')
+          .update(payload)
+          .eq('id', id)
+          .select()
+          .single()
+        if (error) throw error
+        return data as BlogTag
+      } else {
+        const { data, error } = await supabase
+          .from('blog_tags')
+          .insert({
+            ...payload,
+            created_at: new Date().toISOString()
+          })
+          .select()
+          .single()
+        if (error) throw error
+        return data as BlogTag
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blog-tags'] })
+    }
+  })
+
+  const deleteTag = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('blog_tags').delete().eq('id', id)
+      if (error) throw error
+      return id
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blog-tags'] })
+    }
+  })
+
+  return { saveTag, deleteTag }
 }
