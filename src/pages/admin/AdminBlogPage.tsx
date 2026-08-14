@@ -9,7 +9,7 @@ import { toast } from 'sonner'
 export function AdminBlogPage() {
   const navigate = useNavigate()
   const [selectedTab, setSelectedTab] = useState<'posts' | 'comments'>('posts')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft' | 'archived'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'scheduled' | 'draft' | 'archived'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [commentReplyId, setCommentReplyId] = useState<string | null>(null)
   const [replyText, setReplyText] = useState('')
@@ -129,7 +129,7 @@ export function AdminBlogPage() {
             </div>
 
             <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto">
-              {(['all', 'published', 'draft', 'archived'] as const).map((status) => (
+              {(['all', 'published', 'scheduled', 'draft', 'archived'] as const).map((status) => (
                 <button
                   key={status}
                   onClick={() => setStatusFilter(status)}
@@ -139,7 +139,7 @@ export function AdminBlogPage() {
                       : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
                 >
-                  {status === 'all' ? 'Todos' : status === 'published' ? 'Publicados' : status === 'draft' ? 'Rascunhos' : 'Arquivados'}
+                  {status === 'all' ? 'Todos' : status === 'published' ? 'Publicados' : status === 'scheduled' ? 'Agendados' : status === 'draft' ? 'Rascunhos' : 'Arquivados'}
                 </button>
               ))}
             </div>
@@ -197,11 +197,13 @@ export function AdminBlogPage() {
                         <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
                           post.status === 'published'
                             ? 'bg-emerald-100 text-emerald-800'
+                            : post.status === 'scheduled'
+                            ? 'bg-blue-100 text-blue-800'
                             : post.status === 'draft'
                             ? 'bg-amber-100 text-amber-800'
                             : 'bg-slate-100 text-slate-600'
                         }`}>
-                          {post.status === 'published' ? 'Publicado' : post.status === 'draft' ? 'Rascunho' : 'Arquivado'}
+                          {post.status === 'published' ? 'Publicado' : post.status === 'scheduled' ? 'Agendado' : post.status === 'draft' ? 'Rascunho' : 'Arquivado'}
                         </span>
                       </td>
 
