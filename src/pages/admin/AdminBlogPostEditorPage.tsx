@@ -2,10 +2,12 @@ import { useState, useEffect, type FormEvent } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { 
   ArrowLeft, Save, Eye, EyeOff, BookOpen, Clock, FileText, Image as ImageIcon,
-  Sparkles, Calendar, Search, Globe, Share2, Smartphone, Monitor, CheckCircle2, Code
+  Sparkles, Calendar, Search, Globe, Share2, Smartphone, Monitor, CheckCircle2, Code,
+  Upload, Trash2
 } from 'lucide-react'
 import { useBlogPost, useBlogCategories, useAdminBlogMutations, slugify } from '@/hooks/blog/useBlog'
 import { RichTextEditor } from '@/components/shared/RichTextEditor'
+import { MediaLibraryModal } from '@/components/shared/MediaLibraryModal'
 import { Button } from '@/components/ui/button'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { toast } from 'sonner'
@@ -25,6 +27,8 @@ export function AdminBlogPostEditorPage() {
   const [activeTab, setActiveTab] = useState<'content' | 'seo' | 'publishing' | 'preview'>('content')
   const [contentEditorMode, setContentEditorMode] = useState<'visual' | 'code'>('visual')
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop')
+  const [mediaModalOpen, setMediaModalOpen] = useState(false)
+  const [mediaTargetField, setMediaTargetField] = useState<'cover' | 'card'>('cover')
 
   // Form Fields State
   const [title, setTitle] = useState('')
@@ -398,8 +402,8 @@ export function AdminBlogPostEditorPage() {
                 Capa do Artigo (Banner do Topo)
               </h3>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">URL da Imagem de Capa</label>
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-600">URL da Imagem de Capa</label>
                 <input
                   type="url"
                   value={coverImageUrl}
@@ -407,11 +411,30 @@ export function AdminBlogPostEditorPage() {
                   placeholder="https://..."
                   className="w-full h-10 rounded-xl border border-slate-200 px-3 text-xs font-medium text-slate-900 outline-none focus:border-emerald-500"
                 />
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => { setMediaTargetField('cover'); setMediaModalOpen(true) }}
+                  className="w-full rounded-xl text-xs font-bold gap-2 text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  Upload / Biblioteca de Mídia
+                </Button>
               </div>
 
               {coverImageUrl && (
-                <div className="aspect-[16/7] w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
+                <div className="relative aspect-[16/7] w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200 group">
                   <img src={coverImageUrl} alt="Capa" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setCoverImageUrl('')}
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-slate-900/80 text-white hover:bg-red-600 transition-colors shadow-md"
+                    title="Remover imagem de capa"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               )}
             </div>
@@ -422,8 +445,8 @@ export function AdminBlogPostEditorPage() {
                 Imagem da Miniatura (Card na Listagem)
               </h3>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">URL da Miniatura (opcional - usa a capa se vazio)</label>
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-600">URL da Miniatura (opcional - usa a capa se vazio)</label>
                 <input
                   type="url"
                   value={cardImageUrl}
@@ -431,11 +454,30 @@ export function AdminBlogPostEditorPage() {
                   placeholder="https://..."
                   className="w-full h-10 rounded-xl border border-slate-200 px-3 text-xs font-medium text-slate-900 outline-none focus:border-emerald-500"
                 />
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => { setMediaTargetField('card'); setMediaModalOpen(true) }}
+                  className="w-full rounded-xl text-xs font-bold gap-2 text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  Upload / Biblioteca de Mídia
+                </Button>
               </div>
 
               {cardImageUrl && (
-                <div className="aspect-[4/3] w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
+                <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200 group">
                   <img src={cardImageUrl} alt="Card Miniatura" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setCardImageUrl('')}
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-slate-900/80 text-white hover:bg-red-600 transition-colors shadow-md"
+                    title="Remover miniatura"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               )}
             </div>
@@ -692,6 +734,20 @@ export function AdminBlogPostEditorPage() {
           </div>
         </div>
       )}
+
+      {/* Media Library & Image Upload Modal */}
+      <MediaLibraryModal
+        open={mediaModalOpen}
+        onClose={() => setMediaModalOpen(false)}
+        title={mediaTargetField === 'cover' ? 'Selecionar Capa do Artigo (Banner)' : 'Selecionar Miniatura (Card da Listagem)'}
+        onSelect={(url) => {
+          if (mediaTargetField === 'cover') {
+            setCoverImageUrl(url)
+          } else {
+            setCardImageUrl(url)
+          }
+        }}
+      />
 
     </div>
   )
