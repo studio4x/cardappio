@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, Clock, BookOpen } from 'lucide-react'
 import type { BlogPost } from '@/types/blog'
+import { getGridCoverImageUrl, fixMojibakeText } from '@/lib/blog-utils'
 
 interface BlogPostCardProps {
   post: BlogPost
@@ -12,14 +13,15 @@ export function BlogPostCard({ post }: BlogPostCardProps) {
     : ''
 
   const categoryName = post.category?.name || post.category_name || 'Cardappio'
+  const coverUrl = getGridCoverImageUrl(post.cover_image_url)
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-sm transition-all hover:shadow-md hover:border-emerald-300">
       {/* Cover Image */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100">
-        {post.cover_image_url ? (
+        {coverUrl ? (
           <img 
-            src={post.cover_image_url} 
+            src={coverUrl} 
             alt={post.title} 
             className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105" 
             loading="lazy" 
@@ -57,13 +59,13 @@ export function BlogPostCard({ post }: BlogPostCardProps) {
         {/* Title */}
         <h3 className="text-xl font-bold leading-snug text-slate-900 transition-colors group-hover:text-emerald-600">
           <Link to={`/blog/${post.slug}`}>
-            {post.title}
+            {fixMojibakeText(post.title)}
           </Link>
         </h3>
 
         {/* Description / Summary */}
         <p className="mt-3 line-clamp-4 flex-1 text-sm leading-relaxed text-slate-600">
-          {post.seo_description || 'Confira este artigo exclusivo do Blog Cardappio com dicas práticas para o seu dia a dia.'}
+          {fixMojibakeText(post.seo_description) || 'Confira este artigo exclusivo do Blog Cardappio com dicas práticas para o seu dia a dia.'}
         </p>
 
         {/* CTA Link */}

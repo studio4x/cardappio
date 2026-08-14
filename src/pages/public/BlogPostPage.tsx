@@ -6,6 +6,7 @@ import { BlogCommentsSection } from '@/components/blog/BlogCommentsSection'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
 import { Button } from '@/components/ui/button'
+import { sanitizeBlogHtml, fixMojibakeText } from '@/lib/blog-utils'
 
 export function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -92,12 +93,12 @@ export function BlogPostPage() {
           {/* Article Header & Meta */}
           <div className="p-6 md:p-10 border-b border-slate-100">
             <h1 className="text-2xl md:text-4xl font-black leading-tight text-slate-900">
-              {post.title}
+              {fixMojibakeText(post.title)}
             </h1>
 
             {post.seo_description && (
               <p className="mt-3 text-base md:text-lg font-medium leading-relaxed text-slate-600">
-                {post.seo_description}
+                {fixMojibakeText(post.seo_description)}
               </p>
             )}
 
@@ -125,12 +126,12 @@ export function BlogPostPage() {
             {post.content_html ? (
               <div 
                 className="prose prose-slate max-w-none prose-headings:font-bold prose-h2:text-2xl prose-h3:text-xl prose-p:leading-relaxed prose-a:text-emerald-600 prose-img:rounded-2xl"
-                dangerouslySetInnerHTML={{ __html: post.content_html }}
+                dangerouslySetInnerHTML={{ __html: sanitizeBlogHtml(post.content_html) }}
               />
             ) : post.content_text && post.content_text.length > 0 ? (
               <div className="space-y-4 text-base leading-relaxed text-slate-700">
                 {post.content_text.map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
+                  <p key={index}>{fixMojibakeText(paragraph)}</p>
                 ))}
               </div>
             ) : (

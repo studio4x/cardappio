@@ -69,6 +69,7 @@ export interface CreateBlogPostInput {
   cover_image_url?: string | null
   read_time_minutes?: number
   author_name?: string
+  author_id?: string | null
   published_at?: string | null
   content_html?: string | null
   content_text?: string[] | null
