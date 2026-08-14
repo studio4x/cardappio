@@ -202,6 +202,8 @@ export function useAdminBlogMutations() {
       const payload = {
         ...input,
         slug,
+        category_id: input.category_id || null,
+        author_id: input.author_id || null,
         read_time_minutes: input.read_time_minutes || 5,
         status: input.status || 'published',
         updated_at: new Date().toISOString()
