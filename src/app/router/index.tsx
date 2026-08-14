@@ -19,6 +19,8 @@ import { PublicPlansPage } from '@/pages/public/PublicPlansPage'
 import { FaqPage } from '@/pages/public/FaqPage'
 import { ContactPage } from '@/pages/public/ContactPage'
 import { SupportPage } from '@/pages/public/SupportPage'
+import { BlogHomePage } from '@/pages/public/BlogHomePage'
+import { BlogPostPage } from '@/pages/public/BlogPostPage'
 
 // Auth pages
 import { LoginPage } from '@/pages/auth/LoginPage'
@@ -64,6 +66,8 @@ import { AdminLogsPage } from '@/pages/admin/AdminLogsPage'
 import { AdminStripePage } from '@/pages/admin/AdminStripePage'
 import { AdminEmailsPage } from '@/pages/admin/AdminEmailsPage'
 import { AdminUnitsPage } from '@/pages/admin/AdminUnitsPage'
+import { AdminBlogPage } from '@/pages/admin/AdminBlogPage'
+import { AdminBlogPostEditorPage } from '@/pages/admin/AdminBlogPostEditorPage'
 
 export const router = createBrowserRouter([
   // ==========================================
@@ -76,6 +80,8 @@ export const router = createBrowserRouter([
       // TODO: Fase posterior
       { path: '/como-funciona', element: <HowItWorksPage /> },
       { path: '/planos', element: <Navigate to="/#planos" replace /> },
+      { path: '/blog', element: <BlogHomePage /> },
+      { path: '/blog/:slug', element: <BlogPostPage /> },
       { path: '/faq', element: <FaqPage /> },
       { path: '/contato', element: <ContactPage /> },
       { path: '/suporte', element: <SupportPage /> },
@@ -179,6 +185,9 @@ export const router = createBrowserRouter([
               { path: '/admin/categorias', element: <AdminCategoriesPage /> },
               { path: '/admin/tags', element: <AdminTagsPage /> },
               { path: '/admin/unidades', element: <AdminUnitsPage /> },
+              { path: '/admin/blog', element: <AdminBlogPage /> },
+              { path: '/admin/blog/novo', element: <AdminBlogPostEditorPage /> },
+              { path: '/admin/blog/:id', element: <AdminBlogPostEditorPage /> },
               { path: '/admin/colecoes', element: <AdminCollectionsPage /> },
               { path: '/admin/dicas-alertas', element: <AdminNoticesPage /> },
               { path: '/admin/usuarios', element: <AdminUsersPage /> },

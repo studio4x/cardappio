@@ -8,6 +8,7 @@ const navLinks = [
   { label: 'Como funciona', href: '/#como-funciona' },
   { label: 'Benefícios', href: '/#beneficios' },
   { label: 'Planos', href: '/#planos' },
+  { label: 'Blog', href: '/blog' },
 ]
 
 export function PublicHeader() {
