@@ -386,6 +386,8 @@ export function RecipeDetailPage() {
                   * Percentual de valores diários fornecidos pela porção.
                   <br />
                   ** Valores aproximados. Os valores finais dependem da quantidade utilizada de itens definidos "a gosto".
+                  <br />
+                  *** Tabela gerada automaticamente por Inteligência Artificial com base nos dados oficiais do documento <a href="http://www.nepa.unicamp.br/taco/tabela.php" target="_blank" rel="noopener noreferrer" className="underline text-emerald-600 font-bold hover:text-emerald-700">TACO (UNICAMP)</a>.
                 </p>
               </div>
             ) : (
@@ -414,6 +416,8 @@ export function RecipeDetailPage() {
                 ) : (
                   <p className="text-[9px] text-neutral-400 mt-3 text-center leading-relaxed">
                     * Valores aproximados. Os valores finais dependem da quantidade utilizada de itens definidos "a gosto".
+                    <br />
+                    ** Tabela gerada por Inteligência Artificial com base no documento <a href="http://www.nepa.unicamp.br/taco/tabela.php" target="_blank" rel="noopener noreferrer" className="underline text-emerald-600 font-bold hover:text-emerald-700">TACO (UNICAMP)</a>.
                   </p>
                 )}
               </div>
