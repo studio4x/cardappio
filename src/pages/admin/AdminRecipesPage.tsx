@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Plus, 
   Search, 
@@ -14,15 +14,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Trash2,
-  FileText,
-  Upload,
   Apple,
   Crown,
-  AlertTriangle,
-  CheckCircle2,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  FileJson2,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -34,12 +31,6 @@ import { cn } from '@/lib/utils'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
-import {
-  buildAdminRecipeJsonExample,
-  humanizeRecipeSlug,
-  parseAdminRecipeJson,
-  slugifyRecipe,
-} from '@/lib/recipes/adminRecipeJsonImport'
 
 /**
  * AdminRecipesPage
@@ -49,16 +40,11 @@ import {
 export function AdminRecipesPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const jsonFileInputRef = useRef<HTMLInputElement | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [seeding, setSeeding] = useState(false)
   const [page, setPage] = useState(1)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [jsonImportValue, setJsonImportValue] = useState('')
-  const [jsonImportErrors, setJsonImportErrors] = useState<string[]>([])
-  const [jsonImportWarnings, setJsonImportWarnings] = useState<string[]>([])
-  const [isImportingJson, setIsImportingJson] = useState(false)
   const [generatingNutritionId, setGeneratingNutritionId] = useState<string | null>(null)
   const [togglingPremiumId, setTogglingPremiumId] = useState<string | null>(null)
   const [premiumFilter, setPremiumFilter] = useState<'all' | 'premium' | 'free'>('all')
@@ -242,10 +228,7 @@ export function AdminRecipesPage() {
     }
   }
 
-  const resetJsonImportState = () => {
-    setJsonImportErrors([])
-    setJsonImportWarnings([])
-  }
+
 
   const handleLoadJsonFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -485,128 +468,19 @@ export function AdminRecipesPage() {
             {seeding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
             Restaurar Dados Base
           </Button>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/admin/receitas/importar-json')}
+            className="gap-2 border-slate-200"
+          >
+            <FileJson2 className="h-4 w-4" />
+            Importar JSON
+          </Button>
           <Button onClick={() => navigate('/admin/receitas/nova')} className="gap-2">
             <Plus className="h-4 w-4" />
             Nova Receita
           </Button>
         </div>
-      </div>
-
-      {/* JSON Importer */}
-      <div className="rounded-2xl border bg-white p-5 shadow-sm" style={{ borderColor: 'var(--color-outline-variant)' }}>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold text-foreground">Importar receita via JSON</span>
-            </div>
-            <p className="max-w-2xl text-xs text-muted-foreground">
-              Cole aqui o JSON gerado pela IA no formato definido para o Cardappio. O importador cria a receita, categoria, tags, ingredientes e passos.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleLoadExample}
-              disabled={isImportingJson}
-              className="gap-2"
-            >
-              <CheckCircle2 className="h-4 w-4" />
-              Usar exemplo
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => jsonFileInputRef.current?.click()}
-              disabled={isImportingJson}
-              className="gap-2"
-            >
-              <Upload className="h-4 w-4" />
-              Carregar arquivo
-            </Button>
-          </div>
-        </div>
-
-        <input
-          ref={jsonFileInputRef}
-          type="file"
-          accept=".json,application/json"
-          className="hidden"
-          onChange={handleLoadJsonFile}
-        />
-
-        <form onSubmit={handleImportJson} className="mt-4 space-y-4">
-          <textarea
-            value={jsonImportValue}
-            onChange={(event) => {
-              setJsonImportValue(event.target.value)
-              resetJsonImportState()
-            }}
-            placeholder={`{\n  "title": "Salpicão de Frango",\n  "subtitle": "Cremoso, colorido e pronto para a festa",\n  "slug": "salpicao-de-frango",\n  "category_name": "Aves",\n  "category_slug": "aves",\n  "cover_image_url": null,\n  "cover_image_prompt": "Top-down shot of a Brazilian chicken salpicão...",\n  "difficulty_level": "easy",\n  "cost_level": "medium",\n  "prep_time_minutes": 50,\n  "servings": 12,\n  "usage_context": "Almoço de domingo",\n  "notes": "<p><strong>Dica do chefe:</strong> Adicionar batata palha só ao servir.</p>",\n  "status": "draft",\n  "is_featured": false,\n  "is_premium": false,\n  "published_at": null,\n  "tags": [],\n  "ingredients": [],\n  "steps": []\n}`}
-            disabled={isImportingJson}
-            className="min-h-[320px] w-full rounded-2xl border border-slate-200 bg-slate-950 px-4 py-3 font-mono text-[12px] leading-5 text-slate-100 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
-            spellCheck={false}
-          />
-
-          {jsonImportErrors.length > 0 && (
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-              <div className="mb-2 flex items-center gap-2 font-semibold">
-                <AlertTriangle className="h-4 w-4" />
-                Corrija o JSON antes de importar
-              </div>
-              <ul className="space-y-1">
-                {jsonImportErrors.map((error) => (
-                  <li key={error}>- {error}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {jsonImportWarnings.length > 0 && jsonImportErrors.length === 0 && (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-              <div className="mb-2 flex items-center gap-2 font-semibold">
-                <AlertTriangle className="h-4 w-4" />
-                Avisos não bloqueantes
-              </div>
-              <ul className="space-y-1">
-                {jsonImportWarnings.map((warning) => (
-                  <li key={warning}>- {warning}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-muted-foreground">
-              Aceita JSON puro ou conteúdo colado com blocos <span className="font-mono">```json</span>. A importação cria taxonomias quando necessário.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setJsonImportValue('')
-                  resetJsonImportState()
-                }}
-                disabled={isImportingJson || !jsonImportValue.trim()}
-              >
-                Limpar
-              </Button>
-              <Button
-                type="submit"
-                disabled={isImportingJson || !jsonImportValue.trim()}
-                className="gap-2"
-              >
-                {isImportingJson ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                {isImportingJson ? 'Importando...' : 'Importar JSON'}
-              </Button>
-            </div>
-          </div>
-        </form>
       </div>
 
       {/* Filters & search */}

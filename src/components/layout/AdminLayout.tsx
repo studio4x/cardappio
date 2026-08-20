@@ -26,7 +26,8 @@ import {
   Mail,
   Scale,
   BookOpen,
-  Calculator
+  Calculator,
+  FileJson2
 } from 'lucide-react'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { cn } from '@/lib/utils'
@@ -64,6 +65,7 @@ const adminNavGroups: NavGroup[] = [
       { label: 'Receitas', icon: UtensilsCrossed, href: '/admin/receitas' },
       { label: 'Automação de Receitas', icon: Bot, href: '/admin/automacao-receitas' },
       { label: 'Nutrição em Lote', icon: Calculator, href: '/admin/receitas/nutricao-lote' },
+      { label: 'Importar via JSON', icon: FileJson2, href: '/admin/receitas/importar-json' },
       { label: 'Blog', icon: BookOpen, href: '/admin/blog' },
       { label: 'Categorias', icon: Layers, href: '/admin/categorias' },
       { label: 'Tags', icon: Tags, href: '/admin/tags' },

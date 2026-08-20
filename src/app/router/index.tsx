@@ -53,6 +53,7 @@ import { AdminRecipeEditorPage } from '@/pages/admin/AdminRecipeEditorPage'
 import { AdminRecipeEditorWithSourcePage } from '@/pages/admin/AdminRecipeEditorWithSourcePage'
 import { AdminRecipeAutomationPage } from '@/pages/admin/AdminRecipeAutomationPage'
 import { AdminRecipeNutritionBatchPage } from '@/pages/admin/AdminRecipeNutritionBatchPage'
+import { AdminRecipeJsonImportPage } from '@/pages/admin/AdminRecipeJsonImportPage'
 import { AdminUsersPage } from '@/pages/admin/AdminUsersPage'
 import { AdminPlansPage } from '@/pages/admin/AdminPlansPage'
 import { AdminCategoriesPage } from '@/pages/admin/AdminCategoriesPage'
@@ -181,8 +182,9 @@ export const router = createBrowserRouter([
               { path: '/admin', element: <AdminDashboardPage /> },
               { path: '/admin/receitas', element: <AdminRecipesPage /> },
               { path: '/admin/receitas/nova', element: <AdminRecipeEditorPage /> },
-              { path: '/admin/receitas/:id', element: <AdminRecipeEditorWithSourcePage /> },
               { path: '/admin/receitas/nutricao-lote', element: <AdminRecipeNutritionBatchPage /> },
+              { path: '/admin/receitas/importar-json', element: <AdminRecipeJsonImportPage /> },
+              { path: '/admin/receitas/:id', element: <AdminRecipeEditorWithSourcePage /> },
               { path: '/admin/automacao-receitas', element: <AdminRecipeAutomationPage /> },
               { path: '/admin/categorias', element: <AdminCategoriesPage /> },
               { path: '/admin/tags', element: <AdminTagsPage /> },
