@@ -7,20 +7,25 @@ import {
   Bold,
   Italic,
   UnderlineIcon,
-  Heading2,
-  Heading3,
+  Strikethrough,
   List,
   ListOrdered,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  Undo2,
-  Redo2,
   Link2,
+  Image as ImageIcon,
+  Video,
+  Eraser,
+  ChevronDown
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEffect, useState } from 'react'
 import { RecipeLinkModal } from './RecipeLinkModal'
+import { MediaLibraryModal } from './MediaLibraryModal'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem
+} from '@/components/ui/dropdown-menu'
 
 interface RichTextEditorProps {
   value: string
@@ -28,10 +33,6 @@ interface RichTextEditorProps {
   placeholder?: string
   minHeight?: string
   className?: string
-  /**
-   * When true, adds a 🔗 button to the toolbar that lets admins
-   * insert a link to another recipe into the content.
-   */
   enableRecipeLinks?: boolean
 }
 
@@ -58,8 +59,8 @@ function ToolbarButton({
         onClick()
       }}
       className={cn(
-        'rounded p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 disabled:opacity-30 cursor-pointer',
-        active && 'bg-primary/10 text-primary font-bold'
+        'rounded-xl p-2 text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-900 border border-slate-200 bg-white shadow-xs cursor-pointer select-none',
+        active && 'bg-emerald-50 text-emerald-700 border-emerald-300 font-bold'
       )}
     >
       {children}
@@ -76,16 +77,16 @@ export function RichTextEditor({
   enableRecipeLinks = false,
 }: RichTextEditorProps) {
   const [recipeLinkModalOpen, setRecipeLinkModalOpen] = useState(false)
+  const [mediaModalOpen, setMediaModalOpen] = useState(false)
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        heading: { levels: [2, 3] },
+        heading: { levels: [2, 3, 4] },
         codeBlock: false,
         code: false,
         blockquote: false,
         horizontalRule: false,
-        strike: false,
       }),
       Underline,
       Placeholder.configure({
@@ -93,7 +94,10 @@ export function RichTextEditor({
         emptyEditorClass:
           'before:content-[attr(data-placeholder)] before:text-slate-400 before:pointer-events-none before:absolute before:top-[10px] before:left-[12px] before:text-sm',
       }),
-      TextAlign.configure({ types: ['paragraph'] }),
+      TextAlign.configure({
+        types: ['paragraph', 'heading'],
+        alignments: ['left', 'center', 'right', 'justify']
+      }),
     ],
     content: value || '',
     onUpdate: ({ editor }) => {
@@ -103,7 +107,7 @@ export function RichTextEditor({
     editorProps: {
       attributes: {
         class: cn(
-          'px-3 py-2.5 text-sm text-slate-800 outline-none focus:outline-none relative leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_strong]:font-semibold [&_em]:italic [&_u]:underline [&_a]:text-primary [&_a]:underline [&_a]:font-medium [&_a]:cursor-pointer',
+          'px-4 py-3 text-sm text-slate-800 outline-none focus:outline-none relative leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_strong]:font-semibold [&_em]:italic [&_u]:underline [&_a]:text-emerald-600 [&_a]:underline [&_a]:font-medium [&_a]:cursor-pointer [&_img]:rounded-2xl [&_img]:my-4 [&_img]:max-w-full',
           `min-h-[${minHeight}]`
         ),
         style: `min-height: ${minHeight};`,
@@ -121,45 +125,116 @@ export function RichTextEditor({
 
   if (!editor) return null
 
-  const iconSize = 'h-3.5 w-3.5'
+  const iconSize = 'h-4 w-4'
 
   const handleInsertRecipeLink = (recipe: { id: string; slug: string; title: string }) => {
     if (!editor) return
-    // Insert an anchor tag with the recipe slug
     const linkHtml = `<a href="/app/receitas/${recipe.slug}">${recipe.title}</a>`
     editor.chain().focus().insertContent(linkHtml).run()
     setRecipeLinkModalOpen(false)
+  }
+
+  const handleInsertCustomLink = () => {
+    if (!editor) return
+    const url = window.prompt('Digite a URL do link:')
+    if (!url) return
+    const text = window.prompt('Digite o texto do link:')
+    if (!text) return
+    const linkHtml = `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`
+    editor.chain().focus().insertContent(linkHtml).run()
+  }
+
+  const handleInsertVideo = () => {
+    if (!editor) return
+    const embedUrl = window.prompt('Digite a URL do vídeo do YouTube / Vimeo:')
+    if (!embedUrl) return
+    
+    // Convert watch URL to embed URL if needed
+    let finalUrl = embedUrl
+    if (embedUrl.includes('youtube.com/watch?v=')) {
+      const videoId = embedUrl.split('v=')[1]?.split('&')[0]
+      finalUrl = `https://www.youtube.com/embed/${videoId}`
+    } else if (embedUrl.includes('youtu.be/')) {
+      const videoId = embedUrl.split('youtu.be/')[1]?.split('?')[0]
+      finalUrl = `https://www.youtube.com/embed/${videoId}`
+    }
+
+    const videoHtml = `
+      <div class="aspect-video my-4 w-full max-w-2xl mx-auto overflow-hidden rounded-2xl border bg-slate-100">
+        <iframe src="${finalUrl}" class="w-full h-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+    `
+    editor.chain().focus().insertContent(videoHtml).run()
   }
 
   return (
     <>
       <div
         className={cn(
-          'rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary transition-all',
+          'rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-emerald-500 transition-all',
           className
         )}
       >
-        {/* Toolbar */}
-        <div className="flex flex-wrap items-center gap-0.5 border-b border-slate-100 bg-slate-50/80 px-2 py-1.5">
-          {/* Undo / Redo */}
-          <ToolbarButton
-            title="Desfazer"
-            onClick={() => editor.chain().focus().undo().run()}
-            disabled={!editor.can().undo()}
-          >
-            <Undo2 className={iconSize} />
-          </ToolbarButton>
-          <ToolbarButton
-            title="Refazer"
-            onClick={() => editor.chain().focus().redo().run()}
-            disabled={!editor.can().redo()}
-          >
-            <Redo2 className={iconSize} />
-          </ToolbarButton>
+        {/* GenFlix-Style Rich Editor Toolbar */}
+        <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-100 bg-slate-50/50 px-3 py-2.5">
+          
+          {/* 1. ESTRUTURA DROPDOWN */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="flex items-center gap-1 px-3.5 h-9 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 shadow-xs cursor-pointer outline-none select-none"
+              >
+                Estrutura
+                <ChevronDown className="h-3 w-3 text-slate-400" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-white border p-1 rounded-xl shadow-md min-w-32">
+              <DropdownMenuItem onClick={() => editor.chain().focus().setParagraph().run()} className="text-xs font-bold text-slate-700 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
+                Parágrafo
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="text-xs font-black text-slate-900 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
+                Título 2
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className="text-xs font-extrabold text-slate-800 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
+                Título 3
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()} className="text-xs font-bold text-slate-700 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
+                Título 4
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-          <div className="mx-1 h-4 w-px bg-slate-200" />
+          {/* 2. ALINHAR DROPDOWN */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="flex items-center gap-1 px-3.5 h-9 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 shadow-xs cursor-pointer outline-none select-none"
+              >
+                Alinhar
+                <ChevronDown className="h-3 w-3 text-slate-400" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-white border p-1 rounded-xl shadow-md min-w-32">
+              <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('left').run()} className="text-xs font-bold text-slate-700 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
+                ⬅️ Alinhar à Esquerda
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('center').run()} className="text-xs font-bold text-slate-700 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
+                ↔️ Centralizar
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('right').run()} className="text-xs font-bold text-slate-700 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
+                ➡️ Alinhar à Direita
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('justify').run()} className="text-xs font-bold text-slate-700 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
+                🟰 Justificar
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-          {/* Bold / Italic / Underline */}
+          <div className="h-5 w-px bg-slate-200 mx-1.5" />
+
+          {/* 3. FORMATTING BUTTONS: B, I, U, S */}
           <ToolbarButton
             title="Negrito (Ctrl+B)"
             onClick={() => editor.chain().focus().toggleBold().run()}
@@ -181,30 +256,19 @@ export function RichTextEditor({
           >
             <UnderlineIcon className={iconSize} />
           </ToolbarButton>
-
-          <div className="mx-1 h-4 w-px bg-slate-200" />
-
-          {/* Headings */}
           <ToolbarButton
-            title="Título Secundário (H2)"
-            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-            active={editor.isActive('heading', { level: 2 })}
+            title="Tachado"
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            active={editor.isActive('strike')}
           >
-            <Heading2 className={iconSize} />
-          </ToolbarButton>
-          <ToolbarButton
-            title="Subtítulo (H3)"
-            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-            active={editor.isActive('heading', { level: 3 })}
-          >
-            <Heading3 className={iconSize} />
+            <Strikethrough className={iconSize} />
           </ToolbarButton>
 
-          <div className="mx-1 h-4 w-px bg-slate-200" />
+          <div className="h-5 w-px bg-slate-200 mx-1.5" />
 
-          {/* Lists */}
+          {/* 4. LISTS */}
           <ToolbarButton
-            title="Lista com marcadores"
+            title="Lista de marcadores"
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             active={editor.isActive('bulletList')}
           >
@@ -218,47 +282,52 @@ export function RichTextEditor({
             <ListOrdered className={iconSize} />
           </ToolbarButton>
 
-          <div className="mx-1 h-4 w-px bg-slate-200" />
+          <div className="h-5 w-px bg-slate-200 mx-1.5" />
 
-          {/* Alignment */}
-          <ToolbarButton
-            title="Alinhar à esquerda"
-            onClick={() => editor.chain().focus().setTextAlign('left').run()}
-            active={editor.isActive({ textAlign: 'left' })}
-          >
-            <AlignLeft className={iconSize} />
-          </ToolbarButton>
-          <ToolbarButton
-            title="Centralizar"
-            onClick={() => editor.chain().focus().setTextAlign('center').run()}
-            active={editor.isActive({ textAlign: 'center' })}
-          >
-            <AlignCenter className={iconSize} />
-          </ToolbarButton>
-          <ToolbarButton
-            title="Alinhar à direita"
-            onClick={() => editor.chain().focus().setTextAlign('right').run()}
-            active={editor.isActive({ textAlign: 'right' })}
-          >
-            <AlignRight className={iconSize} />
-          </ToolbarButton>
-
-          {/* Recipe link button — only shown when enableRecipeLinks is true */}
-          {enableRecipeLinks && (
-            <>
-              <div className="mx-1 h-4 w-px bg-slate-200" />
-              <ToolbarButton
-                title="Inserir link para outra receita"
-                onClick={() => setRecipeLinkModalOpen(true)}
-              >
-                <Link2 className={iconSize} />
-              </ToolbarButton>
-            </>
+          {/* 5. ACTIONS: LINK, IMAGE, VIDEO, CLEAN */}
+          {enableRecipeLinks ? (
+            <ToolbarButton
+              title="Inserir link de receita"
+              onClick={() => setRecipeLinkModalOpen(true)}
+            >
+              <Link2 className={iconSize} />
+            </ToolbarButton>
+          ) : (
+            <ToolbarButton
+              title="Inserir Link externo"
+              onClick={handleInsertCustomLink}
+            >
+              <Link2 className={iconSize} />
+            </ToolbarButton>
           )}
+
+          <ToolbarButton
+            title="Inserir Imagem (Biblioteca de Mídia)"
+            onClick={() => setMediaModalOpen(true)}
+          >
+            <ImageIcon className={iconSize} />
+          </ToolbarButton>
+
+          <ToolbarButton
+            title="Inserir Vídeo (Youtube/Vimeo)"
+            onClick={handleInsertVideo}
+          >
+            <Video className={iconSize} />
+          </ToolbarButton>
+
+          <ToolbarButton
+            title="Limpar formatação"
+            onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()}
+          >
+            <Eraser className={iconSize} />
+          </ToolbarButton>
+
         </div>
 
         {/* Editor body */}
-        <EditorContent editor={editor} />
+        <div className="relative">
+          <EditorContent editor={editor} />
+        </div>
       </div>
 
       {/* Recipe link insertion modal */}
@@ -270,6 +339,19 @@ export function RichTextEditor({
           onSelect={handleInsertRecipeLink}
         />
       )}
+
+      {/* Media Library Modal for Image insertion */}
+      <MediaLibraryModal
+        open={mediaModalOpen}
+        onClose={() => setMediaModalOpen(false)}
+        title="Selecionar Imagem para o Artigo"
+        onSelect={(url) => {
+          if (!editor) return
+          const imgHtml = `<img src="${url}" alt="Imagem do Artigo" style="max-width: 100%; height: auto; border-radius: 16px; margin: 16px 0;" />`
+          editor.chain().focus().insertContent(imgHtml).run()
+          setMediaModalOpen(false)
+        }}
+      />
     </>
   )
 }
