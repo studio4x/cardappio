@@ -106,11 +106,25 @@ Deno.serve(async (request: Request) => {
         serviceClient.from("app_settings").select("value_json,updated_at").eq("setting_key", "recipe_automation_config").single(),
         serviceClient.from("app_settings").select("value_json,updated_at").eq("setting_key", "recipe_automation_runtime").single(),
         serviceClient.from("recipe_categories").select("name,slug,sort_order").eq("is_active", true).order("sort_order").order("name"),
-        serviceClient.from("cron_execution_logs").select("status,processed_count,metadata_json,created_at").eq("job_name", "recipe_automation").order("created_at", { ascending: false }).limit(10),
+        serviceClient.from("cron_execution_logs").select("id,status,processed_count,metadata_json,created_at").eq("job_name", "recipe_automation").order("created_at", { ascending: false }).limit(HISTORY_LIMIT),
         serviceClient.from("recipes").select("id,title,created_at").eq("is_automation_created", true).order("created_at", { ascending: false }).limit(HISTORY_LIMIT),
       ])
       if (configResult.error || runtimeResult.error || categoriesResult.error || logsResult.error || recipesResult.error) throw new HttpError(500, "state_query_failed", "Could not load state")
-      return response(200, { ok: true, config: configResult.data?.value_json, runtime: runtimeResult.data?.value_json || {}, categories: categoriesResult.data || [], recent_runs: logsResult.data || [], generated_recipes: recipesResult.data || [], limits: { max_recipes_per_run: MAX_RECIPES, generated_recipe_history: HISTORY_LIMIT, cover_batch_limit: COVER_BATCH_LIMIT, timezone: TIMEZONE } })
+      return response(200, {
+        ok: true,
+        config: configResult.data?.value_json,
+        runtime: runtimeResult.data?.value_json || {},
+        categories: categoriesResult.data || [],
+        recent_runs: logsResult.data || [],
+        generated_recipes: recipesResult.data || [],
+        limits: {
+          max_recipes_per_run: MAX_RECIPES,
+          generated_recipe_history: HISTORY_LIMIT,
+          run_history: HISTORY_LIMIT,
+          cover_batch_limit: COVER_BATCH_LIMIT,
+          timezone: TIMEZONE,
+        },
+      })
     }
 
     if (action === "get_recipe_source") {
@@ -187,6 +201,7 @@ Deno.serve(async (request: Request) => {
       if (error) throw new HttpError(422, "manual_run_failed", String(error.message || "Could not request run").slice(0, 300))
       return response(200, { ok: true, result: data })
     }
+
     throw new HttpError(422, "invalid_action", "Unsupported action")
   } catch (error) {
     if (error instanceof HttpError) return response(error.status, { ok: false, error: { code: error.code, message: error.message } })
