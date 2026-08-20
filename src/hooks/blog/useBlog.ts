@@ -115,27 +115,35 @@ export function useBlogPosts(filters?: BlogPostFilters) {
 }
 
 /**
- * Fetch single blog post by slug
+ * Fetch single blog post by ID or slug
  */
-export function useBlogPost(slug: string | undefined) {
+export function useBlogPost(idOrSlug: string | undefined) {
   return useQuery({
-    queryKey: ['blog-post', slug],
+    queryKey: ['blog-post', idOrSlug],
     queryFn: async () => {
-      if (!slug) return null
+      if (!idOrSlug) return null
 
-      const { data, error } = await supabase
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug)
+
+      let query = supabase
         .from('blog_posts')
         .select(`
           *,
           category:blog_categories(*)
         `)
-        .eq('slug', slug)
-        .maybeSingle()
+
+      if (isUuid) {
+        query = query.eq('id', idOrSlug)
+      } else {
+        query = query.eq('slug', idOrSlug)
+      }
+
+      const { data, error } = await query.maybeSingle()
 
       if (error && error.code !== 'PGRST116') throw error
       return (data ?? null) as BlogPost | null
     },
-    enabled: !!slug,
+    enabled: !!idOrSlug,
   })
 }
 

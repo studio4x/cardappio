@@ -207,6 +207,29 @@ export function AdminBlogPostEditorPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Prominent Status Selector in Header */}
+          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <span className="text-[10px] font-extrabold uppercase text-slate-500 pl-2 hidden sm:inline">Status:</span>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as BlogPostStatus)}
+              className={`h-8 rounded-lg px-2 text-xs font-bold border-none outline-none cursor-pointer transition-all ${
+                status === 'published'
+                  ? 'bg-emerald-600 text-white'
+                  : status === 'draft'
+                  ? 'bg-amber-500 text-white'
+                  : status === 'scheduled'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-700 text-white'
+              }`}
+            >
+              <option value="published" className="bg-white text-slate-900 font-medium">🟢 Publicado</option>
+              <option value="draft" className="bg-white text-slate-900 font-medium">🟡 Rascunho</option>
+              <option value="scheduled" className="bg-white text-slate-900 font-medium">🔵 Agendado</option>
+              <option value="archived" className="bg-white text-slate-900 font-medium">⚪ Arquivado</option>
+            </select>
+          </div>
+
           <Button
             type="button"
             variant="outline"
@@ -373,9 +396,45 @@ export function AdminBlogPostEditorPage() {
 
           </div>
 
-          {/* Right Column (4 cols): Category & Dual Images */}
+          {/* Right Column (4 cols): Status, Category & Dual Images */}
           <div className="lg:col-span-4 space-y-6">
             
+            {/* Status Selection Box */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-3 shadow-sm">
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2">
+                Status de Publicação *
+              </h3>
+
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as BlogPostStatus)}
+                className={`w-full h-11 rounded-xl border px-3 text-xs font-bold outline-none cursor-pointer ${
+                  status === 'published'
+                    ? 'border-emerald-500 bg-emerald-50 text-emerald-900'
+                    : status === 'draft'
+                    ? 'border-amber-500 bg-amber-50 text-amber-900'
+                    : status === 'scheduled'
+                    ? 'border-blue-500 bg-blue-50 text-blue-900'
+                    : 'border-slate-300 bg-slate-50 text-slate-900'
+                }`}
+              >
+                <option value="published">🟢 Publicado (Visível no Blog)</option>
+                <option value="draft">🟡 Rascunho (Oculto / Privado)</option>
+                <option value="scheduled">🔵 Agendado (Publica em data futura)</option>
+                <option value="archived">⚪ Arquivado</option>
+              </select>
+
+              <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                {status === 'published'
+                  ? 'Este artigo estará imediatamente visível para todos os leitores no blog público.'
+                  : status === 'draft'
+                  ? 'Salvo como rascunho. Visível apenas para administradores.'
+                  : status === 'scheduled'
+                  ? 'Será tornado público na data definida no agendamento.'
+                  : 'Artigo arquivado.'}
+              </p>
+            </div>
+
             {/* Category Selection */}
             <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
               <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2">
