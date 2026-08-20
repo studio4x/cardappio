@@ -10,6 +10,8 @@ import type {
   CreateBlogCategoryInput,
   CreateBlogTagInput,
   BlogLayoutSettings,
+  BlogCarouselSettings,
+  BlogCarouselSlide,
   SubmitCommentInput 
 } from '@/types/blog'
 
@@ -569,6 +571,59 @@ export function useSaveBlogLayoutSettings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blog-layout-settings'] })
+    }
+  })
+}
+
+/**
+ * Hook to fetch blog custom carousel settings
+ */
+export function useBlogCarouselSettings() {
+  return useQuery({
+    queryKey: ['blog-carousel-settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('app_settings')
+        .select('value_json')
+        .eq('setting_key', 'blog_carousel')
+        .maybeSingle()
+
+      if (error && error.code !== 'PGRST116') throw error
+      if (!data?.value_json) return { slides: [] } as BlogCarouselSettings
+
+      return {
+        slides: Array.isArray(data.value_json.slides) ? data.value_json.slides : []
+      } as BlogCarouselSettings
+    },
+    staleTime: 60_000
+  })
+}
+
+/**
+ * Hook for Admin to save blog custom carousel settings
+ */
+export function useSaveBlogCarouselSettings() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (settings: BlogCarouselSettings) => {
+      const { error } = await supabase
+        .from('app_settings')
+        .upsert(
+          {
+            setting_key: 'blog_carousel',
+            value_json: settings as any,
+            description: 'Configurações de carrossel em destaque da página do blog público',
+            updated_at: new Date().toISOString()
+          },
+          { onConflict: 'setting_key' }
+        )
+
+      if (error) throw error
+      return settings
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blog-carousel-settings'] })
     }
   })
 }

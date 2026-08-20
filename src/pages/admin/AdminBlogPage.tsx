@@ -15,6 +15,8 @@ import {
   useAdminBlogComments,
   useBlogLayoutSettings,
   useSaveBlogLayoutSettings,
+  useBlogCarouselSettings,
+  useSaveBlogCarouselSettings,
   slugify
 } from '@/hooks/blog/useBlog'
 import { Button } from '@/components/ui/button'
@@ -27,15 +29,17 @@ import type {
   BlogLayoutSettings, 
   BlogSidebarBlock, 
   BlogSidebarTextSlide, 
-  BlogSidebarImageSlide 
+  BlogSidebarImageSlide,
+  BlogCarouselSettings,
+  BlogCarouselSlide
 } from '@/types/blog'
 
 export function AdminBlogPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const tabFromUrl = searchParams.get('tab') as 'posts' | 'categories' | 'tags' | 'layout' | 'comments' | null
+  const tabFromUrl = searchParams.get('tab') as 'posts' | 'categories' | 'tags' | 'layout' | 'carousel' | 'comments' | null
 
-  const [selectedTab, setSelectedTab] = useState<'posts' | 'categories' | 'tags' | 'layout' | 'comments'>(tabFromUrl || 'posts')
+  const [selectedTab, setSelectedTab] = useState<'posts' | 'categories' | 'tags' | 'layout' | 'carousel' | 'comments'>(tabFromUrl || 'posts')
 
   useEffect(() => {
     if (selectedTab) {
@@ -112,11 +116,76 @@ export function AdminBlogPage() {
     }
   }, [layoutData])
 
+  // Carousel Modal / Media Target
+  const [carouselMediaModalOpen, setCarouselMediaModalOpen] = useState(false)
+  const [activeCarouselSlideIndex, setActiveCarouselSlideIndex] = useState<number | null>(null)
+
+  // Carousel Data Query
+  const { data: carouselData, isLoading: isLoadingCarousel } = useBlogCarouselSettings()
+
+  // Carousel local state
+  const [carouselState, setCarouselState] = useState<BlogCarouselSettings>({
+    slides: []
+  })
+
+  useEffect(() => {
+    if (carouselData) {
+      setCarouselState(carouselData)
+    }
+  }, [carouselData])
+
   // Mutations
   const { deletePost, updateCommentStatus } = useAdminBlogMutations()
   const { saveCategory, deleteCategory } = useAdminBlogCategoriesMutations()
   const { saveTag, deleteTag } = useAdminBlogTagsMutations()
   const saveLayoutMutation = useSaveBlogLayoutSettings()
+  const saveCarouselMutation = useSaveBlogCarouselSettings()
+
+  // Carousel handlers
+  const handleAddCarouselSlide = () => {
+    const newSlide: BlogCarouselSlide = {
+      id: `carousel-slide-${Date.now()}`,
+      slide_type: 'text_over_image',
+      background_image_url: 'https://wkngjvsgafmdwejmckks.supabase.co/storage/v1/object/public/system/blog/1787177571003-q9pp3.webp',
+      badge_text: 'GERAL',
+      title: 'Título do Seu Novo Slide',
+      description: 'Esta é uma descrição breve do seu slide em destaque no blog público.',
+      cta_button_text: 'Ler Artigo Completo',
+      cta_link_url: '/blog'
+    }
+    setCarouselState(prev => ({
+      ...prev,
+      slides: [...prev.slides, newSlide]
+    }))
+  }
+
+  const handleRemoveCarouselSlide = (idx: number) => {
+    setCarouselState(prev => ({
+      ...prev,
+      slides: prev.slides.filter((_, i) => i !== idx)
+    }))
+  }
+
+  const handleMoveCarouselSlide = (idx: number, direction: 'up' | 'down') => {
+    setCarouselState(prev => {
+      const slides = [...prev.slides]
+      const newIdx = direction === 'up' ? idx - 1 : idx + 1
+      if (newIdx < 0 || newIdx >= slides.length) return prev
+      const temp = slides[idx]
+      slides[idx] = slides[newIdx]
+      slides[newIdx] = temp
+      return { ...prev, slides }
+    })
+  }
+
+  const handleSaveCarousel = async () => {
+    try {
+      await saveCarouselMutation.mutateAsync(carouselState)
+      toast.success('Carrossel do blog salvo com sucesso!')
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao salvar carrossel do blog.')
+    }
+  }
 
   // Article handlers
   const handleDeletePost = async (id: string, title: string) => {
@@ -403,6 +472,17 @@ export function AdminBlogPage() {
               {saveLayoutMutation.isPending ? 'Salvando...' : 'Salvar Layout do Blog'}
             </Button>
           )}
+
+          {selectedTab === 'carousel' && (
+            <Button
+              onClick={handleSaveCarousel}
+              disabled={saveCarouselMutation.isPending}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-2xl gap-2 shadow-sm shrink-0"
+            >
+              <Save className="h-4 w-4" />
+              {saveCarouselMutation.isPending ? 'Salvando...' : 'Salvar Carrossel do Blog'}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -454,6 +534,18 @@ export function AdminBlogPage() {
         >
           <Layout className="h-4 w-4" />
           Layout & Sliders
+        </button>
+
+        <button
+          onClick={() => setSelectedTab('carousel')}
+          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 flex items-center gap-2 cursor-pointer ${
+            selectedTab === 'carousel'
+              ? 'border-emerald-600 text-emerald-700'
+              : 'border-transparent text-slate-500 hover:text-slate-900'
+          }`}
+        >
+          <Sparkles className="h-4 w-4" />
+          Carrossel do Blog
         </button>
 
         <button
@@ -1224,6 +1316,336 @@ export function AdminBlogPage() {
         </div>
       )}
 
+      {/* TAB 4.5: Main Carousel Settings (tab=carousel) */}
+      {selectedTab === 'carousel' && (
+        <div className="space-y-8">
+          {isLoadingCarousel ? (
+            <LoadingState message="Carregando carrossel em destaque..." />
+          ) : (
+            <div className="grid gap-8 lg:grid-cols-12">
+              
+              {/* Left Column (7 cols): Main Slides Manager */}
+              <div className="lg:col-span-7 space-y-6">
+                
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-6 shadow-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                    <div>
+                      <h2 className="text-sm font-extrabold uppercase tracking-wider text-slate-800">
+                        Slides do Carrossel em Destaque
+                      </h2>
+                      <p className="text-xs text-slate-500 font-medium mt-1">
+                        Crie e ordene os slides que aparecem no topo da página pública do blog.
+                      </p>
+                    </div>
+
+                    <Button
+                      type="button"
+                      onClick={handleAddCarouselSlide}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl gap-1.5 shadow-sm"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Adicionar Slide
+                    </Button>
+                  </div>
+
+                  {carouselState.slides.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-12 text-center space-y-3">
+                      <Sparkles className="h-10 w-10 text-slate-300 mx-auto" />
+                      <p className="text-sm font-bold text-slate-700">Nenhum slide customizado criado</p>
+                      <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
+                        Atualmente, o carrossel padrão de fallback (artigos em destaque) está sendo exibido no blog público.
+                      </p>
+                      <Button size="sm" onClick={handleAddCarouselSlide} className="bg-emerald-600 text-white text-xs font-bold mt-1">
+                        Criar Primeiro Slide Customizado
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {carouselState.slides.map((slide, slideIndex) => (
+                        <div key={slide.id} className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5 space-y-4 shadow-sm relative">
+                          
+                          {/* Slide Header & Controls */}
+                          <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="rounded-full bg-slate-900 text-white text-[10px] font-black px-2.5 py-0.5">
+                                Slide {slideIndex + 1}
+                              </span>
+                              <select
+                                value={slide.slide_type}
+                                onChange={(e) => {
+                                  const val = e.target.value as 'image_only' | 'text_over_image'
+                                  setCarouselState(prev => {
+                                    const slides = [...prev.slides]
+                                    slides[slideIndex] = { ...slides[slideIndex], slide_type: val }
+                                    return { ...prev, slides }
+                                  })
+                                }}
+                                className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-800 outline-none"
+                              >
+                                <option value="text_over_image">🎨 Texto com Imagem de Fundo</option>
+                                <option value="image_only">🖼️ Apenas Imagem Banner</option>
+                              </select>
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleMoveCarouselSlide(slideIndex, 'up')}
+                                disabled={slideIndex === 0}
+                                className="p-1 hover:bg-slate-200 rounded-lg text-slate-500 disabled:opacity-30 cursor-pointer"
+                                title="Mover para cima"
+                              >
+                                <MoveUp className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleMoveCarouselSlide(slideIndex, 'down')}
+                                disabled={slideIndex === carouselState.slides.length - 1}
+                                className="p-1 hover:bg-slate-200 rounded-lg text-slate-500 disabled:opacity-30 cursor-pointer"
+                                title="Mover para baixo"
+                              >
+                                <MoveDown className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveCarouselSlide(slideIndex)}
+                                className="p-1 text-red-500 hover:text-red-700 rounded-lg hover:bg-red-50 ml-1 cursor-pointer"
+                                title="Remover slide"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Slide Form Inputs */}
+                          <div className="space-y-4">
+                            
+                            {/* Background Image Upload */}
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                                {slide.slide_type === 'text_over_image' ? 'Imagem de Fundo * (Aspecto 1920x520)' : 'Imagem do Banner * (Aspecto 1920x520)'}
+                              </label>
+                              <div className="flex gap-2">
+                                <input
+                                  type="url"
+                                  value={slide.background_image_url || ''}
+                                  onChange={(e) => {
+                                    const val = e.target.value
+                                    setCarouselState(prev => {
+                                      const slides = [...prev.slides]
+                                      slides[slideIndex].background_image_url = val
+                                      return { ...prev, slides }
+                                    })
+                                  }}
+                                  placeholder="https://..."
+                                  className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-medium text-slate-900 outline-none focus:border-emerald-500"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setActiveCarouselSlideIndex(slideIndex)
+                                    setCarouselMediaModalOpen(true)
+                                  }}
+                                  className="text-xs font-bold shrink-0 text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                                >
+                                  <Upload className="h-3.5 w-3.5 mr-1" />
+                                  Upload
+                                </Button>
+                              </div>
+                            </div>
+
+                            {slide.slide_type === 'text_over_image' ? (
+                              /* Fields for TEXT_OVER_IMAGE slide */
+                              <div className="grid gap-3 sm:grid-cols-2">
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Selo / Categoria (Badge)</label>
+                                  <input
+                                    type="text"
+                                    value={slide.badge_text || ''}
+                                    onChange={(e) => {
+                                      const val = e.target.value
+                                      setCarouselState(prev => {
+                                        const slides = [...prev.slides]
+                                        slides[slideIndex].badge_text = val
+                                        return { ...prev, slides }
+                                      })
+                                    }}
+                                    placeholder="Ex: GERAL"
+                                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-900 outline-none focus:border-emerald-500"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Título / Headline *</label>
+                                  <input
+                                    type="text"
+                                    value={slide.title || ''}
+                                    onChange={(e) => {
+                                      const val = e.target.value
+                                      setCarouselState(prev => {
+                                        const slides = [...prev.slides]
+                                        slides[slideIndex].title = val
+                                        return { ...prev, slides }
+                                      })
+                                    }}
+                                    placeholder="Ex: A Origem do Cardappio"
+                                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-900 outline-none focus:border-emerald-500"
+                                  />
+                                </div>
+
+                                <div className="sm:col-span-2">
+                                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Descrição / Subtítulo</label>
+                                  <input
+                                    type="text"
+                                    value={slide.description || ''}
+                                    onChange={(e) => {
+                                      const val = e.target.value
+                                      setCarouselState(prev => {
+                                        const slides = [...prev.slides]
+                                        slides[slideIndex].description = val
+                                        return { ...prev, slides }
+                                      })
+                                    }}
+                                    placeholder="Ex: Do caos da cozinha à paz da organização..."
+                                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-medium text-slate-900 outline-none focus:border-emerald-500"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Texto do Botão CTA</label>
+                                  <input
+                                    type="text"
+                                    value={slide.cta_button_text || ''}
+                                    onChange={(e) => {
+                                      const val = e.target.value
+                                      setCarouselState(prev => {
+                                        const slides = [...prev.slides]
+                                        slides[slideIndex].cta_button_text = val
+                                        return { ...prev, slides }
+                                      })
+                                    }}
+                                    placeholder="Ex: Ler Artigo Completo"
+                                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-900 outline-none focus:border-emerald-500"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Link de Destino (URL)</label>
+                                  <input
+                                    type="text"
+                                    value={slide.cta_link_url || ''}
+                                    onChange={(e) => {
+                                      const val = e.target.value
+                                      setCarouselState(prev => {
+                                        const slides = [...prev.slides]
+                                        slides[slideIndex].cta_link_url = val
+                                        return { ...prev, slides }
+                                      })
+                                    }}
+                                    placeholder="Ex: /blog/slug-do-artigo"
+                                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-mono text-slate-900 outline-none focus:border-emerald-500"
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              /* Fields for IMAGE_ONLY slide */
+                              <div className="grid gap-3 sm:grid-cols-2">
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Link de Clique (URL)</label>
+                                  <input
+                                    type="text"
+                                    value={slide.link_url || ''}
+                                    onChange={(e) => {
+                                      const val = e.target.value
+                                      setCarouselState(prev => {
+                                        const slides = [...prev.slides]
+                                        slides[slideIndex].link_url = val
+                                        return { ...prev, slides }
+                                      })
+                                    }}
+                                    placeholder="Ex: /promocao-semana"
+                                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-mono text-slate-900 outline-none focus:border-emerald-500"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Texto Alternativo (ALT)</label>
+                                  <input
+                                    type="text"
+                                    value={slide.alt_text || ''}
+                                    onChange={(e) => {
+                                      const val = e.target.value
+                                      setCarouselState(prev => {
+                                        const slides = [...prev.slides]
+                                        slides[slideIndex].alt_text = val
+                                        return { ...prev, slides }
+                                      })
+                                    }}
+                                    placeholder="Descrição da imagem para acessibilidade"
+                                    className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-medium text-slate-900 outline-none focus:border-emerald-500"
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <Button
+                    type="button"
+                    onClick={handleSaveCarousel}
+                    disabled={saveCarouselMutation.isPending}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl gap-2 shadow-md px-6 py-2.5"
+                  >
+                    <Save className="h-4 w-4" />
+                    {saveCarouselMutation.isPending ? 'Salvando...' : 'Salvar Carrossel do Blog'}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Right Column (5 cols): Preview Info & Guidance */}
+              <div className="lg:col-span-5 space-y-6">
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm sticky top-24">
+                  <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+                    <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-emerald-600" />
+                      Informações de Carrossel
+                    </h3>
+                  </div>
+
+                  <div className="space-y-3 text-xs text-slate-600 leading-relaxed font-medium">
+                    <p>
+                      Esta aba permite criar banners e carrosséis personalizados que substituem o carrossel padrão de artigos em destaque.
+                    </p>
+
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                      <p className="font-bold text-slate-900 text-xs">ℹ️ Tipos de Slides Suportados:</p>
+                      <ul className="space-y-1 list-disc list-inside text-slate-700">
+                        <li><strong>Texto com Imagem de Fundo</strong>: Ideal para destacar artigos, receitas ou promoções com overlay de texto, badge e botão de ação.</li>
+                        <li><strong>Apenas Imagem Banner</strong>: Um banner puro que redireciona para um link específico ao ser clicado.</li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-emerald-50 text-emerald-950 p-4 rounded-xl border border-emerald-200">
+                      <p className="font-bold text-xs">📸 Proporção Recomendada:</p>
+                      <p className="text-[11px] mt-1 font-semibold">
+                        As imagens dos slides devem seguir a proporção <strong>1920 × 520 px (Panorâmica 16:4)</strong> para perfeita exibição tanto em desktop quanto mobile.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* TAB 5: Comments Moderation */}
       {selectedTab === 'comments' && (
         <div className="space-y-6">
@@ -1523,6 +1945,22 @@ export function AdminBlogPage() {
               const blocks = [...prev.sidebar_blocks]
               blocks[blockIndex].slides[slideIndex].url = url
               return { ...prev, sidebar_blocks: blocks }
+            })
+          }
+        }}
+      />
+
+      {/* Media Library Modal for Custom Main Carousel */}
+      <MediaLibraryModal
+        open={carouselMediaModalOpen}
+        onClose={() => setCarouselMediaModalOpen(false)}
+        title="Selecionar Imagem de Fundo para o Carrossel"
+        onSelect={(url) => {
+          if (activeCarouselSlideIndex !== null) {
+            setCarouselState(prev => {
+              const slides = [...prev.slides]
+              slides[activeCarouselSlideIndex].background_image_url = url
+              return { ...prev, slides }
             })
           }
         }}

@@ -181,3 +181,20 @@ export interface BlogLayoutSettings {
   hero_subtitle: string
   sidebar_blocks: BlogSidebarBlock[]
 }
+
+export interface BlogCarouselSlide {
+  id: string
+  slide_type: 'image_only' | 'text_over_image'
+  background_image_url: string
+  badge_text?: string
+  title?: string
+  description?: string
+  cta_button_text?: string
+  cta_link_url?: string
+  link_url?: string
+  alt_text?: string
+}
+
+export interface BlogCarouselSettings {
+  slides: BlogCarouselSlide[]
+}
