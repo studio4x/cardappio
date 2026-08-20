@@ -70,43 +70,42 @@ export function BlogHomePage() {
           <BlogFeaturedCarousel posts={posts} />
         )}
 
-        {/* GenFlix-Style Category Filters Row */}
-        <section className="mx-auto max-w-4xl">
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <button
-              type="button"
-              onClick={() => handleCategorySelect('all')}
-              className={`rounded-full px-5 py-2 text-xs font-extrabold uppercase tracking-wider transition-all shadow-sm cursor-pointer ${
-                selectedCategory === 'all'
-                  ? 'border-emerald-600 bg-emerald-600 text-white shadow-emerald-600/20 ring-2 ring-emerald-600/20'
-                  : 'border-slate-200 bg-slate-100 text-slate-700 hover:border-slate-300 hover:bg-slate-200'
-              }`}
-            >
-              Todos
-            </button>
-
-            {categories?.map((cat) => (
+        {/* GenFlix-Style 2-Column Layout (Grid + Sidebar) */}
+        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+          
+          {/* Main Posts Grid */}
+          <main className="space-y-8">
+            
+            {/* GenFlix-Style Category Filters Row (Now inside the left column container) */}
+            <div className="flex flex-wrap items-center justify-start gap-2.5">
               <button
-                key={cat.id}
                 type="button"
-                onClick={() => handleCategorySelect(cat.slug)}
+                onClick={() => handleCategorySelect('all')}
                 className={`rounded-full px-5 py-2 text-xs font-extrabold uppercase tracking-wider transition-all shadow-sm cursor-pointer ${
-                  selectedCategory === cat.slug
+                  selectedCategory === 'all'
                     ? 'border-emerald-600 bg-emerald-600 text-white shadow-emerald-600/20 ring-2 ring-emerald-600/20'
                     : 'border-slate-200 bg-slate-100 text-slate-700 hover:border-slate-300 hover:bg-slate-200'
                 }`}
               >
-                {cat.name}
+                Todos
               </button>
-            ))}
-          </div>
-        </section>
 
-        {/* GenFlix-Style 2-Column Layout (Grid + Sidebar) */}
-        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_240px]">
-          
-          {/* Main Posts Grid */}
-          <main className="space-y-10">
+              {categories?.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => handleCategorySelect(cat.slug)}
+                  className={`rounded-full px-5 py-2 text-xs font-extrabold uppercase tracking-wider transition-all shadow-sm cursor-pointer ${
+                    selectedCategory === cat.slug
+                      ? 'border-emerald-600 bg-emerald-600 text-white shadow-emerald-600/20 ring-2 ring-emerald-600/20'
+                      : 'border-slate-200 bg-slate-100 text-slate-700 hover:border-slate-300 hover:bg-slate-200'
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+
             {isLoadingPosts ? (
               <LoadingState message="Carregando artigos do blog..." />
             ) : posts.length === 0 ? (
