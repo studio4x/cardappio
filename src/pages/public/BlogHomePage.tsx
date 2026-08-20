@@ -77,11 +77,11 @@ export function BlogHomePage() {
           <main className="space-y-8">
             
             {/* GenFlix-Style Category Filters Row (Now inside the left column container) */}
-            <div className="flex flex-wrap items-center justify-start gap-2.5">
+            <div className="flex flex-wrap items-center justify-start gap-1.5">
               <button
                 type="button"
                 onClick={() => handleCategorySelect('all')}
-                className={`rounded-full px-5 py-2 text-xs font-extrabold uppercase tracking-wider transition-all shadow-sm cursor-pointer ${
+                className={`rounded-full px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all shadow-xs cursor-pointer ${
                   selectedCategory === 'all'
                     ? 'border-emerald-600 bg-emerald-600 text-white shadow-emerald-600/20 ring-2 ring-emerald-600/20'
                     : 'border-slate-200 bg-slate-100 text-slate-700 hover:border-slate-300 hover:bg-slate-200'
@@ -95,7 +95,7 @@ export function BlogHomePage() {
                   key={cat.id}
                   type="button"
                   onClick={() => handleCategorySelect(cat.slug)}
-                  className={`rounded-full px-5 py-2 text-xs font-extrabold uppercase tracking-wider transition-all shadow-sm cursor-pointer ${
+                  className={`rounded-full px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all shadow-xs cursor-pointer ${
                     selectedCategory === cat.slug
                       ? 'border-emerald-600 bg-emerald-600 text-white shadow-emerald-600/20 ring-2 ring-emerald-600/20'
                       : 'border-slate-200 bg-slate-100 text-slate-700 hover:border-slate-300 hover:bg-slate-200'
