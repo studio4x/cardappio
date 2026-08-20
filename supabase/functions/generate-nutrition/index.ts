@@ -75,7 +75,7 @@ const REF_SODIUM = 2000
 
 // ─── Prompt builder ────────────────────────────────────────────────────────────
 
-function buildPrompt(ingredients: Ingredient[], servings: number): string {
+function buildPrompt(ingredients: Ingredient[], servings: number, tacoReferences?: string): string {
   const ingredientList = ingredients
     .map(i => {
       const qty = i.quantity_label ? i.quantity_label : ''
@@ -84,14 +84,30 @@ function buildPrompt(ingredients: Ingredient[], servings: number): string {
     })
     .join('\n')
 
-  return `Você é um nutricionista especializado. Analise a lista de ingredientes abaixo de uma receita que rende ${servings} porção(ões) e estime a tabela nutricional POR PORÇÃO.
+  let prompt = `Você é um nutricionista especialista em rotulagem de alimentos no Brasil.
+Analise a lista de ingredientes abaixo de uma receita que rende ${servings} porção(ões).
 
 Ingredientes:
 ${ingredientList}
+`
 
-Responda APENAS com um JSON válido, sem texto extra, no formato exato:
+  if (tacoReferences) {
+    prompt += `
+DADOS DE REFERÊNCIA REAL DA TABELA TACO (Use estes valores por 100g para calcular proporcionalmente sempre que aplicável):
+${tacoReferences}
+`
+  }
+
+  prompt += `
+INSTRUÇÕES DE CÁLCULO (Siga rigorosamente):
+1. Converta cada ingrediente e sua medida caseira para gramas (g) ou mililitros (ml) de parte comestível pronta para consumo.
+2. Calcule proporcionalmente a quantidade de calorias, carboidratos, proteínas, gorduras totais, gorduras saturadas, fibras e sódio por ingrediente com base nas referências da TACO fornecidas.
+3. Somar todos os ingredientes calculados para obter o total da receita e dividir pelo número de porções (${servings}) para obter o valor unitário por porção.
+4. Garanta o balanço de macronutrientes: Calorias (kcal) = (carboidratos * 4) + (proteínas * 4) + (gorduras totais * 9).
+
+Responda APENAS com um JSON válido, sem tags markdown ou texto extra, no formato exato:
 {
-  "serving_size_g_ml": <peso ou volume estimado de uma única porção em gramas (g) ou mililitros (ml), número inteiro>,
+  "serving_size_g_ml": <peso ou volume estimado de uma única porção pronta em g ou ml, número inteiro>,
   "serving_size_household": "<medida caseira para uma porção, ex: '1 xícara de chá', '1 fatia', '2 colheres de sopa'>",
   "calories": <calorias por porção em kcal, número>,
   "carbs": <carboidratos em gramas por porção, número>,
@@ -103,9 +119,9 @@ Responda APENAS com um JSON válido, sem texto extra, no formato exato:
   "trans_fat": <gorduras trans em gramas por porção, número>,
   "fiber": <fibra alimentar em gramas por porção, número>,
   "sodium": <sódio em miligramas por porção, número>
-}
+}`
 
-Forneça estimativas realistas baseadas em composição média de alimentos.`
+  return prompt
 }
 
 // ─── Helper: Format & Calculate final JSONB ─────────────────────────────────────
@@ -283,8 +299,40 @@ serve(async (req) => {
       return createResponse(null, { code: 'CONFIG_ERROR', message: 'Configuração de IA não encontrada. Configure as API keys.' }, 200)
     }
 
+    // Resolve TACO reference values for ingredients
+    let tacoReferences = ''
+    try {
+      const referenceItems: string[] = []
+      for (const ing of ingredients) {
+        // Clean name and split into search keywords (e.g. filter out stop words and quantities)
+        const cleanedName = ing.name
+          .replace(/[0-9]+/g, '')
+          .replace(/(colher|xícara|gramas|chá|sopa|sobremesa|copo|dente|fatia|unidade|de|do|da|com|sem|para|a|o)/gi, '')
+          .trim()
+        const searchWords = cleanedName.split(/[\s,]+/).filter(w => w.length > 2)
+        if (searchWords.length > 0) {
+          let query = supabaseService.from('taco_foods').select('*')
+          query = query.ilike('description', `%${searchWords[0]}%`)
+          
+          const { data: matchedFoods } = await query.limit(3)
+          if (matchedFoods && matchedFoods.length > 0) {
+            matchedFoods.forEach(food => {
+              referenceItems.push(
+                `- Ingrediente "${ing.name}" pode corresponder a: "${food.description}" da TACO (Categoria: ${food.category}). Valores por 100g: Energia: ${food.energy_kcal}kcal, Proteína: ${food.protein_g}g, Carboidrato: ${food.carbohydrate_g}g, Lipídeos: ${food.lipid_g}g, Sódio: ${food.sodium_mg}mg, Fibra: ${food.fiber_g}g`
+              );
+            });
+          }
+        }
+      }
+      if (referenceItems.length > 0) {
+        tacoReferences = referenceItems.join('\n')
+      }
+    } catch (lookupErr) {
+      console.warn('Erro ao consultar banco TACO local:', lookupErr.message)
+    }
+
     const aiConfig = settingsRow.value_json as unknown as AIConfig
-    const prompt = buildPrompt(ingredients, servings || 1)
+    const prompt = buildPrompt(ingredients, servings || 1, tacoReferences)
 
     let result: NutritionInfo | null = null
     const errors: string[] = []
