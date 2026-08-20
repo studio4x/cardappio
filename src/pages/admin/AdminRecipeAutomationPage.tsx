@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import {
   Bot,
   CalendarDays,
   CheckCircle2,
   Clock3,
-  ExternalLink,
   History,
   ImagePlus,
   Loader2,
@@ -18,6 +16,7 @@ import {
 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
+import { RecipeAutomationHistoryTab } from '@/components/admin/RecipeAutomationHistoryTab'
 import { RecipeCoverPendingTab } from '@/components/admin/RecipeCoverPendingTab'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -75,7 +74,6 @@ export function AdminRecipeAutomationPage() {
   const pendingManual = Boolean(data?.runtime?.manual_request?.id)
   const lastRun = data?.runtime?.last_run
   const lastTotals = lastRun?.summary?.totals
-  const generatedRecipes = data?.generated_recipes || []
 
   const updateTarget = (slug: string, quantity: number) => {
     setForm((current) => ({
@@ -115,10 +113,7 @@ export function AdminRecipeAutomationPage() {
       <Tabs defaultValue="configuracao" className="gap-6">
         <TabsList variant="pill" className="max-w-full overflow-x-auto">
           <TabsTrigger value="configuracao"><Settings2 className="h-4 w-4" />Configuração</TabsTrigger>
-          <TabsTrigger value="historico">
-            <History className="h-4 w-4" />Histórico
-            {generatedRecipes.length > 0 && <span className="ml-1 rounded-full bg-current/10 px-1.5 py-0.5 text-[10px] font-black">{generatedRecipes.length}</span>}
-          </TabsTrigger>
+          <TabsTrigger value="historico"><History className="h-4 w-4" />Histórico</TabsTrigger>
           <TabsTrigger value="capas"><ImagePlus className="h-4 w-4" />Capas pendentes</TabsTrigger>
         </TabsList>
 
@@ -233,36 +228,12 @@ export function AdminRecipeAutomationPage() {
         </TabsContent>
 
         <TabsContent value="historico" className="space-y-4">
-          <section className="overflow-hidden rounded-2xl border bg-white shadow-sm">
-            <div className="flex flex-col gap-3 border-b px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="flex items-center gap-2"><History className="h-5 w-5 text-[#f76f25]" /><h2 className="font-black text-slate-800">Histórico de receitas geradas</h2></div>
-                <p className="mt-1 text-xs text-slate-500">Receitas criadas pela automação, da mais recente para a mais antiga.</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="rounded-full bg-slate-100 px-4 py-2 text-xs font-black text-slate-600">{generatedRecipes.length} receita{generatedRecipes.length === 1 ? '' : 's'}</span>
-                <Button type="button" variant="outline" size="icon" onClick={() => refetch()} disabled={isFetching} className="h-9 w-9 rounded-full"><RefreshCw className={cn('h-4 w-4', isFetching && 'animate-spin')} /></Button>
-              </div>
-            </div>
-            {generatedRecipes.length === 0 ? (
-              <div className="px-6 py-14 text-center"><Bot className="mx-auto h-10 w-10 text-slate-300" /><p className="mt-4 text-sm font-bold text-slate-600">Nenhuma receita gerada pela automação.</p></div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[680px] text-left">
-                  <thead className="bg-slate-50/80"><tr className="text-[10px] font-black uppercase tracking-wider text-slate-400"><th className="px-6 py-3">Receita</th><th className="px-6 py-3">Criada em</th><th className="px-6 py-3 text-right">Edição</th></tr></thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {generatedRecipes.map((recipe) => (
-                      <tr key={recipe.id} className="hover:bg-slate-50/60">
-                        <td className="px-6 py-4"><p className="text-sm font-bold text-slate-700">{recipe.title}</p></td>
-                        <td className="px-6 py-4 text-sm font-medium text-slate-500">{formatDateTime(recipe.created_at)}</td>
-                        <td className="px-6 py-4 text-right"><Link to={`/admin/receitas/${recipe.id}`} className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 no-underline hover:text-[#f76f25]">Editar receita<ExternalLink className="h-3.5 w-3.5" /></Link></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
+          <RecipeAutomationHistoryTab
+            runs={data?.recent_runs || []}
+            generatedRecipes={data?.generated_recipes || []}
+            isFetching={isFetching}
+            onRefresh={() => refetch()}
+          />
         </TabsContent>
 
         <TabsContent value="capas" className="space-y-4">
