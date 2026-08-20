@@ -71,7 +71,7 @@ export function useBlogPosts(filters?: BlogPostFilters) {
         .from('blog_posts')
         .select(`
           *,
-          category:blog_categories(*)
+          category:blog_categories!blog_posts_category_id_fkey(*)
         `, { count: 'exact' })
 
       const status = filters?.status ?? 'published'
@@ -130,7 +130,7 @@ export function useBlogPost(idOrSlug: string | undefined) {
         .from('blog_posts')
         .select(`
           *,
-          category:blog_categories(*)
+          category:blog_categories!blog_posts_category_id_fkey(*)
         `)
 
       if (isUuid) {
