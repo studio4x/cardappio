@@ -42,7 +42,7 @@ export function useRecipeNutritionBatch(filters: RecipeNutritionFilters) {
           created_at,
           nutrition_info,
           category:recipe_categories(name, slug),
-          ingredients:recipe_ingredients(id)
+          ingredients:recipe_ingredients!recipe_ingredients_recipe_id_fkey(id)
         `, { count: 'exact' })
 
       if (filters.onlyPending !== false) {
