@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { 
   ArrowLeft, Save, Eye, EyeOff, BookOpen, Clock, FileText, Image as ImageIcon,
   Sparkles, Calendar, Search, Globe, Share2, Smartphone, Monitor, CheckCircle2, Code,
-  Upload, Trash2
+  Upload, Trash2, Info
 } from 'lucide-react'
 import { useBlogPost, useBlogCategories, useAdminBlogMutations, slugify } from '@/hooks/blog/useBlog'
 import { RichTextEditor } from '@/components/shared/RichTextEditor'
@@ -455,11 +455,22 @@ export function AdminBlogPostEditorPage() {
               </select>
             </div>
 
-            {/* Cover Image (Post Page Banner 1920x500) */}
+            {/* Cover Image (Post Page Banner 1920x520 - Aspect 16:9 / 16:7) */}
             <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
-              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2">
-                Capa do Artigo (Banner do Topo)
-              </h3>
+              <div className="border-b border-slate-100 pb-3 space-y-1">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
+                  Capa do Artigo (Banner do Topo)
+                </h3>
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold text-emerald-800 border border-emerald-200/60">
+                    <Info className="h-3 w-3 text-emerald-600" />
+                    Proporção: 16:9 / 16:7
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700 border border-slate-200/80">
+                    Recomendado: 1920 × 520 px
+                  </span>
+                </div>
+              </div>
 
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-slate-600">URL da Imagem de Capa</label>
@@ -498,14 +509,27 @@ export function AdminBlogPostEditorPage() {
               )}
             </div>
 
-            {/* Card Thumbnail Image (Grid 4:3) */}
+            {/* Card Thumbnail Image (Grid 4:3 - Aspect 4:3) */}
             <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
-              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2">
-                Imagem da Miniatura (Card na Listagem)
-              </h3>
+              <div className="border-b border-slate-100 pb-3 space-y-1">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
+                  Imagem da Miniatura (Card na Listagem)
+                </h3>
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-extrabold text-blue-800 border border-blue-200/60">
+                    <Info className="h-3 w-3 text-blue-600" />
+                    Proporção: 4:3
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700 border border-slate-200/80">
+                    Recomendado: 960 × 720 px
+                  </span>
+                </div>
+              </div>
 
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-600">URL da Miniatura (opcional - usa a capa se vazio)</label>
+                <label className="block text-xs font-bold text-slate-600">
+                  URL da Miniatura <span className="text-slate-400 font-normal">(opcional - usa a capa se vazio)</span>
+                </label>
                 <input
                   type="url"
                   value={cardImageUrl}
