@@ -10,6 +10,7 @@ export interface BlogCategory {
   name: string
   slug: string
   description?: string | null
+  parent_id?: string | null
   sort_order: number
   is_active: boolean
   created_at: string
@@ -32,6 +33,10 @@ export interface BlogPost {
   category_id?: string | null
   category_name?: string | null
   category?: BlogCategory | null
+  category_ids?: string[]
+  categories?: BlogCategory[]
+  tag_ids?: string[]
+  tags?: BlogTag[]
   seo_description?: string | null
   cover_image_url?: string | null
   card_image_url?: string | null
@@ -94,6 +99,8 @@ export interface CreateBlogPostInput {
   title: string
   slug?: string
   category_id?: string | null
+  category_ids?: string[]
+  tag_ids?: string[]
   category_name?: string | null
   seo_description?: string | null
   cover_image_url?: string | null
@@ -130,6 +137,7 @@ export interface CreateBlogCategoryInput {
   name: string
   slug?: string
   description?: string | null
+  parent_id?: string | null
   sort_order?: number
   is_active?: boolean
 }

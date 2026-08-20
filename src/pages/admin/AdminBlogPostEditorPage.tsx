@@ -3,23 +3,20 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { 
   ArrowLeft, Save, Eye, EyeOff, BookOpen, Clock, FileText, Image as ImageIcon,
   Sparkles, Calendar, Search, Globe, Share2, Smartphone, Monitor, CheckCircle2, Code,
-  Upload, Trash2, Info
+  Upload, Trash2, Info, Tag as TagIcon, Plus
 } from 'lucide-react'
-import { useBlogPost, useBlogCategories, useAdminBlogMutations, slugify } from '@/hooks/blog/useBlog'
+import { useBlogPost, useBlogCategories, useBlogTags, useAdminBlogMutations, useAdminBlogTagsMutations, slugify } from '@/hooks/blog/useBlog'
 import { RichTextEditor } from '@/components/shared/RichTextEditor'
 import { MediaLibraryModal } from '@/components/shared/MediaLibraryModal'
 import { Button } from '@/components/ui/button'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { toast } from 'sonner'
-import type { BlogPostStatus } from '@/types/blog'
+import type { BlogPostStatus, BlogCategory } from '@/types/blog'
 
 export function AdminBlogPostEditorPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const isNew = !id || id === 'novo'
-
-  const { data: categories } = useBlogCategories()
-  const { savePost } = useAdminBlogMutations()
 
   const [existingSlug, setExistingSlug] = useState<string | undefined>()
 
@@ -34,6 +31,9 @@ export function AdminBlogPostEditorPage() {
   const [title, setTitle] = useState('')
   const [slug, setSlug] = useState('')
   const [categoryId, setCategoryId] = useState('')
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([])
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
+  const [newTagName, setNewTagName] = useState('')
   const [coverImageUrl, setCoverImageUrl] = useState('')
   const [cardImageUrl, setCardImageUrl] = useState('')
   const [seoDescription, setSeoDescription] = useState('')
@@ -55,8 +55,12 @@ export function AdminBlogPostEditorPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [isGeneratingSeo, setIsGeneratingSeo] = useState(false)
 
-  // Fetch post if editing
+  // Fetch post, categories, tags & mutations
   const { data: post, isLoading } = useBlogPost(existingSlug)
+  const { data: categories } = useBlogCategories()
+  const { data: tags } = useBlogTags()
+  const { savePost } = useAdminBlogMutations()
+  const { saveTag } = useAdminBlogTagsMutations()
 
   useEffect(() => {
     if (!isNew && id) {
@@ -64,11 +68,27 @@ export function AdminBlogPostEditorPage() {
     }
   }, [id, isNew])
 
+  function getCategoryPathLabel(cat: BlogCategory, allCategories?: BlogCategory[]): string {
+    if (!allCategories) return cat.name
+    const path: string[] = [cat.name]
+    let currentParentId = cat.parent_id
+    const map = new Map(allCategories.map(c => [c.id, c]))
+    while (currentParentId) {
+      const parent = map.get(currentParentId)
+      if (!parent) break
+      path.unshift(parent.name)
+      currentParentId = parent.parent_id
+    }
+    return path.join(' > ')
+  }
+
   useEffect(() => {
     if (post) {
       setTitle(post.title || '')
       setSlug(post.slug || '')
       setCategoryId(post.category_id || '')
+      setSelectedCategoryIds(post.category_ids || (post.category_id ? [post.category_id] : []))
+      setSelectedTagIds(post.tag_ids || [])
       setCoverImageUrl(post.cover_image_url || '')
       setCardImageUrl(post.card_image_url || '')
       setSeoDescription(post.seo_description || '')
@@ -145,13 +165,16 @@ export function AdminBlogPostEditorPage() {
 
     setIsSaving(true)
     try {
-      const selectedCategory = categories?.find(c => c.id === categoryId)
+      const primaryCatId = selectedCategoryIds[0] || categoryId || null
+      const selectedCategory = categories?.find(c => c.id === primaryCatId)
 
       await savePost.mutateAsync({
         id: isNew ? undefined : post?.id || id,
         title: title.trim(),
         slug: slug.trim() || slugify(title),
-        category_id: categoryId || null,
+        category_id: primaryCatId,
+        category_ids: selectedCategoryIds,
+        tag_ids: selectedTagIds,
         category_name: selectedCategory?.name || 'Geral',
         seo_description: seoDescription.trim(),
         cover_image_url: coverImageUrl.trim() || null,
@@ -435,24 +458,125 @@ export function AdminBlogPostEditorPage() {
               </p>
             </div>
 
-            {/* Category Selection */}
+            {/* Multi-Category Selection Card with Hierarchy */}
             <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
-              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2">
-                Categoria
-              </h3>
+              <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
+                  Categorias do Artigo
+                </h3>
+                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                  {selectedCategoryIds.length} selecionada(s)
+                </span>
+              </div>
 
-              <select
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full h-10 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-900 outline-none focus:border-emerald-500 bg-white"
-              >
-                <option value="">Selecione uma Categoria...</option>
-                {categories?.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                Selecione uma ou mais categorias para o artigo. A primeira será a principal.
+              </p>
+
+              <div className="max-h-48 overflow-y-auto space-y-1 pr-1 border border-slate-100 p-2.5 rounded-xl bg-slate-50/50">
+                {categories?.map((cat) => {
+                  const isSelected = selectedCategoryIds.includes(cat.id)
+                  const pathLabel = getCategoryPathLabel(cat, categories)
+                  return (
+                    <label
+                      key={cat.id}
+                      className={`flex items-center gap-2.5 p-2 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
+                        isSelected ? 'bg-emerald-50 text-emerald-900 border border-emerald-200/60' : 'hover:bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedCategoryIds(prev => [...prev, cat.id])
+                            if (!categoryId) setCategoryId(cat.id)
+                          } else {
+                            setSelectedCategoryIds(prev => prev.filter(id => id !== cat.id))
+                          }
+                        }}
+                        className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <span className="truncate font-medium">{pathLabel}</span>
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Tags Selection Card (Positioned below Category Card) */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
+              <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                  <TagIcon className="h-3.5 w-3.5 text-emerald-600" />
+                  Tags do Artigo
+                </h3>
+                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                  {selectedTagIds.length} selecionada(s)
+                </span>
+              </div>
+
+              <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                Selecione as tags associadas a este artigo para agrupar conteúdos.
+              </p>
+
+              {/* Tags Checklist */}
+              <div className="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto p-2.5 rounded-xl bg-slate-50/50 border border-slate-100">
+                {tags?.map((t) => {
+                  const isSelected = selectedTagIds.includes(t.id)
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedTagIds(prev => prev.filter(id => id !== t.id))
+                        } else {
+                          setSelectedTagIds(prev => [...prev, t.id])
+                        }
+                      }}
+                      className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      #{t.name}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Quick Add New Tag Input */}
+              <div className="flex gap-2 pt-1">
+                <input
+                  type="text"
+                  value={newTagName}
+                  onChange={(e) => setNewTagName(e.target.value)}
+                  placeholder="Criar nova tag..."
+                  className="w-full h-9 rounded-xl border border-slate-200 px-3 text-xs font-medium text-slate-900 outline-none focus:border-emerald-500"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    if (!newTagName.trim()) return
+                    try {
+                      const created = await saveTag.mutateAsync({ name: newTagName.trim() })
+                      setSelectedTagIds(prev => [...prev, created.id])
+                      setNewTagName('')
+                      toast.success(`Tag #${created.name} criada e selecionada!`)
+                    } catch (err: any) {
+                      toast.error(err.message || 'Erro ao criar tag.')
+                    }
+                  }}
+                  className="text-xs font-bold shrink-0 rounded-xl border-slate-200 text-slate-800"
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1" />
+                  Criar
+                </Button>
+              </div>
             </div>
 
             {/* Cover Image (Post Page Banner 1920x520 - Aspect 16:9 / 16:7) */}

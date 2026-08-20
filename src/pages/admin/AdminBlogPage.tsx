@@ -57,8 +57,23 @@ export function AdminBlogPage() {
   const [catName, setCatName] = useState('')
   const [catSlug, setCatSlug] = useState('')
   const [catDesc, setCatDesc] = useState('')
+  const [catParentId, setCatParentId] = useState('')
   const [catOrder, setCatOrder] = useState(0)
   const [catActive, setCatActive] = useState(true)
+
+  function getCategoryPathLabel(cat: BlogCategory, allCategories?: BlogCategory[]): string {
+    if (!allCategories) return cat.name
+    const path: string[] = [cat.name]
+    let currentParentId = cat.parent_id
+    const map = new Map(allCategories.map(c => [c.id, c]))
+    while (currentParentId) {
+      const parent = map.get(currentParentId)
+      if (!parent) break
+      path.unshift(parent.name)
+      currentParentId = parent.parent_id
+    }
+    return path.join(' > ')
+  }
 
   // Tag Modal / Form state
   const [tagModalOpen, setTagModalOpen] = useState(false)
@@ -147,6 +162,7 @@ export function AdminBlogPage() {
       setCatName(cat.name)
       setCatSlug(cat.slug)
       setCatDesc(cat.description || '')
+      setCatParentId(cat.parent_id || '')
       setCatOrder(cat.sort_order || 0)
       setCatActive(cat.is_active ?? true)
     } else {
@@ -154,6 +170,7 @@ export function AdminBlogPage() {
       setCatName('')
       setCatSlug('')
       setCatDesc('')
+      setCatParentId('')
       setCatOrder(categories ? categories.length + 1 : 1)
       setCatActive(true)
     }
@@ -173,6 +190,7 @@ export function AdminBlogPage() {
         name: catName.trim(),
         slug: catSlug.trim() || slugify(catName),
         description: catDesc.trim() || null,
+        parent_id: catParentId || null,
         sort_order: Number(catOrder) || 0,
         is_active: catActive
       })
@@ -617,7 +635,12 @@ export function AdminBlogPage() {
                   {categories.map((cat) => (
                     <tr key={cat.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="p-4 font-bold text-slate-900">
-                        {cat.name}
+                        <span>{getCategoryPathLabel(cat, categories)}</span>
+                        {cat.parent_id && (
+                          <span className="ml-2 inline-block rounded-md bg-slate-100 text-slate-600 font-semibold px-2 py-0.5 text-[10px]">
+                            Subcategoria
+                          </span>
+                        )}
                       </td>
                       <td className="p-4 font-mono text-slate-500">
                         /blog/categoria/{cat.slug}
@@ -1349,6 +1372,25 @@ export function AdminBlogPage() {
                   placeholder="planejamento-semanal"
                   className="w-full h-10 rounded-xl border border-slate-200 px-3 text-xs font-mono text-slate-900 outline-none focus:border-emerald-500"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Categoria Pai (Hierarquia)</label>
+                <select
+                  value={catParentId}
+                  onChange={(e) => setCatParentId(e.target.value)}
+                  className="w-full h-10 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-900 outline-none focus:border-emerald-500 bg-white"
+                >
+                  <option value="">Nenhuma (Categoria Principal / Raiz)</option>
+                  {categories?.filter(c => c.id !== editingCategory?.id).map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {getCategoryPathLabel(c, categories)}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-slate-400 font-medium mt-1">
+                  Selecione se esta categoria é uma subcategoria de outra.
+                </p>
               </div>
 
               <div>

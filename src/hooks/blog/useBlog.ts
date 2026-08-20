@@ -139,10 +139,33 @@ export function useBlogPost(idOrSlug: string | undefined) {
         query = query.eq('slug', idOrSlug)
       }
 
-      const { data, error } = await query.maybeSingle()
+      const { data: rawPost, error } = await query.maybeSingle()
 
       if (error && error.code !== 'PGRST116') throw error
-      return (data ?? null) as BlogPost | null
+      if (!rawPost) return null
+
+      // Fetch linked multi-categories
+      const { data: catLinks } = await supabase
+        .from('blog_post_categories')
+        .select('category_id')
+        .eq('post_id', rawPost.id)
+
+      // Fetch linked tags
+      const { data: tagLinks } = await supabase
+        .from('blog_post_tags')
+        .select('tag_id')
+        .eq('post_id', rawPost.id)
+
+      const category_ids = catLinks && catLinks.length > 0
+        ? catLinks.map(c => c.category_id)
+        : (rawPost.category_id ? [rawPost.category_id] : [])
+      const tag_ids = tagLinks ? tagLinks.map(t => t.tag_id) : []
+
+      return {
+        ...rawPost,
+        category_ids,
+        tag_ids
+      } as BlogPost
     },
     enabled: !!idOrSlug,
   })
@@ -210,17 +233,21 @@ export function useAdminBlogMutations() {
 
   const savePost = useMutation({
     mutationFn: async ({ id, ...input }: CreateBlogPostInput & { id?: string }) => {
-      const slug = input.slug || slugify(input.title)
+      const { category_ids, tag_ids, ...postInput } = input
+      const slug = postInput.slug || slugify(postInput.title)
+      const primaryCategoryId = category_ids && category_ids.length > 0 ? category_ids[0] : (postInput.category_id || null)
+
       const payload = {
-        ...input,
+        ...postInput,
         slug,
-        category_id: input.category_id || null,
-        author_id: input.author_id || null,
-        read_time_minutes: input.read_time_minutes || 5,
-        status: input.status || 'published',
+        category_id: primaryCategoryId,
+        author_id: postInput.author_id || null,
+        read_time_minutes: postInput.read_time_minutes || 5,
+        status: postInput.status || 'published',
         updated_at: new Date().toISOString()
       }
 
+      let savedPost: BlogPost
       if (id) {
         const { data, error } = await supabase
           .from('blog_posts')
@@ -229,7 +256,7 @@ export function useAdminBlogMutations() {
           .select()
           .single()
         if (error) throw error
-        return data as BlogPost
+        savedPost = data as BlogPost
       } else {
         const { data, error } = await supabase
           .from('blog_posts')
@@ -237,8 +264,28 @@ export function useAdminBlogMutations() {
           .select()
           .single()
         if (error) throw error
-        return data as BlogPost
+        savedPost = data as BlogPost
       }
+
+      // Sync multi-categories in blog_post_categories
+      if (category_ids) {
+        await supabase.from('blog_post_categories').delete().eq('post_id', savedPost.id)
+        if (category_ids.length > 0) {
+          const catRows = category_ids.map(cid => ({ post_id: savedPost.id, category_id: cid }))
+          await supabase.from('blog_post_categories').insert(catRows)
+        }
+      }
+
+      // Sync tags in blog_post_tags
+      if (tag_ids) {
+        await supabase.from('blog_post_tags').delete().eq('post_id', savedPost.id)
+        if (tag_ids.length > 0) {
+          const tagRows = tag_ids.map(tid => ({ post_id: savedPost.id, tag_id: tid }))
+          await supabase.from('blog_post_tags').insert(tagRows)
+        }
+      }
+
+      return savedPost
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blog-posts'] })
@@ -338,6 +385,7 @@ export function useAdminBlogCategoriesMutations() {
         name: input.name.trim(),
         slug,
         description: input.description?.trim() || null,
+        parent_id: input.parent_id || null,
         sort_order: input.sort_order ?? 0,
         is_active: input.is_active ?? true,
         updated_at: new Date().toISOString()
