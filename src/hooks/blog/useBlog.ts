@@ -9,6 +9,7 @@ import type {
   CreateBlogPostInput, 
   CreateBlogCategoryInput,
   CreateBlogTagInput,
+  BlogLayoutSettings,
   SubmitCommentInput 
 } from '@/types/blog'
 
@@ -438,4 +439,88 @@ export function useAdminBlogTagsMutations() {
   })
 
   return { saveTag, deleteTag }
+}
+
+/**
+ * Default blog layout fallback
+ */
+const DEFAULT_BLOG_LAYOUT: BlogLayoutSettings = {
+  hero_title: 'Blog Cardappio',
+  hero_subtitle: 'Dicas, planejamento e receitas para organizar sua rotina na cozinha com praticidade.',
+  sidebar_blocks: [
+    {
+      id: 'block-1',
+      mode: 'carousel',
+      block_type: 'card_text',
+      slides: [
+        {
+          id: 'slide-1',
+          badge_text: 'CARDAPPIO PRO',
+          title: 'Organize sua semana alimentar sem complicação',
+          description: 'Crie seu cardápio semanal personalizado, gere listas de compras automáticas e economize tempo na cozinha.',
+          bullet_points: ['Planejador semanal inteligente', 'Centenas de receitas fáceis'],
+          cta_button_text: 'Começar Grátis',
+          cta_link_url: '/auth/cadastro',
+          theme: 'dark'
+        }
+      ]
+    }
+  ]
+}
+
+/**
+ * Hook to fetch blog layout settings (Hero & Sidebar Blocks)
+ */
+export function useBlogLayoutSettings() {
+  return useQuery({
+    queryKey: ['blog-layout-settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('app_settings')
+        .select('value_json')
+        .eq('setting_key', 'blog_layout')
+        .maybeSingle()
+
+      if (error && error.code !== 'PGRST116') throw error
+      if (!data?.value_json) return DEFAULT_BLOG_LAYOUT
+
+      return {
+        hero_title: data.value_json.hero_title || DEFAULT_BLOG_LAYOUT.hero_title,
+        hero_subtitle: data.value_json.hero_subtitle || DEFAULT_BLOG_LAYOUT.hero_subtitle,
+        sidebar_blocks: Array.isArray(data.value_json.sidebar_blocks)
+          ? data.value_json.sidebar_blocks
+          : DEFAULT_BLOG_LAYOUT.sidebar_blocks
+      } as BlogLayoutSettings
+    },
+    staleTime: 60_000
+  })
+}
+
+/**
+ * Hook for Admin to save blog layout settings
+ */
+export function useSaveBlogLayoutSettings() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (settings: BlogLayoutSettings) => {
+      const { error } = await supabase
+        .from('app_settings')
+        .upsert(
+          {
+            setting_key: 'blog_layout',
+            value_json: settings as any,
+            description: 'Configurações de cabeçalho hero e blocos/sliders de lateral do blog',
+            updated_at: new Date().toISOString()
+          },
+          { onConflict: 'setting_key' }
+        )
+
+      if (error) throw error
+      return settings
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blog-layout-settings'] })
+    }
+  })
 }

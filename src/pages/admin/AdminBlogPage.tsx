@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { 
   Plus, Edit, Trash2, ExternalLink, Check, X, MessageSquare, BookOpen, Search, Eye,
-  Layers, Tag as TagIcon, Save, FolderPlus, Tag
+  Layers, Tag as TagIcon, Save, FolderPlus, Tag, Layout, Sparkles, Upload, ArrowRight,
+  ChevronLeft, ChevronRight, Copy, MoveUp, MoveDown
 } from 'lucide-react'
 import { 
   useBlogPosts, 
@@ -12,17 +13,36 @@ import {
   useAdminBlogCategoriesMutations, 
   useAdminBlogTagsMutations, 
   useAdminBlogComments,
+  useBlogLayoutSettings,
+  useSaveBlogLayoutSettings,
   slugify
 } from '@/hooks/blog/useBlog'
 import { Button } from '@/components/ui/button'
 import { LoadingState } from '@/components/shared/LoadingState'
+import { MediaLibraryModal } from '@/components/shared/MediaLibraryModal'
 import { toast } from 'sonner'
-import type { BlogCategory, BlogTag } from '@/types/blog'
+import type { 
+  BlogCategory, 
+  BlogTag, 
+  BlogLayoutSettings, 
+  BlogSidebarBlock, 
+  BlogSidebarTextSlide, 
+  BlogSidebarImageSlide 
+} from '@/types/blog'
 
 export function AdminBlogPage() {
   const navigate = useNavigate()
-  const [selectedTab, setSelectedTab] = useState<'posts' | 'categories' | 'tags' | 'comments'>('posts')
-  
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tabFromUrl = searchParams.get('tab') as 'posts' | 'categories' | 'tags' | 'layout' | 'comments' | null
+
+  const [selectedTab, setSelectedTab] = useState<'posts' | 'categories' | 'tags' | 'layout' | 'comments'>(tabFromUrl || 'posts')
+
+  useEffect(() => {
+    if (selectedTab) {
+      setSearchParams({ tab: selectedTab }, { replace: true })
+    }
+  }, [selectedTab, setSearchParams])
+
   // Posts tab state
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'scheduled' | 'draft' | 'archived'>('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -47,6 +67,10 @@ export function AdminBlogPage() {
   const [tagSlug, setTagSlug] = useState('')
   const [tagDesc, setTagDesc] = useState('')
 
+  // Media Library state for layout image upload
+  const [mediaModalOpen, setMediaModalOpen] = useState(false)
+  const [activeMediaTarget, setActiveMediaTarget] = useState<{ blockIndex: number; slideIndex: number } | null>(null)
+
   // Data Queries
   const { data: postsData, isLoading: isLoadingPosts } = useBlogPosts({
     status: statusFilter,
@@ -58,11 +82,26 @@ export function AdminBlogPage() {
   const { data: categories, isLoading: isLoadingCategories } = useBlogCategories()
   const { data: tags, isLoading: isLoadingTags } = useBlogTags()
   const { data: comments, isLoading: isLoadingComments } = useAdminBlogComments('all')
+  const { data: layoutData, isLoading: isLoadingLayout } = useBlogLayoutSettings()
+
+  // Layout local state
+  const [layoutState, setLayoutState] = useState<BlogLayoutSettings>({
+    hero_title: 'Blog Cardappio',
+    hero_subtitle: 'Dicas, planejamento e receitas para organizar sua rotina na cozinha com praticidade.',
+    sidebar_blocks: []
+  })
+
+  useEffect(() => {
+    if (layoutData) {
+      setLayoutState(layoutData)
+    }
+  }, [layoutData])
 
   // Mutations
   const { deletePost, updateCommentStatus } = useAdminBlogMutations()
   const { saveCategory, deleteCategory } = useAdminBlogCategoriesMutations()
   const { saveTag, deleteTag } = useAdminBlogTagsMutations()
+  const saveLayoutMutation = useSaveBlogLayoutSettings()
 
   // Article handlers
   const handleDeletePost = async (id: string, title: string) => {
@@ -201,6 +240,97 @@ export function AdminBlogPage() {
     }
   }
 
+  // Layout Handlers
+  const handleAddBlock = (type: 'card_text' | 'image') => {
+    const newBlock: BlogSidebarBlock = {
+      id: `block-${Date.now()}`,
+      mode: 'carousel',
+      block_type: type,
+      slides: type === 'card_text' ? [
+        {
+          id: `slide-${Date.now()}`,
+          badge_text: 'CARDAPPIO PRO',
+          title: 'Organize sua semana alimentar sem complicação',
+          description: 'Crie seu cardápio semanal personalizado, gere listas de compras automáticas e economize tempo na cozinha.',
+          bullet_points: ['Planejador semanal inteligente', 'Centenas de receitas fáceis'],
+          cta_button_text: 'Começar Grátis',
+          cta_link_url: '/auth/cadastro',
+          theme: 'dark'
+        }
+      ] : [
+        {
+          id: `slide-${Date.now()}`,
+          url: '',
+          linkUrl: '',
+          alt: 'Banner Blog'
+        }
+      ]
+    }
+
+    setLayoutState((prev) => ({
+      ...prev,
+      sidebar_blocks: [...prev.sidebar_blocks, newBlock]
+    }))
+  }
+
+  const handleRemoveBlock = (blockIndex: number) => {
+    setLayoutState((prev) => ({
+      ...prev,
+      sidebar_blocks: prev.sidebar_blocks.filter((_, idx) => idx !== blockIndex)
+    }))
+  }
+
+  const handleAddSlide = (blockIndex: number) => {
+    setLayoutState((prev) => {
+      const blocks = [...prev.sidebar_blocks]
+      const targetBlock = { ...blocks[blockIndex] }
+      
+      if (targetBlock.block_type === 'card_text') {
+        const newSlide: BlogSidebarTextSlide = {
+          id: `slide-${Date.now()}`,
+          badge_text: 'CARDAPPIO PRO',
+          title: 'Novo Titulo do Card Slider',
+          description: 'Descreva os benefícios e recursos da sua oferta para os leitores do blog.',
+          bullet_points: ['Recurso 1', 'Recurso 2'],
+          cta_button_text: 'Conhecer Agora',
+          cta_link_url: '/auth/cadastro',
+          theme: 'dark'
+        }
+        targetBlock.slides = [...targetBlock.slides, newSlide]
+      } else {
+        const newSlide: BlogSidebarImageSlide = {
+          id: `slide-${Date.now()}`,
+          url: '',
+          linkUrl: '',
+          alt: 'Banner Blog'
+        }
+        targetBlock.slides = [...targetBlock.slides, newSlide]
+      }
+
+      blocks[blockIndex] = targetBlock
+      return { ...prev, sidebar_blocks: blocks }
+    })
+  }
+
+  const handleRemoveSlide = (blockIndex: number, slideIndex: number) => {
+    setLayoutState((prev) => {
+      const blocks = [...prev.sidebar_blocks]
+      const targetBlock = { ...blocks[blockIndex] }
+      targetBlock.slides = targetBlock.slides.filter((_, idx) => idx !== slideIndex)
+      blocks[blockIndex] = targetBlock
+      return { ...prev, sidebar_blocks: blocks }
+    })
+  }
+
+  const handleSaveLayout = async () => {
+    try {
+      await saveLayoutMutation.mutateAsync(layoutState)
+      toast.success('Configurações de layout do blog salvas com sucesso!')
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao salvar layout do blog.')
+    }
+  }
+
   const pendingCommentsCount = comments?.filter(c => c.status === 'pending').length || 0
 
   return (
@@ -210,7 +340,7 @@ export function AdminBlogPage() {
         <div>
           <h1 className="text-2xl font-black text-slate-900">Gestão do Blog</h1>
           <p className="text-xs text-slate-500 font-medium">
-            Gerencie artigos, categorias, tags e moderação de comentários da comunidade.
+            Gerencie artigos, categorias, tags, layout visual e moderação de comentários.
           </p>
         </div>
 
@@ -244,6 +374,17 @@ export function AdminBlogPage() {
               Nova Tag
             </Button>
           )}
+
+          {selectedTab === 'layout' && (
+            <Button
+              onClick={handleSaveLayout}
+              disabled={saveLayoutMutation.isPending}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-2xl gap-2 shadow-sm shrink-0"
+            >
+              <Save className="h-4 w-4" />
+              {saveLayoutMutation.isPending ? 'Salvando...' : 'Salvar Layout do Blog'}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -251,7 +392,7 @@ export function AdminBlogPage() {
       <div className="flex items-center gap-3 border-b border-slate-200 overflow-x-auto pb-1">
         <button
           onClick={() => setSelectedTab('posts')}
-          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 flex items-center gap-2 ${
+          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 flex items-center gap-2 cursor-pointer ${
             selectedTab === 'posts'
               ? 'border-emerald-600 text-emerald-700'
               : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -263,7 +404,7 @@ export function AdminBlogPage() {
 
         <button
           onClick={() => setSelectedTab('categories')}
-          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 flex items-center gap-2 ${
+          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 flex items-center gap-2 cursor-pointer ${
             selectedTab === 'categories'
               ? 'border-emerald-600 text-emerald-700'
               : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -275,7 +416,7 @@ export function AdminBlogPage() {
 
         <button
           onClick={() => setSelectedTab('tags')}
-          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 flex items-center gap-2 ${
+          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 flex items-center gap-2 cursor-pointer ${
             selectedTab === 'tags'
               ? 'border-emerald-600 text-emerald-700'
               : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -286,8 +427,20 @@ export function AdminBlogPage() {
         </button>
 
         <button
+          onClick={() => setSelectedTab('layout')}
+          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 flex items-center gap-2 cursor-pointer ${
+            selectedTab === 'layout'
+              ? 'border-emerald-600 text-emerald-700'
+              : 'border-transparent text-slate-500 hover:text-slate-900'
+          }`}
+        >
+          <Layout className="h-4 w-4" />
+          Layout & Sliders
+        </button>
+
+        <button
           onClick={() => setSelectedTab('comments')}
-          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 flex items-center gap-2 ${
+          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 flex items-center gap-2 cursor-pointer ${
             selectedTab === 'comments'
               ? 'border-emerald-600 text-emerald-700'
               : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -306,7 +459,6 @@ export function AdminBlogPage() {
       {/* TAB 1: Posts Management */}
       {selectedTab === 'posts' && (
         <div className="space-y-6">
-          {/* Search & Filters */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="relative w-full sm:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -324,7 +476,7 @@ export function AdminBlogPage() {
                 <button
                   key={status}
                   onClick={() => setStatusFilter(status)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider transition-all ${
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                     statusFilter === status
                       ? 'bg-slate-900 text-white'
                       : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -336,7 +488,6 @@ export function AdminBlogPage() {
             </div>
           </div>
 
-          {/* Posts Table */}
           {isLoadingPosts ? (
             <LoadingState message="Carregando artigos..." />
           ) : !postsData || postsData.posts.length === 0 ? (
@@ -407,21 +558,21 @@ export function AdminBlogPage() {
                           <button
                             onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
                             title="Visualizar post público"
-                            className="p-2 text-slate-400 hover:text-slate-900 rounded-lg hover:bg-slate-100"
+                            className="p-2 text-slate-400 hover:text-slate-900 rounded-lg hover:bg-slate-100 cursor-pointer"
                           >
                             <ExternalLink className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => navigate(`/admin/blog/${post.id}`)}
                             title="Editar post"
-                            className="p-2 text-emerald-600 hover:text-emerald-800 rounded-lg hover:bg-emerald-50"
+                            className="p-2 text-emerald-600 hover:text-emerald-800 rounded-lg hover:bg-emerald-50 cursor-pointer"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDeletePost(post.id, post.title)}
                             title="Excluir post"
-                            className="p-2 text-red-500 hover:text-red-700 rounded-lg hover:bg-red-50"
+                            className="p-2 text-red-500 hover:text-red-700 rounded-lg hover:bg-red-50 cursor-pointer"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -489,14 +640,14 @@ export function AdminBlogPage() {
                           <button
                             onClick={() => handleOpenCategoryModal(cat)}
                             title="Editar categoria"
-                            className="p-2 text-emerald-600 hover:text-emerald-800 rounded-lg hover:bg-emerald-50"
+                            className="p-2 text-emerald-600 hover:text-emerald-800 rounded-lg hover:bg-emerald-50 cursor-pointer"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteCategory(cat.id, cat.name)}
                             title="Excluir categoria"
-                            className="p-2 text-red-500 hover:text-red-700 rounded-lg hover:bg-red-50"
+                            className="p-2 text-red-500 hover:text-red-700 rounded-lg hover:bg-red-50 cursor-pointer"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -555,14 +706,14 @@ export function AdminBlogPage() {
                           <button
                             onClick={() => handleOpenTagModal(tag)}
                             title="Editar tag"
-                            className="p-2 text-emerald-600 hover:text-emerald-800 rounded-lg hover:bg-emerald-50"
+                            className="p-2 text-emerald-600 hover:text-emerald-800 rounded-lg hover:bg-emerald-50 cursor-pointer"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteTag(tag.id, tag.name)}
                             title="Excluir tag"
-                            className="p-2 text-red-500 hover:text-red-700 rounded-lg hover:bg-red-50"
+                            className="p-2 text-red-500 hover:text-red-700 rounded-lg hover:bg-red-50 cursor-pointer"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -577,7 +728,480 @@ export function AdminBlogPage() {
         </div>
       )}
 
-      {/* TAB 4: Comments Moderation */}
+      {/* TAB 4: Layout & Sliders (tab=layout) */}
+      {selectedTab === 'layout' && (
+        <div className="space-y-8">
+          {isLoadingLayout ? (
+            <LoadingState message="Carregando configurações de layout..." />
+          ) : (
+            <div className="grid gap-8 lg:grid-cols-12">
+              
+              {/* Left Column (7 cols): Hero & Sidebar Blocks Config */}
+              <div className="lg:col-span-7 space-y-6">
+                
+                {/* Hero Header Section Config */}
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
+                  <div className="border-b border-slate-100 pb-3">
+                    <h2 className="text-sm font-extrabold uppercase tracking-wider text-slate-800">
+                      Cabeçalho Principal do Blog (Hero)
+                    </h2>
+                    <p className="text-xs text-slate-500 font-medium mt-1">
+                      Configure o título e subtítulo exibidos no topo da página <code>/blog</code>.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Título do Hero *</label>
+                      <input
+                        type="text"
+                        value={layoutState.hero_title}
+                        onChange={(e) => setLayoutState(prev => ({ ...prev, hero_title: e.target.value }))}
+                        placeholder="Ex: Blog Cardappio"
+                        className="w-full h-10 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-900 outline-none focus:border-emerald-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Subtítulo do Hero</label>
+                      <textarea
+                        value={layoutState.hero_subtitle}
+                        onChange={(e) => setLayoutState(prev => ({ ...prev, hero_subtitle: e.target.value }))}
+                        placeholder="Descreva o propósito do blog..."
+                        rows={2}
+                        className="w-full rounded-xl border border-slate-200 p-3 text-xs text-slate-900 outline-none focus:border-emerald-500 font-medium"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sidebar Blocks & Sliders Manager */}
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-6 shadow-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                    <div>
+                      <h2 className="text-sm font-extrabold uppercase tracking-wider text-slate-800">
+                        Blocos & Sliders da Barra Lateral (Sidebar)
+                      </h2>
+                      <p className="text-xs text-slate-500 font-medium mt-1">
+                        Gerencie os cards e carrosséis da barra lateral direita do blog público.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        onClick={() => handleAddBlock('card_text')}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl gap-1.5 shadow-sm"
+                      >
+                        <Plus className="h-4 w-4" />
+                        + Slider de Texto Card
+                      </Button>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => handleAddBlock('image')}
+                        className="text-xs font-bold gap-1.5 rounded-xl border-slate-200"
+                      >
+                        <Plus className="h-4 w-4" />
+                        + Banner Imagem
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Render Blocks List */}
+                  {layoutState.sidebar_blocks.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center space-y-3">
+                      <Layout className="h-10 w-10 text-slate-300 mx-auto" />
+                      <p className="text-xs font-bold text-slate-700">Nenhum bloco lateral configurado</p>
+                      <div className="flex justify-center gap-2 pt-1">
+                        <Button size="sm" onClick={() => handleAddBlock('card_text')} className="bg-emerald-600 text-white text-xs font-bold">
+                          Adicionar Slider Cardappio Pro
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {layoutState.sidebar_blocks.map((block, blockIndex) => (
+                        <div key={block.id} className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5 space-y-4 shadow-sm relative">
+                          <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="rounded-full bg-slate-900 text-white text-[10px] font-black px-2.5 py-0.5">
+                                Bloco {blockIndex + 1}
+                              </span>
+                              <span className="text-xs font-bold text-slate-700">
+                                {block.block_type === 'card_text' ? '🎨 Card de Texto (Pro Style)' : '🖼️ Banner de Imagem'}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              {/* Display Mode Selector */}
+                              <select
+                                value={block.mode}
+                                onChange={(e) => {
+                                  const mode = e.target.value as 'single' | 'carousel'
+                                  setLayoutState(prev => {
+                                    const blocks = [...prev.sidebar_blocks]
+                                    blocks[blockIndex] = { ...blocks[blockIndex], mode }
+                                    return { ...prev, sidebar_blocks: blocks }
+                                  })
+                                }}
+                                className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs font-bold text-slate-800 outline-none"
+                              >
+                                <option value="carousel">🔄 Slider Carrossel Automático</option>
+                                <option value="single">📌 Imagem/Card Único</option>
+                              </select>
+
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveBlock(blockIndex)}
+                                className="p-1 text-red-500 hover:text-red-700 rounded-lg hover:bg-red-50 cursor-pointer"
+                                title="Excluir bloco"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Render Slides inside Block */}
+                          <div className="space-y-4">
+                            {block.slides.map((slide: any, slideIndex: number) => (
+                              <div key={slide.id || slideIndex} className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-xs">
+                                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700">
+                                    Slide {slideIndex + 1} {block.slides.length > 1 ? `de ${block.slides.length}` : ''}
+                                  </span>
+
+                                  {block.slides.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveSlide(blockIndex, slideIndex)}
+                                      className="text-[11px] font-bold text-red-600 hover:underline cursor-pointer"
+                                    >
+                                      Remover Slide
+                                    </button>
+                                  )}
+                                </div>
+
+                                {/* Form Fields for CARD_TEXT Slide */}
+                                {block.block_type === 'card_text' ? (
+                                  <div className="space-y-3">
+                                    <div className="grid grid-cols-2 gap-3">
+                                      <div>
+                                        <label className="block text-[11px] font-bold text-slate-600 mb-1">Badge (Selo Topo)</label>
+                                        <input
+                                          type="text"
+                                          value={slide.badge_text || ''}
+                                          onChange={(e) => {
+                                            const val = e.target.value
+                                            setLayoutState(prev => {
+                                              const blocks = [...prev.sidebar_blocks]
+                                              blocks[blockIndex].slides[slideIndex].badge_text = val
+                                              return { ...prev, sidebar_blocks: blocks }
+                                            })
+                                          }}
+                                          placeholder="Ex: CARDAPPIO PRO"
+                                          className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-900 outline-none focus:border-emerald-500"
+                                        />
+                                      </div>
+
+                                      <div>
+                                        <label className="block text-[11px] font-bold text-slate-600 mb-1">Tema Visual</label>
+                                        <select
+                                          value={slide.theme || 'dark'}
+                                          onChange={(e) => {
+                                            const val = e.target.value
+                                            setLayoutState(prev => {
+                                              const blocks = [...prev.sidebar_blocks]
+                                              blocks[blockIndex].slides[slideIndex].theme = val
+                                              return { ...prev, sidebar_blocks: blocks }
+                                            })
+                                          }}
+                                          className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-900 outline-none focus:border-emerald-500 bg-white"
+                                        >
+                                          <option value="dark">🌑 Escuro (Dark Slate / Emerald)</option>
+                                          <option value="emerald">🟢 Verde Emerald Pro</option>
+                                          <option value="light">⚪ Claro (Clean Light)</option>
+                                        </select>
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Título Principal *</label>
+                                      <input
+                                        type="text"
+                                        value={slide.title || ''}
+                                        onChange={(e) => {
+                                          const val = e.target.value
+                                          setLayoutState(prev => {
+                                            const blocks = [...prev.sidebar_blocks]
+                                            blocks[blockIndex].slides[slideIndex].title = val
+                                            return { ...prev, sidebar_blocks: blocks }
+                                          })
+                                        }}
+                                        placeholder="Ex: Organize sua semana alimentar sem complicação"
+                                        className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-900 outline-none focus:border-emerald-500"
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Descrição Breve</label>
+                                      <textarea
+                                        value={slide.description || ''}
+                                        onChange={(e) => {
+                                          const val = e.target.value
+                                          setLayoutState(prev => {
+                                            const blocks = [...prev.sidebar_blocks]
+                                            blocks[blockIndex].slides[slideIndex].description = val
+                                            return { ...prev, sidebar_blocks: blocks }
+                                          })
+                                        }}
+                                        placeholder="Ex: Crie seu cardápio semanal personalizado, gere listas..."
+                                        rows={2}
+                                        className="w-full rounded-lg border border-slate-200 p-2.5 text-xs text-slate-900 font-medium outline-none focus:border-emerald-500"
+                                      />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                      <div>
+                                        <label className="block text-[11px] font-bold text-slate-600 mb-1">Item 1 (Ícone Calendário)</label>
+                                        <input
+                                          type="text"
+                                          value={slide.bullet_points?.[0] || ''}
+                                          onChange={(e) => {
+                                            const val = e.target.value
+                                            setLayoutState(prev => {
+                                              const blocks = [...prev.sidebar_blocks]
+                                              const pts = [...(blocks[blockIndex].slides[slideIndex].bullet_points || [])]
+                                              pts[0] = val
+                                              blocks[blockIndex].slides[slideIndex].bullet_points = pts
+                                              return { ...prev, sidebar_blocks: blocks }
+                                            })
+                                          }}
+                                          placeholder="Planejador semanal inteligente"
+                                          className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-medium text-slate-900 outline-none focus:border-emerald-500"
+                                        />
+                                      </div>
+
+                                      <div>
+                                        <label className="block text-[11px] font-bold text-slate-600 mb-1">Item 2 (Ícone Utensílios)</label>
+                                        <input
+                                          type="text"
+                                          value={slide.bullet_points?.[1] || ''}
+                                          onChange={(e) => {
+                                            const val = e.target.value
+                                            setLayoutState(prev => {
+                                              const blocks = [...prev.sidebar_blocks]
+                                              const pts = [...(blocks[blockIndex].slides[slideIndex].bullet_points || [])]
+                                              pts[1] = val
+                                              blocks[blockIndex].slides[slideIndex].bullet_points = pts
+                                              return { ...prev, sidebar_blocks: blocks }
+                                            })
+                                          }}
+                                          placeholder="Centenas de receitas fáceis"
+                                          className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-medium text-slate-900 outline-none focus:border-emerald-500"
+                                        />
+                                      </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3 pt-1">
+                                      <div>
+                                        <label className="block text-[11px] font-bold text-slate-600 mb-1">Texto do Botão CTA</label>
+                                        <input
+                                          type="text"
+                                          value={slide.cta_button_text || ''}
+                                          onChange={(e) => {
+                                            const val = e.target.value
+                                            setLayoutState(prev => {
+                                              const blocks = [...prev.sidebar_blocks]
+                                              blocks[blockIndex].slides[slideIndex].cta_button_text = val
+                                              return { ...prev, sidebar_blocks: blocks }
+                                            })
+                                          }}
+                                          placeholder="Ex: Começar Grátis"
+                                          className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-900 outline-none focus:border-emerald-500"
+                                        />
+                                      </div>
+
+                                      <div>
+                                        <label className="block text-[11px] font-bold text-slate-600 mb-1">Link de Destino (URL)</label>
+                                        <input
+                                          type="text"
+                                          value={slide.cta_link_url || ''}
+                                          onChange={(e) => {
+                                            const val = e.target.value
+                                            setLayoutState(prev => {
+                                              const blocks = [...prev.sidebar_blocks]
+                                              blocks[blockIndex].slides[slideIndex].cta_link_url = val
+                                              return { ...prev, sidebar_blocks: blocks }
+                                            })
+                                          }}
+                                          placeholder="Ex: /auth/cadastro"
+                                          className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-mono text-slate-900 outline-none focus:border-emerald-500"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  /* Form Fields for IMAGE Slide */
+                                  <div className="space-y-3">
+                                    <div>
+                                      <label className="block text-[11px] font-bold text-slate-600 mb-1">URL da Imagem Banner</label>
+                                      <div className="flex gap-2">
+                                        <input
+                                          type="url"
+                                          value={slide.url || ''}
+                                          onChange={(e) => {
+                                            const val = e.target.value
+                                            setLayoutState(prev => {
+                                              const blocks = [...prev.sidebar_blocks]
+                                              blocks[blockIndex].slides[slideIndex].url = val
+                                              return { ...prev, sidebar_blocks: blocks }
+                                            })
+                                          }}
+                                          placeholder="https://..."
+                                          className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-medium text-slate-900 outline-none focus:border-emerald-500"
+                                        />
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => {
+                                            setActiveMediaTarget({ blockIndex, slideIndex })
+                                            setMediaModalOpen(true)
+                                          }}
+                                          className="text-xs font-bold shrink-0 text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                                        >
+                                          <Upload className="h-3.5 w-3.5 mr-1" />
+                                          Upload
+                                        </Button>
+                                      </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                      <div>
+                                        <label className="block text-[11px] font-bold text-slate-600 mb-1">Link de Clique (URL)</label>
+                                        <input
+                                          type="text"
+                                          value={slide.linkUrl || ''}
+                                          onChange={(e) => {
+                                            const val = e.target.value
+                                            setLayoutState(prev => {
+                                              const blocks = [...prev.sidebar_blocks]
+                                              blocks[blockIndex].slides[slideIndex].linkUrl = val
+                                              return { ...prev, sidebar_blocks: blocks }
+                                            })
+                                          }}
+                                          placeholder="https://..."
+                                          className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-mono text-slate-900 outline-none focus:border-emerald-500"
+                                        />
+                                      </div>
+
+                                      <div>
+                                        <label className="block text-[11px] font-bold text-slate-600 mb-1">Texto Alternativo (ALT)</label>
+                                        <input
+                                          type="text"
+                                          value={slide.alt || ''}
+                                          onChange={(e) => {
+                                            const val = e.target.value
+                                            setLayoutState(prev => {
+                                              const blocks = [...prev.sidebar_blocks]
+                                              blocks[blockIndex].slides[slideIndex].alt = val
+                                              return { ...prev, sidebar_blocks: blocks }
+                                            })
+                                          }}
+                                          placeholder="Descrição para acessibilidade"
+                                          className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-medium text-slate-900 outline-none focus:border-emerald-500"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+
+                            {/* Add Slide Button inside Carousel Block */}
+                            {block.mode === 'carousel' && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleAddSlide(blockIndex)}
+                                className="w-full text-xs font-bold gap-1 text-emerald-700 border-emerald-200 hover:bg-emerald-50 rounded-xl"
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                                Adicionar Novo Slide a este Carrossel
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <Button
+                    type="button"
+                    onClick={handleSaveLayout}
+                    disabled={saveLayoutMutation.isPending}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl gap-2 shadow-md px-6 py-2.5"
+                  >
+                    <Save className="h-4 w-4" />
+                    {saveLayoutMutation.isPending ? 'Salvando...' : 'Salvar Alterações de Layout'}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Right Column (5 cols): Live Preview Info & Guidance */}
+              <div className="lg:col-span-5 space-y-6">
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm sticky top-24">
+                  <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+                    <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                      <Eye className="h-4 w-4 text-emerald-600" />
+                      Instruções de Layout do Blog
+                    </h3>
+                    <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                      GenFlix Sync
+                    </span>
+                  </div>
+
+                  <div className="space-y-3 text-xs text-slate-600 leading-relaxed font-medium">
+                    <p>
+                      Esta tela permite personalizar o layout completo da página pública <code>/blog</code>:
+                    </p>
+
+                    <ul className="space-y-2 list-disc list-inside text-slate-700 font-semibold">
+                      <li><strong>Título Hero</strong>: Cabeçalho principal centralizado.</li>
+                      <li><strong>Sliders de Texto (Pro Style)</strong>: Permite criar carrosséis de cards de divulgação personalizados reutilizando a estrutura visual do Cardappio Pro.</li>
+                      <li><strong>Banners de Imagem</strong>: Carrosséis com imagens de banners na proporção recomendada <code>7:10</code> (640×920 px).</li>
+                    </ul>
+
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 pt-3">
+                      <p className="font-bold text-slate-900 text-xs">🎯 Dica de Uso dos Sliders:</p>
+                      <p className="text-[11px] text-slate-500">
+                        Ao selecionar <strong>"Carrossel / Slider Automático"</strong> e adicionar mais de 1 slide, o card da barra lateral irá alternar automaticamente a cada 4,5 segundos no blog público!
+                      </p>
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => window.open('/blog', '_blank')}
+                      className="w-full text-xs font-bold gap-2 text-slate-800 rounded-xl"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Visualizar Blog Público no Navegador
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 5: Comments Moderation */}
       {selectedTab === 'comments' && (
         <div className="space-y-6">
           {isLoadingComments ? (
@@ -631,7 +1255,7 @@ export function AdminBlogPage() {
                         className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:border-emerald-500"
                       />
                       <div className="flex justify-end gap-2">
-                        <Button size="sm" variant="outline" onClick={() => setCommentReplyId(null)} className="text-xs">
+                        <Button size="sm" variant="outline" onClick={() => setCommentReplyId(null)} className="text-xs font-bold">
                           Cancelar
                         </Button>
                         <Button size="sm" onClick={() => handleSendReply(comment.id)} className="bg-emerald-600 text-white font-bold text-xs">
@@ -694,7 +1318,7 @@ export function AdminBlogPage() {
               <button
                 type="button"
                 onClick={() => setCategoryModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-700"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -787,7 +1411,7 @@ export function AdminBlogPage() {
               <button
                 type="button"
                 onClick={() => setTagModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-700"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -844,6 +1468,23 @@ export function AdminBlogPage() {
           </div>
         </div>
       )}
+
+      {/* Media Library Modal for Layout Banner Upload */}
+      <MediaLibraryModal
+        open={mediaModalOpen}
+        onClose={() => setMediaModalOpen(false)}
+        title="Selecionar Imagem para o Banner Lateral"
+        onSelect={(url) => {
+          if (activeMediaTarget) {
+            const { blockIndex, slideIndex } = activeMediaTarget
+            setLayoutState(prev => {
+              const blocks = [...prev.sidebar_blocks]
+              blocks[blockIndex].slides[slideIndex].url = url
+              return { ...prev, sidebar_blocks: blocks }
+            })
+          }
+        }}
+      />
     </div>
   )
 }

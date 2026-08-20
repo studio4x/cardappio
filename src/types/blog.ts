@@ -139,3 +139,37 @@ export interface CreateBlogTagInput {
   slug?: string
   description?: string | null
 }
+
+export type BlogSidebarBlockMode = 'single' | 'carousel'
+export type BlogSidebarBlockType = 'card_text' | 'image'
+
+export interface BlogSidebarTextSlide {
+  id: string
+  badge_text: string
+  title: string
+  description: string
+  bullet_points: string[]
+  cta_button_text: string
+  cta_link_url: string
+  theme?: 'dark' | 'emerald' | 'light'
+}
+
+export interface BlogSidebarImageSlide {
+  id: string
+  url: string
+  linkUrl: string
+  alt: string
+}
+
+export interface BlogSidebarBlock {
+  id: string
+  mode: BlogSidebarBlockMode
+  block_type: BlogSidebarBlockType
+  slides: any[]
+}
+
+export interface BlogLayoutSettings {
+  hero_title: string
+  hero_subtitle: string
+  sidebar_blocks: BlogSidebarBlock[]
+}

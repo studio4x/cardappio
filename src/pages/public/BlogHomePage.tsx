@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Search, ChevronLeft, ChevronRight, BookOpen } from 'lucide-react'
-import { useBlogPosts, useBlogCategories } from '@/hooks/blog/useBlog'
+import { useBlogPosts, useBlogCategories, useBlogLayoutSettings } from '@/hooks/blog/useBlog'
 import { BlogPostCard } from '@/components/blog/BlogPostCard'
 import { BlogSidebar } from '@/components/blog/BlogSidebar'
 import { BlogFeaturedCarousel } from '@/components/blog/BlogFeaturedCarousel'
@@ -14,6 +14,7 @@ export function BlogHomePage() {
   const [currentPage, setCurrentPage] = useState<number>(1)
 
   const { data: categories } = useBlogCategories()
+  const { data: layoutSettings } = useBlogLayoutSettings()
   const { data: postsData, isLoading: isLoadingPosts } = useBlogPosts({
     categorySlug: selectedCategory,
     search: searchQuery,
@@ -35,6 +36,9 @@ export function BlogHomePage() {
     setCurrentPage(1)
   }
 
+  const heroTitle = layoutSettings?.hero_title || 'Blog Cardappio'
+  const heroSubtitle = layoutSettings?.hero_subtitle || 'Dicas, planejamento alimentar e receitas para organizar sua rotina na cozinha com praticidade.'
+
   return (
     <div className="min-h-screen bg-white pb-20 pt-28 md:pt-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-10">
@@ -42,10 +46,10 @@ export function BlogHomePage() {
         {/* GenFlix-Style Hero Title Section */}
         <section className="text-center space-y-3 max-w-3xl mx-auto">
           <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-            Blog Cardappio
+            {heroTitle}
           </h1>
           <p className="text-base sm:text-lg font-medium text-slate-600 leading-relaxed">
-            Dicas, planejamento alimentar e receitas para organizar sua rotina na cozinha com praticidade.
+            {heroSubtitle}
           </p>
 
           {/* Search bar */}
