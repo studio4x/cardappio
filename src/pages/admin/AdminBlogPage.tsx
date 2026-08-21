@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { MediaLibraryModal } from '@/components/shared/MediaLibraryModal'
 import { toast } from 'sonner'
+import { supabase } from '@/integrations/supabase/client'
 import type { 
   BlogCategory, 
   BlogTag, 
