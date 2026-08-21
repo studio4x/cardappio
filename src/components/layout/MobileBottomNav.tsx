@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Calendar, ShoppingBasket, Utensils, User } from 'lucide-react'
+import { Home, Calendar, ShoppingBasket, Utensils, BookOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -7,7 +7,7 @@ const navItems = [
   { label: 'Planner', icon: Calendar, href: '/app/semana' },
   { label: 'Receitas', icon: Utensils, href: '/app/receitas' },
   { label: 'Compras', icon: ShoppingBasket, href: '/app/compras' },
-  { label: 'Perfil', icon: User, href: '/app/perfil' },
+  { label: 'Blog', icon: BookOpen, href: '/blog' },
 ]
 
 export function MobileBottomNav() {

@@ -16,6 +16,7 @@ export function UserLayout() {
   const isPlannerActive = pathname.startsWith('/app/semana')
   const isRecipesActive = pathname.startsWith('/app/receitas')
   const isShoppingActive = pathname.startsWith('/app/compras')
+  const isBlogActive = pathname.startsWith('/blog')
 
   return (
     <div
@@ -62,6 +63,13 @@ export function UserLayout() {
                 style={{ color: isShoppingActive ? 'var(--color-primary)' : 'var(--color-text-secondary)' }}
               >
                 Compras
+              </Link>
+              <Link 
+                to="/blog" 
+                className={`text-sm no-underline transition-colors ${isBlogActive ? 'font-bold' : 'font-medium hover:text-primary'}`} 
+                style={{ color: isBlogActive ? 'var(--color-primary)' : 'var(--color-text-secondary)' }}
+              >
+                Blog
               </Link>
             </div>
 
