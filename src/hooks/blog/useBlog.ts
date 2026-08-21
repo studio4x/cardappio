@@ -99,6 +99,8 @@ export function useBlogPosts(filters?: BlogPostFilters) {
       }
 
       query = query
+        .order('is_featured', { ascending: false })
+        .order('display_order', { ascending: true, nullsFirst: false })
         .order('published_at', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
         .range(from, to)
