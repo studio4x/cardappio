@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { 
   Plus, Edit, Trash2, ExternalLink, Check, X, MessageSquare, BookOpen, Search, Eye,
   Layers, Tag as TagIcon, Save, FolderPlus, Tag, Layout, Sparkles, Upload, ArrowRight,
-  ChevronLeft, ChevronRight, Copy, MoveUp, MoveDown
+  ChevronLeft, ChevronRight, Copy, MoveUp, MoveDown, Star, GripVertical
 } from 'lucide-react'
 import { 
   useBlogPosts, 
@@ -98,6 +98,59 @@ export function AdminBlogPage() {
     pageSize: 50
   })
 
+  // Drag & drop and local posts state
+  const [localPosts, setLocalPosts] = useState<any[]>([])
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (postsData?.posts) {
+      setLocalPosts(postsData.posts)
+    }
+  }, [postsData])
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+  }
+
+  const handleDrop = async (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === targetIndex) return
+
+    const reordered = [...localPosts]
+    const [removed] = reordered.splice(draggedIndex, 1)
+    reordered.splice(targetIndex, 0, removed)
+
+    setLocalPosts(reordered)
+    setDraggedIndex(null)
+
+    try {
+      const orderedIds = reordered.map(p => p.id)
+      await updatePostsOrder.mutateAsync(orderedIds)
+      toast.success('Nova ordenação salva!')
+    } catch (err: any) {
+      toast.error('Erro ao salvar nova ordenação.')
+    }
+  }
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null)
+  }
+
+  const handleToggleFeatured = async (post: any) => {
+    try {
+      const newFeatured = !post.is_featured
+      await togglePostFeatured.mutateAsync({ id: post.id, is_featured: newFeatured })
+      toast.success(newFeatured ? 'Artigo destacado com sucesso!' : 'Destaque removido.')
+    } catch (err: any) {
+      toast.error('Erro ao alterar status de destaque.')
+    }
+  }
+
   const { data: categories, isLoading: isLoadingCategories } = useBlogCategories()
   const { data: tags, isLoading: isLoadingTags } = useBlogTags()
   const { data: comments, isLoading: isLoadingComments } = useAdminBlogComments('all')
@@ -135,7 +188,7 @@ export function AdminBlogPage() {
   }, [carouselData])
 
   // Mutations
-  const { deletePost, updateCommentStatus } = useAdminBlogMutations()
+  const { deletePost, updateCommentStatus, updatePostsOrder, togglePostFeatured } = useAdminBlogMutations()
   const { saveCategory, deleteCategory } = useAdminBlogCategoriesMutations()
   const { saveTag, deleteTag } = useAdminBlogTagsMutations()
   const saveLayoutMutation = useSaveBlogLayoutSettings()
@@ -600,7 +653,7 @@ export function AdminBlogPage() {
 
           {isLoadingPosts ? (
             <LoadingState message="Carregando artigos..." />
-          ) : !postsData || postsData.posts.length === 0 ? (
+          ) : !localPosts || localPosts.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-slate-200 bg-white p-12 text-center space-y-3">
               <BookOpen className="h-10 w-10 text-slate-300 mx-auto" />
               <p className="text-sm font-bold text-slate-700">Nenhum artigo encontrado</p>
@@ -609,89 +662,141 @@ export function AdminBlogPage() {
               </Button>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-extrabold tracking-wider">
-                  <tr>
-                    <th className="p-4">Artigo</th>
-                    <th className="p-4">Categoria</th>
-                    <th className="p-4">Status</th>
-                    <th className="p-4">Leitura</th>
-                    <th className="p-4 text-right">Ações</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                  {postsData.posts.map((post) => (
-                    <tr key={post.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          {post.cover_image_url ? (
-                            <img src={post.cover_image_url} alt="" className="h-10 w-14 rounded-lg object-cover bg-slate-100" />
-                          ) : (
-                            <div className="h-10 w-14 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
-                              <BookOpen className="h-5 w-5" />
-                            </div>
-                          )}
-                          <div>
-                            <p className="font-bold text-slate-900 line-clamp-1">{post.title}</p>
-                            <p className="text-[11px] text-slate-400 font-mono">/blog/{post.slug}</p>
-                          </div>
-                        </div>
-                      </td>
+            <div className="space-y-2">
+              {(!searchQuery && statusFilter === 'all') ? (
+                <p className="text-[11px] text-slate-500 font-medium bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 inline-block">
+                  💡 <strong>Dica:</strong> Arraste e solte as linhas usando o controle lateral para reordenar a prioridade dos artigos na página principal do blog. Artigos destacados ficam fixados no topo.
+                </p>
+              ) : (
+                <p className="text-[11px] text-amber-600 font-medium bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 inline-block">
+                  ⚠️ <strong>Atenção:</strong> A reordenação via arrastar e soltar (drag & drop) está desativada enquanto houver busca ou filtros de status aplicados.
+                </p>
+              )}
 
-                      <td className="p-4">
-                        <span className="inline-block bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-md text-[11px]">
-                          {post.category?.name || post.category_name || 'Geral'}
-                        </span>
-                      </td>
-
-                      <td className="p-4">
-                        <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                          post.status === 'published'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : post.status === 'scheduled'
-                            ? 'bg-blue-100 text-blue-800'
-                            : post.status === 'draft'
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-slate-100 text-slate-600'
-                        }`}>
-                          {post.status === 'published' ? 'Publicado' : post.status === 'scheduled' ? 'Agendado' : post.status === 'draft' ? 'Rascunho' : 'Arquivado'}
-                        </span>
-                      </td>
-
-                      <td className="p-4 text-slate-500 font-semibold">
-                        {post.read_time_minutes} min
-                      </td>
-
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
-                            title="Visualizar post público"
-                            className="p-2 text-slate-400 hover:text-slate-900 rounded-lg hover:bg-slate-100 cursor-pointer"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => navigate(`/admin/blog/${post.id}`)}
-                            title="Editar post"
-                            className="p-2 text-emerald-600 hover:text-emerald-800 rounded-lg hover:bg-emerald-50 cursor-pointer"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeletePost(post.id, post.title)}
-                            title="Excluir post"
-                            className="p-2 text-red-500 hover:text-red-700 rounded-lg hover:bg-red-50 cursor-pointer"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
+              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-extrabold tracking-wider">
+                    <tr>
+                      {(!searchQuery && statusFilter === 'all') && <th className="p-4 w-10"></th>}
+                      <th className="p-4">Destaque</th>
+                      <th className="p-4">Artigo</th>
+                      <th className="p-4">Categoria</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4">Leitura</th>
+                      <th className="p-4 text-right">Ações</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                    {localPosts.map((post, idx) => (
+                      <tr 
+                        key={post.id} 
+                        draggable={!searchQuery && statusFilter === 'all'}
+                        onDragStart={(e) => handleDragStart(e, idx)}
+                        onDragOver={(e) => handleDragOver(e, idx)}
+                        onDrop={(e) => handleDrop(e, idx)}
+                        onDragEnd={handleDragEnd}
+                        className={`hover:bg-slate-50/80 transition-all ${draggedIndex === idx ? 'opacity-40 bg-slate-50' : ''}`}
+                      >
+                        {(!searchQuery && statusFilter === 'all') && (
+                          <td className="p-4 align-middle cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-600">
+                            <GripVertical className="h-4 w-4" />
+                          </td>
+                        )}
+
+                        <td className="p-4 align-middle">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleFeatured(post)}
+                            className="p-1 rounded-full transition-colors duration-150 hover:bg-slate-100 cursor-pointer"
+                            title={post.is_featured ? 'Remover destaque' : 'Destacar artigo'}
+                          >
+                            <Star 
+                              className={`h-4.5 w-4.5 ${
+                                post.is_featured 
+                                  ? 'text-amber-500 fill-amber-500' 
+                                  : 'text-slate-300 hover:text-amber-500'
+                              }`} 
+                            />
+                          </button>
+                        </td>
+
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            {post.cover_image_url ? (
+                              <img src={post.cover_image_url} alt="" className="h-10 w-14 rounded-lg object-cover bg-slate-100" />
+                            ) : (
+                              <div className="h-10 w-14 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
+                                <BookOpen className="h-5 w-5" />
+                              </div>
+                            )}
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="font-bold text-slate-900 line-clamp-1">{post.title}</p>
+                                {post.is_featured && (
+                                  <span className="rounded bg-amber-100 text-amber-800 font-extrabold text-[9px] px-1 py-0.5 uppercase tracking-wide">
+                                    Fixo
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-slate-400 font-mono">/blog/{post.slug}</p>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="p-4">
+                          <span className="inline-block bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-md text-[11px]">
+                            {post.category?.name || post.category_name || 'Geral'}
+                          </span>
+                        </td>
+
+                        <td className="p-4">
+                          <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                            post.status === 'published'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : post.status === 'scheduled'
+                              ? 'bg-blue-100 text-blue-800'
+                              : post.status === 'draft'
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-slate-100 text-slate-600'
+                          }`}>
+                            {post.status === 'published' ? 'Publicado' : post.status === 'scheduled' ? 'Agendado' : post.status === 'draft' ? 'Rascunho' : 'Arquivado'}
+                          </span>
+                        </td>
+
+                        <td className="p-4 text-slate-500 font-semibold">
+                          {post.read_time_minutes} min
+                        </td>
+
+                        <td className="p-4 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
+                              title="Visualizar post público"
+                              className="p-2 text-slate-400 hover:text-slate-900 rounded-lg hover:bg-slate-100 cursor-pointer"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => navigate(`/admin/blog/${post.id}`)}
+                              title="Editar post"
+                              className="p-2 text-emerald-600 hover:text-emerald-800 rounded-lg hover:bg-emerald-50 cursor-pointer"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeletePost(post.id, post.title)}
+                              title="Excluir post"
+                              className="p-2 text-red-500 hover:text-red-700 rounded-lg hover:bg-red-50 cursor-pointer"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>

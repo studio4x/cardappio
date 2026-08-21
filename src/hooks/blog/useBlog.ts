@@ -329,7 +329,36 @@ export function useAdminBlogMutations() {
     }
   })
 
-  return { savePost, deletePost, updateCommentStatus }
+  const updatePostsOrder = useMutation({
+    mutationFn: async (orderedIds: string[]) => {
+      const promises = orderedIds.map((id, index) =>
+        supabase
+          .from('blog_posts')
+          .update({ display_order: index })
+          .eq('id', id)
+      )
+      await Promise.all(promises)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blog-posts'] })
+    }
+  })
+
+  const togglePostFeatured = useMutation({
+    mutationFn: async ({ id, is_featured }: { id: string; is_featured: boolean }) => {
+      const { error } = await supabase
+        .from('blog_posts')
+        .update({ is_featured })
+        .eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blog-posts'] })
+      queryClient.invalidateQueries({ queryKey: ['blog-post'] })
+    }
+  })
+
+  return { savePost, deletePost, updateCommentStatus, updatePostsOrder, togglePostFeatured }
 }
 
 /**
