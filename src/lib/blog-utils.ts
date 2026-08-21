@@ -25,34 +25,6 @@ export function fixMojibakeText(text: string | null | undefined): string {
  */
 export function getGridCoverImageUrl(imageUrl: string | null | undefined): string {
   if (!imageUrl || !imageUrl.trim()) return ''
-  
-  try {
-    const parsed = new URL(imageUrl)
-    const storageMarker = '/storage/v1/object/public/'
-    const renderMarker = '/storage/v1/render/image/public/'
-
-    if (parsed.pathname.includes(storageMarker)) {
-      parsed.pathname = parsed.pathname.replace(storageMarker, renderMarker)
-      parsed.searchParams.set('width', '960')
-      parsed.searchParams.set('height', '720')
-      parsed.searchParams.set('resize', 'cover')
-      parsed.searchParams.set('quality', '75')
-      parsed.searchParams.set('format', 'webp')
-      return parsed.toString()
-    }
-
-    if (parsed.pathname.includes(renderMarker)) {
-      parsed.searchParams.set('width', '960')
-      parsed.searchParams.set('height', '720')
-      parsed.searchParams.set('resize', 'cover')
-      parsed.searchParams.set('quality', '75')
-      parsed.searchParams.set('format', 'webp')
-      return parsed.toString()
-    }
-  } catch {
-    return imageUrl
-  }
-
   return imageUrl
 }
 
