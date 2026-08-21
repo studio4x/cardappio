@@ -124,8 +124,22 @@ export function AdminBlogPage() {
     e.preventDefault()
     if (draggedIndex === null || draggedIndex === targetIndex) return
 
+    const featuredCountBefore = localPosts.filter(p => p.is_featured).length
+    const draggedPost = localPosts[draggedIndex]
+    const wasFeatured = draggedPost.is_featured
+
+    let isNowFeatured = wasFeatured
+    if (wasFeatured && targetIndex >= featuredCountBefore) {
+      isNowFeatured = false
+    } else if (!wasFeatured && targetIndex < featuredCountBefore) {
+      isNowFeatured = true
+    }
+
     const reordered = [...localPosts]
     const [removed] = reordered.splice(draggedIndex, 1)
+    
+    // Update featured property locally
+    removed.is_featured = isNowFeatured
     reordered.splice(targetIndex, 0, removed)
 
     setLocalPosts(reordered)
@@ -133,10 +147,21 @@ export function AdminBlogPage() {
     setDragOverIndex(null)
 
     try {
+      if (isNowFeatured !== wasFeatured) {
+        const { error } = await supabase
+          .from('blog_posts')
+          .update({ is_featured: isNowFeatured })
+          .eq('id', draggedPost.id)
+        
+        if (error) throw error
+        toast.success(isNowFeatured ? 'Artigo destacado e fixado!' : 'Destaque removido!')
+      }
+
       const orderedIds = reordered.map(p => p.id)
       await updatePostsOrder.mutateAsync(orderedIds)
       toast.success('Nova ordenação salva!')
     } catch (err: any) {
+      console.error('Erro ao salvar reordenação:', err)
       toast.error('Erro ao salvar nova ordenação.')
     }
   }
