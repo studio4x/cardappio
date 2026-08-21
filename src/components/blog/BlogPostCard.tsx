@@ -13,7 +13,7 @@ export function BlogPostCard({ post }: BlogPostCardProps) {
     : ''
 
   const categoryName = post.category?.name || post.category_name || 'Cardappio'
-  const coverUrl = getGridCoverImageUrl(post.cover_image_url)
+  const coverUrl = getGridCoverImageUrl(post.card_image_url || post.cover_image_url)
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-sm transition-all hover:shadow-md hover:border-emerald-300">

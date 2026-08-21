@@ -186,9 +186,9 @@ export function BlogFeaturedCarousel({ posts }: BlogFeaturedCarouselProps) {
     <div className="relative w-full overflow-hidden rounded-3xl border border-slate-200/80 bg-slate-900 shadow-md group my-8">
       {/* Slide Content Container */}
       <div className="relative aspect-[16/7] md:aspect-[1920/520] w-full overflow-hidden">
-        {currentPost.cover_image_url ? (
+        {(currentPost.cover_image_url || currentPost.card_image_url) ? (
           <img
-            src={currentPost.cover_image_url}
+            src={currentPost.cover_image_url || currentPost.card_image_url!}
             alt={currentPost.title}
             className="h-full w-full object-cover object-center transition-all duration-700 brightness-[0.82]"
           />
