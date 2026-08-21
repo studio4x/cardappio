@@ -101,6 +101,7 @@ export function AdminBlogPage() {
   // Drag & drop and local posts state
   const [localPosts, setLocalPosts] = useState<any[]>([])
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
 
   useEffect(() => {
     if (postsData?.posts) {
@@ -115,6 +116,8 @@ export function AdminBlogPage() {
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault()
+    if (draggedIndex === null || draggedIndex === index) return
+    setDragOverIndex(index)
   }
 
   const handleDrop = async (e: React.DragEvent, targetIndex: number) => {
@@ -127,6 +130,7 @@ export function AdminBlogPage() {
 
     setLocalPosts(reordered)
     setDraggedIndex(null)
+    setDragOverIndex(null)
 
     try {
       const orderedIds = reordered.map(p => p.id)
@@ -139,6 +143,7 @@ export function AdminBlogPage() {
 
   const handleDragEnd = () => {
     setDraggedIndex(null)
+    setDragOverIndex(null)
   }
 
   const handleToggleFeatured = async (post: any) => {
@@ -695,7 +700,11 @@ export function AdminBlogPage() {
                         onDragOver={(e) => handleDragOver(e, idx)}
                         onDrop={(e) => handleDrop(e, idx)}
                         onDragEnd={handleDragEnd}
-                        className={`hover:bg-slate-50/80 transition-all ${draggedIndex === idx ? 'opacity-40 bg-slate-50' : ''}`}
+                        onDragLeave={() => setDragOverIndex(null)}
+                        className={`hover:bg-slate-50/80 transition-all duration-150
+                          ${draggedIndex === idx ? 'opacity-30 bg-slate-100' : ''}
+                          ${dragOverIndex === idx && draggedIndex !== null ? (draggedIndex > idx ? 'border-t-2 border-t-emerald-500 bg-emerald-50/30' : 'border-b-2 border-b-emerald-500 bg-emerald-50/30') : ''}
+                        `}
                       >
                         {(!searchQuery && statusFilter === 'all') && (
                           <td className="p-4 align-middle cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-600">
