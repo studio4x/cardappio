@@ -1,3 +1,5 @@
+import { DEFAULT_MEASUREMENT_UNITS_DATA } from '@/hooks/recipes/useMeasurementUnits'
+
 export type RecipeJsonDifficulty = 'easy' | 'medium' | 'hard'
 export type RecipeJsonCost = 'low' | 'medium' | 'high'
 export type RecipeJsonTagType = 'diet' | 'difficulty' | 'budget' | 'context' | 'family'
@@ -290,7 +292,71 @@ function normalizeTags(rawTags: unknown): AdminRecipeJsonImportResult['tags'] {
     })
 }
 
-export function parseAdminRecipeJson(raw: string): ParseResult {
+function matchActiveUnit(unitText: string, activeSymbols: string[]): string | null {
+  const clean = unitText.trim().toLowerCase()
+  if (activeSymbols.includes(clean)) return clean
+
+  // Map common names and variations to active symbols
+  const maps: Record<string, string> = {
+    // Peso
+    'g': 'g', 'grama': 'g', 'gramas': 'g',
+    'kg': 'kg', 'quilo': 'kg', 'quilos': 'kg', 'quilograma': 'kg', 'quilogramas': 'kg',
+    'mg': 'mg', 'miligrama': 'mg', 'miligramas': 'mg', 'milligrama': 'mg', 'milligramas': 'mg',
+    
+    // Volume
+    'ml': 'ml', 'mililitro': 'ml', 'mililitros': 'ml', 'millilitro': 'ml', 'millilitros': 'ml',
+    'l': 'l', 'litro': 'l', 'litros': 'l', 'liter': 'l',
+    'cl': 'cl', 'centilitro': 'cl', 'centilitros': 'cl',
+    'dl': 'dl', 'decilitro': 'dl', 'decilitros': 'dl',
+    
+    // Unidade e frações
+    'unidade': 'unidade', 'unidades': 'unidade', 'un': 'unidade', 'un.': 'unidade',
+    'dente': 'dente', 'dentes': 'dentes',
+    'fatia': 'fatia', 'fatias': 'fatias',
+    'folha': 'folha', 'folhas': 'folhas',
+    'maço': 'maço', 'maços': 'maço',
+    'molho': 'molho', 'molhos': 'molhos',
+    'pedaço': 'pedaço', 'pedaços': 'pedaços',
+    'ramo': 'ramo', 'ramos': 'ramo',
+    
+    // Colheres
+    'colher (sopa)': 'colher (sopa)', 'colheres (sopa)': 'colheres (sopa)',
+    'colher de sopa': 'colher de sopa', 'colheres de sopa': 'colher de sopa',
+    'colher (chá)': 'colher (chá)', 'colheres (chá)': 'colheres (chá)',
+    'colher de chá': 'colher de chá', 'colheres de chá': 'colher de chá',
+    'colher (sobremesa)': 'colher (sobremesa)', 'colheres (sobremesa)': 'colheres (sobremesa)',
+    'colher de sobremesa': 'colher de sobremesa', 'colheres de sobremesa': 'colher de sobremesa',
+    'colher (café)': 'colher (café)', 'colheres (café)': 'colheres (café)',
+    'colher de café': 'colher de café', 'colheres de café': 'colher de café',
+    
+    // Recipientes / Copos
+    'copo': 'copo', 'copos': 'copo',
+    'xícara': 'xícara', 'xícaras': 'xícaras', 'xicara': 'xícara', 'xicaras': 'xícaras',
+    'xícara de chá': 'xícara de chá', 'xícaras de chá': 'xícara de chá',
+    'lata': 'lata', 'latas': 'lata',
+    'caixa': 'caixa', 'caixas': 'caixa',
+    'pacote': 'pacote', 'pacotes': 'pacote',
+    'vidro': 'vidro', 'vidros': 'vidro',
+    
+    // Medidas
+    'cm': 'cm', 'centímetro': 'cm', 'centímetros': 'cm',
+    'mm': 'mm', 'milímetro': 'mm', 'milímetros': 'mm',
+    
+    // Geral
+    'a gosto': 'a gosto',
+    'pitada': 'pitada', 'pitadas': 'pitada',
+    'porção': 'porção', 'porções': 'porção',
+  }
+
+  const mapped = maps[clean]
+  if (mapped && activeSymbols.includes(mapped)) {
+    return mapped
+  }
+
+  return null
+}
+
+export function parseAdminRecipeJson(raw: string, activeUnits?: string[]): ParseResult {
   const errors: string[] = []
 
   if (!raw.trim()) {
@@ -344,6 +410,23 @@ export function parseAdminRecipeJson(raw: string): ParseResult {
   if (steps.length === 0) {
     errors.push('O JSON precisa conter ao menos um passo válido.')
   }
+
+  // Validate and normalize units
+  const fallbackActiveSymbols = DEFAULT_MEASUREMENT_UNITS_DATA.map(u => u.symbol)
+  const allowedUnits = activeUnits && activeUnits.length > 0 ? activeUnits : fallbackActiveSymbols
+
+  ingredients.forEach((ing) => {
+    if (ing.unit) {
+      const mappedUnit = matchActiveUnit(ing.unit, allowedUnits)
+      if (mappedUnit) {
+        ing.unit = mappedUnit
+      } else {
+        errors.push(
+          `A unidade de medida "${ing.unit}" do ingrediente "${ing.name}" não é válida ou não está ativa no sistema.`
+        )
+      }
+    }
+  })
 
   const warnings: string[] = []
 
@@ -429,6 +512,38 @@ export function buildAdminRecipeJsonExample(): string {
           unit: 'g',
           normalized_name: 'maionese',
           sort_order: 2,
+          is_optional: false,
+        },
+        {
+          name: 'Milho verde em conserva',
+          quantity_label: '1 lata',
+          unit: 'lata',
+          normalized_name: 'milho verde em conserva',
+          sort_order: 3,
+          is_optional: false,
+        },
+        {
+          name: 'Cebola roxa média',
+          quantity_label: '1 unidade',
+          unit: 'unidade',
+          normalized_name: 'cebola roxa media',
+          sort_order: 4,
+          is_optional: false,
+        },
+        {
+          name: 'Azeite de oliva extra virgem',
+          quantity_label: '2 colheres de sopa',
+          unit: 'colher de sopa',
+          normalized_name: 'azeite de oliva extra virgem',
+          sort_order: 5,
+          is_optional: true,
+        },
+        {
+          name: 'Sal',
+          quantity_label: 'a gosto',
+          unit: 'a gosto',
+          normalized_name: 'sal',
+          sort_order: 6,
           is_optional: false,
         },
       ],

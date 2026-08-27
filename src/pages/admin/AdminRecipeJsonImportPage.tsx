@@ -20,6 +20,7 @@ import {
   parseAdminRecipeJson,
   slugifyRecipe,
 } from '@/lib/recipes/adminRecipeJsonImport'
+import { useMeasurementUnits } from '@/hooks/recipes/useMeasurementUnits'
 
 const ensureUniqueRecipeSlug = async (baseSlug: string) => {
   const normalizedBase = slugifyRecipe(baseSlug)
@@ -45,6 +46,7 @@ export function AdminRecipeJsonImportPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const jsonFileInputRef = useRef<HTMLInputElement | null>(null)
+  const { units } = useMeasurementUnits()
 
   const [jsonImportValue, setJsonImportValue] = useState('')
   const [jsonImportErrors, setJsonImportErrors] = useState<string[]>([])
@@ -77,7 +79,8 @@ export function AdminRecipeJsonImportPage() {
   const handleImportJson = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const { data, errors } = parseAdminRecipeJson(jsonImportValue)
+    const activeUnitSymbols = units.map((u) => u.value)
+    const { data, errors } = parseAdminRecipeJson(jsonImportValue, activeUnitSymbols)
     setJsonImportErrors(errors)
 
     if (!data) {
