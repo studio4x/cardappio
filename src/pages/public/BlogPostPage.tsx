@@ -125,7 +125,7 @@ export function BlogPostPage() {
           <div className="p-6 md:p-10">
             {post.content_html ? (
               <div 
-                className="prose prose-slate max-w-none prose-headings:font-bold prose-h2:text-2xl prose-h3:text-xl prose-p:leading-relaxed prose-a:text-emerald-600 prose-img:rounded-2xl"
+                className="prose prose-slate max-w-none prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-6 prose-h2:mb-3 prose-h3:text-xl prose-h3:mt-5 prose-h3:mb-2 prose-h4:text-lg prose-h4:mt-4 prose-h4:mb-2 prose-p:my-4 prose-p:leading-relaxed prose-a:text-emerald-600 prose-img:rounded-2xl prose-ul:my-4 prose-ol:my-4 prose-li:my-1"
                 dangerouslySetInnerHTML={{ __html: sanitizeBlogHtml(post.content_html) }}
               />
             ) : post.content_text && post.content_text.length > 0 ? (

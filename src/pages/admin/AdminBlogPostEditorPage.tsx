@@ -938,7 +938,7 @@ export function AdminBlogPostEditorPage() {
                 )}
 
                 <div
-                  className="prose prose-slate prose-sm max-w-none pt-2"
+                  className="prose prose-slate prose-sm max-w-none pt-2 prose-headings:font-bold prose-h2:text-xl prose-h2:mt-4 prose-h2:mb-2 prose-h3:text-lg prose-h3:mt-3 prose-h3:mb-1 prose-p:my-3 prose-p:leading-relaxed prose-a:text-emerald-600 prose-img:rounded-2xl prose-ul:my-3 prose-ol:my-3"
                   dangerouslySetInnerHTML={{ __html: contentHtml || '<p>Conteúdo do artigo...</p>' }}
                 />
               </div>

@@ -111,7 +111,7 @@ export function RichTextEditor({
     editorProps: {
       attributes: {
         class: cn(
-          'prose prose-slate max-w-none focus:outline-none px-4 py-3 text-sm text-slate-800 relative leading-relaxed prose-headings:font-bold prose-h2:text-2xl prose-h3:text-xl prose-h4:text-lg prose-p:leading-relaxed prose-a:text-emerald-600 prose-img:rounded-2xl',
+          'prose prose-slate max-w-none focus:outline-none px-4 py-3 text-sm text-slate-800 relative leading-relaxed prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-6 prose-h2:mb-3 prose-h3:text-xl prose-h3:mt-5 prose-h3:mb-2 prose-h4:text-lg prose-h4:mt-4 prose-h4:mb-2 prose-p:my-4 prose-p:leading-relaxed prose-a:text-emerald-600 prose-img:rounded-2xl prose-ul:my-4 prose-ol:my-4',
           `min-h-[${minHeight}]`
         ),
         style: `min-height: ${minHeight};`,
