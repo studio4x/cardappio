@@ -31,7 +31,19 @@ const FALLBACK_ADMIN_UNITS: MeasurementUnit[] = DEFAULT_MEASUREMENT_UNITS_DATA.m
 function isTableNotFoundError(err: any) {
   const msg = err?.message || err?.details || ''
   const code = err?.code || ''
-  return code === '42P01' || code === 'PGRST204' || msg.includes('measurement_units') || msg.includes('schema cache') || msg.includes('404')
+  
+  // 42P01: Código do PostgreSQL para "undefined_table" (tabela não existe)
+  // PGRST204: Código de erro do PostgREST (geralmente cache de esquema desatualizado)
+  // Ou se a mensagem do PostgREST indica explicitamente que a relação/tabela não foi encontrada
+  return (
+    code === '42P01' || 
+    code === 'PGRST204' || 
+    msg.includes('relation "public.measurement_units" does not exist') ||
+    msg.includes('relation "measurement_units" does not exist') ||
+    msg.includes('could not find the relation') ||
+    msg.includes('schema cache') ||
+    (code === '404' && msg.includes('not found'))
+  )
 }
 
 /**
@@ -98,6 +110,8 @@ export function useAdminMeasurementUnits() {
       if (isTableNotFoundError(err)) {
         setIsTableMissing(true)
         toast.error('Tabela measurement_units não encontrada no banco. Execute a migration 045 no Supabase SQL Editor.')
+      } else if (err?.code === '42501' || err?.message?.includes('violates row-level security policy')) {
+        toast.error('Você não tem permissão de administrador para alterar unidades de medida.')
       } else {
         toast.error(err.message || 'Erro ao salvar unidade de medida.')
       }
@@ -134,6 +148,8 @@ export function useAdminMeasurementUnits() {
       if (isTableNotFoundError(err)) {
         setIsTableMissing(true)
         toast.error('Tabela measurement_units não encontrada no banco Supabase. Execute a migration 045 no SQL Editor.')
+      } else if (err?.code === '42501' || err?.message?.includes('violates row-level security policy')) {
+        toast.error('Você não tem permissão de administrador para sincronizar unidades.')
       } else {
         toast.error(err.message || 'Erro ao sincronizar unidades padrão no banco de dados.')
       }
@@ -163,6 +179,8 @@ export function useAdminMeasurementUnits() {
       if (isTableNotFoundError(err)) {
         setIsTableMissing(true)
         toast.error('Tabela measurement_units não encontrada no banco. Execute a migration 045 no Supabase SQL Editor.')
+      } else if (err?.code === '42501' || err?.message?.includes('violates row-level security policy')) {
+        toast.error('Você não tem permissão de administrador para remover unidades.')
       } else {
         toast.error(err.message || 'Erro ao remover unidade de medida.')
       }
@@ -205,6 +223,8 @@ export function useAdminMeasurementUnits() {
       if (isTableNotFoundError(err)) {
         setIsTableMissing(true)
         toast.error('Tabela measurement_units não encontrada no banco. Execute a migration 045 no Supabase SQL Editor.')
+      } else if (err?.code === '42501' || err?.message?.includes('violates row-level security policy')) {
+        toast.error('Você não tem permissão de administrador para alterar o status da unidade.')
       } else {
         toast.error(err.message || 'Erro ao alterar status da unidade.')
       }

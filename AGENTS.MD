@@ -294,6 +294,7 @@ npm run build
 Ao concluir qualquer tarefa ou alteração no código:
 1. **Sempre execute o Fluxo de Dois Commits** detalhado na seção [Processo de Deploy e Versão de Build](#processo-de-deploy-e-versao-de-build) para atualizar o arquivo `version.json` com o novo hash do commit e número da build (`commitCount`).
 2. **Sempre faça o push** de todas as alterações e da nova build/versão para o repositório remoto no GitHub (`git push`).
-3. **Sempre informe ao usuário** na sua mensagem final:
+3. **Sempre informe explicitamente ao usuário** na sua mensagem final se o commit e o push foram realizados com sucesso, incluindo:
+   - Confirmação explícita de que o Commit e o Push foram feitos com sucesso.
    - A versão da build gerada (ex: `v1.0.X`).
    - O hash do commit correspondente (ex: `eb6b73f`).

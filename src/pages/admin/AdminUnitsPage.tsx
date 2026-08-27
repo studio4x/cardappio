@@ -162,25 +162,13 @@ export function AdminUnitsPage() {
         title="Unidades de Medida"
         subtitle="Cadastre, edite e organize as unidades de medida para ingredientes das receitas."
         actions={
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => seedDefaultsMutation.mutate()}
-              disabled={seedDefaultsMutation.isPending}
-              className="rounded-full px-5 border-slate-200 hover:bg-slate-50 text-slate-700 font-medium"
-              title="Salvar todas as 63 unidades padrão no banco de dados Supabase"
-            >
-              <RotateCw className={cn("h-4 w-4 mr-2", seedDefaultsMutation.isPending && "animate-spin")} />
-              {seedDefaultsMutation.isPending ? 'Sincronizando...' : 'Sincronizar Padrões'}
-            </Button>
-            <Button 
-              onClick={handleOpenCreate} 
-              className="rounded-full px-6 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Unidade
-            </Button>
-          </div>
+          <Button 
+            onClick={handleOpenCreate} 
+            className="rounded-full px-6 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Unidade
+          </Button>
         }
       />
 
@@ -296,9 +284,7 @@ export function AdminUnitsPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                <th className="py-4 px-6">Nome / Rótulo</th>
-                <th className="py-4 px-6">Sigla / Símbolo</th>
-                <th className="py-4 px-6">Categoria</th>
+                <th className="py-4 px-6">Unidade de Medida</th>
                 <th className="py-4 px-6">Status</th>
                 <th className="py-4 px-6 text-right">Ações</th>
               </tr>
@@ -313,27 +299,26 @@ export function AdminUnitsPage() {
                   )}
                 >
                   <td className="py-4 px-6">
-                    <div className="flex items-center gap-3">
-                      <span className="h-7 w-7 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold flex items-center justify-center shrink-0 uppercase font-mono">
+                    <div className="flex items-start gap-3">
+                      <span className="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold flex items-center justify-center shrink-0 uppercase font-mono mt-0.5">
                         {unit.name.charAt(0)}
                       </span>
-                      <span className="font-bold text-slate-900">{unit.name}</span>
+                      <div className="space-y-0.5">
+                        <span className="font-bold text-slate-900 block">{unit.name}</span>
+                        <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+                          <code className="text-[10px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">
+                            {unit.symbol}
+                          </code>
+                          <span className="text-slate-350 select-none text-[10px]">•</span>
+                          <span className="bg-slate-50 text-slate-500 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-slate-100">
+                            {unit.category || 'Geral'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </td>
 
-                  <td className="py-4 px-6">
-                    <code className="px-2 py-1 bg-slate-100 text-slate-700 rounded-md font-mono text-xs border border-slate-200">
-                      {unit.symbol}
-                    </code>
-                  </td>
-
-                  <td className="py-4 px-6">
-                    <Badge variant="secondary" className="bg-slate-100 text-slate-600 font-medium">
-                      {unit.category || 'Geral'}
-                    </Badge>
-                  </td>
-
-                  <td className="py-4 px-6">
+                  <td className="py-4 px-6 vertical-align-middle">
                     <div className="flex items-center gap-3">
                       <Switch
                         checked={unit.is_active}
@@ -350,7 +335,7 @@ export function AdminUnitsPage() {
                     </div>
                   </td>
 
-                  <td className="py-4 px-6 text-right">
+                  <td className="py-4 px-6 text-right vertical-align-middle">
                     <div className="flex items-center justify-end gap-2">
                       <Button
                         variant="ghost"
