@@ -189,17 +189,20 @@ export function RichTextEditor({
                 <ChevronDown className="h-3 w-3 text-slate-400" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white border p-1 rounded-xl shadow-md min-w-32">
-              <DropdownMenuItem onClick={() => editor.chain().focus().setParagraph().run()} className="text-xs font-bold text-slate-700 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
+            <DropdownMenuContent 
+              onCloseAutoFocus={(e) => e.preventDefault()} 
+              className="bg-white border p-1 rounded-xl shadow-md min-w-32"
+            >
+              <DropdownMenuItem onSelect={() => editor.chain().focus().setParagraph().run()} className="text-xs font-bold text-slate-700 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
                 Parágrafo
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="text-xs font-black text-slate-900 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
+              <DropdownMenuItem onSelect={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="text-xs font-black text-slate-900 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
                 Título 2
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className="text-xs font-extrabold text-slate-800 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
+              <DropdownMenuItem onSelect={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className="text-xs font-extrabold text-slate-800 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
                 Título 3
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()} className="text-xs font-bold text-slate-700 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
+              <DropdownMenuItem onSelect={() => editor.chain().focus().toggleHeading({ level: 4 }).run()} className="text-xs font-bold text-slate-700 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
                 Título 4
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -216,17 +219,20 @@ export function RichTextEditor({
                 <ChevronDown className="h-3 w-3 text-slate-400" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white border p-1 rounded-xl shadow-md min-w-32">
-              <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('left').run()} className="text-xs font-bold text-slate-700 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
+            <DropdownMenuContent 
+              onCloseAutoFocus={(e) => e.preventDefault()} 
+              className="bg-white border p-1 rounded-xl shadow-md min-w-32"
+            >
+              <DropdownMenuItem onSelect={() => editor.chain().focus().setTextAlign('left').run()} className="text-xs font-bold text-slate-700 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
                 ⬅️ Alinhar à Esquerda
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('center').run()} className="text-xs font-bold text-slate-700 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
+              <DropdownMenuItem onSelect={() => editor.chain().focus().setTextAlign('center').run()} className="text-xs font-bold text-slate-700 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
                 ↔️ Centralizar
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('right').run()} className="text-xs font-bold text-slate-700 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
+              <DropdownMenuItem onSelect={() => editor.chain().focus().setTextAlign('right').run()} className="text-xs font-bold text-slate-700 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
                 ➡️ Alinhar à Direita
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().setTextAlign('justify').run()} className="text-xs font-bold text-slate-700 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
+              <DropdownMenuItem onSelect={() => editor.chain().focus().setTextAlign('justify').run()} className="text-xs font-bold text-slate-700 py-1.5 px-3.5 hover:bg-slate-50 cursor-pointer rounded-lg">
                 🟰 Justificar
               </DropdownMenuItem>
             </DropdownMenuContent>
