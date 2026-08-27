@@ -107,7 +107,7 @@ export function RichTextEditor({
     editorProps: {
       attributes: {
         class: cn(
-          'px-4 py-3 text-sm text-slate-800 outline-none focus:outline-none relative leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_strong]:font-semibold [&_em]:italic [&_u]:underline [&_a]:text-emerald-600 [&_a]:underline [&_a]:font-medium [&_a]:cursor-pointer [&_img]:rounded-2xl [&_img]:my-4 [&_img]:max-w-full',
+          'prose prose-slate max-w-none focus:outline-none px-4 py-3 text-sm text-slate-800 relative leading-relaxed prose-headings:font-bold prose-h2:text-2xl prose-h3:text-xl prose-h4:text-lg prose-p:leading-relaxed prose-a:text-emerald-600 prose-img:rounded-2xl',
           `min-h-[${minHeight}]`
         ),
         style: `min-height: ${minHeight};`,
