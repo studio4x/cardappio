@@ -78,6 +78,7 @@ export function RichTextEditor({
 }: RichTextEditorProps) {
   const [recipeLinkModalOpen, setRecipeLinkModalOpen] = useState(false)
   const [mediaModalOpen, setMediaModalOpen] = useState(false)
+  const [editorSelectionTime, setEditorSelectionTime] = useState(0)
 
   const editor = useEditor({
     extensions: [
@@ -103,6 +104,9 @@ export function RichTextEditor({
     onUpdate: ({ editor }) => {
       const html = editor.isEmpty ? '' : editor.getHTML()
       onChange(html)
+    },
+    onSelectionUpdate: () => {
+      setEditorSelectionTime(Date.now())
     },
     editorProps: {
       attributes: {
@@ -183,6 +187,7 @@ export function RichTextEditor({
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
+                data-selection={editorSelectionTime}
                 className="flex items-center gap-1 px-3.5 h-9 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 shadow-xs cursor-pointer outline-none select-none"
               >
                 {editor.isActive('heading', { level: 2 }) ? 'Título 2' :
