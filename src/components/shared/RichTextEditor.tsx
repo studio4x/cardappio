@@ -185,7 +185,10 @@ export function RichTextEditor({
                 type="button"
                 className="flex items-center gap-1 px-3.5 h-9 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 shadow-xs cursor-pointer outline-none select-none"
               >
-                Estrutura
+                {editor.isActive('heading', { level: 2 }) ? 'Título 2' :
+                 editor.isActive('heading', { level: 3 }) ? 'Título 3' :
+                 editor.isActive('heading', { level: 4 }) ? 'Título 4' :
+                 editor.isActive('paragraph') ? 'Parágrafo' : 'Estrutura'}
                 <ChevronDown className="h-3 w-3 text-slate-400" />
               </button>
             </DropdownMenuTrigger>
