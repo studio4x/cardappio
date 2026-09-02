@@ -342,7 +342,38 @@ serve(async (req) => {
         return errorResponse(`Falha ao enviar e-mail de teste: ${emailResult.error}`, 400)
       }
 
-      return successResponse(null, 'E-mail de teste enviado com sucesso!')
+    if (action === 'impersonate') {
+      if (!userId) {
+        return errorResponse('ID do usuário é obrigatório para impersonação.', 400)
+      }
+
+      if (userId === user.id) {
+        return errorResponse('Você já está logado nesta conta de administrador.', 400)
+      }
+
+      // Fetch target user auth data
+      const { data: targetAuthUser, error: getAuthError } = await supabaseAdmin.auth.admin.getUserById(userId)
+      if (getAuthError || !targetAuthUser?.user?.email) {
+        return errorResponse('Usuário não encontrado.', 404)
+      }
+
+      const targetEmail = targetAuthUser.user.email
+
+      // Generate single-use magiclink for target user
+      const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+        type: 'magiclink',
+        email: targetEmail,
+      })
+
+      if (linkError || !linkData?.properties?.hashed_token) {
+        throw linkError || new Error('Não foi possível gerar link de acesso para o usuário.')
+      }
+
+      return successResponse({
+        token_hash: linkData.properties.hashed_token,
+        email: targetEmail,
+        userId: userId,
+      }, 'Token de impersonação gerado com sucesso.')
     }
 
     return errorResponse('Ação inválida.', 400)

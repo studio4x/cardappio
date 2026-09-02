@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useAuth } from '@/app/providers/AuthProvider'
+import { useImpersonation } from '@/hooks/useImpersonation'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ErrorState } from '@/components/shared/ErrorState'
@@ -55,6 +57,8 @@ import {
 import { toast } from 'sonner'
 
 export function AdminUsersPage() {
+  const { user: currentAdminUser } = useAuth()
+  const { startImpersonation, isProcessing: isImpersonatingProcessing } = useImpersonation()
   const { data: users, isLoading, error, refetch } = useAdminUsers()
   const updateRole = useUpdateUserRole()
   const createUser = useCreateUser()
@@ -261,10 +265,19 @@ export function AdminUsersPage() {
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48 rounded-xl border shadow-lg">
+                    <DropdownMenuContent align="end" className="w-56 rounded-xl border shadow-lg">
                       <div className="px-2 py-1.5 text-xs font-bold text-slate-400 uppercase tracking-widest">
                         Ações
                       </div>
+                      <DropdownMenuItem 
+                        disabled={user.id === currentAdminUser?.id || isImpersonatingProcessing}
+                        onClick={() => startImpersonation({ id: user.id, email: user.email, full_name: user.full_name })}
+                        className="text-amber-800 font-semibold focus:text-amber-900 focus:bg-amber-50 cursor-pointer"
+                      >
+                        <Eye className="h-4 w-4 mr-2 text-amber-600" />
+                        Logar como Usuário
+                      </DropdownMenuItem>
+                      <div className="h-px bg-slate-100 my-1" />
                       <DropdownMenuItem onClick={() => handleRoleUpdate(user.id, user.role === 'admin' ? 'user' : 'admin')}>
                         {user.role === 'admin' ? 'Rebaixar para Usuário' : 'Promover para Admin'}
                       </DropdownMenuItem>

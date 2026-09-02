@@ -211,4 +211,30 @@ export function useUpdateUserPlan() {
   })
 }
 
+export function useImpersonateUser() {
+  return useMutation({
+    mutationFn: async ({ userId }: { userId: string }) => {
+      const { data, error } = await supabase.functions.invoke('admin-users', {
+        body: { action: 'impersonate', userId }
+      })
+
+      if (error) {
+        let errorMessage = error.message
+        try {
+          if ('context' in error && typeof (error as any).context.json === 'function') {
+            const body = await (error as any).context.json()
+            if (body && body.error) {
+              errorMessage = body.error
+            }
+          }
+        } catch (_) {}
+        throw new Error(errorMessage)
+      }
+      if (data?.status === 'error') throw new Error(data.message)
+      return data?.data as { token_hash: string; email: string; userId: string }
+    }
+  })
+}
+
+
 

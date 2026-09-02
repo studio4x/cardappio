@@ -5,6 +5,7 @@ import { Logo } from '@/components/shared/Logo'
 import { MobileBottomNav } from './MobileBottomNav'
 import { config } from '@/config'
 import { useNotifications } from '@/hooks/notifications/useNotifications'
+import { ImpersonationBanner } from '@/components/shared/ImpersonationBanner'
 
 export function UserLayout() {
   const { user, signOut } = useAuth()
@@ -23,6 +24,7 @@ export function UserLayout() {
       className="flex min-h-screen flex-col"
       style={{ backgroundColor: 'var(--color-surface)' }}
     >
+      <ImpersonationBanner />
       {/* Top header */}
       <header
         className="sticky top-0 z-40 border-b"

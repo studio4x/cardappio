@@ -29,6 +29,7 @@ import {
   Calculator,
   FileJson2
 } from 'lucide-react'
+import { ImpersonationBanner } from '@/components/shared/ImpersonationBanner'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/shared/Logo'
@@ -144,6 +145,7 @@ export function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-background p-4 lg:p-6 flex flex-col gap-6 font-sans">
+      <ImpersonationBanner />
       {/* Top Header Card */}
       <header className="bg-white rounded-[24px] border border-slate-100 px-6 py-4 flex items-center justify-between shadow-sm">
         {/* Brand Logo & Title */}
