@@ -342,6 +342,9 @@ serve(async (req) => {
         return errorResponse(`Falha ao enviar e-mail de teste: ${emailResult.error}`, 400)
       }
 
+      return successResponse(null, 'E-mail de teste enviado com sucesso!')
+    }
+
     if (action === 'impersonate') {
       if (!userId) {
         return errorResponse('ID do usuário é obrigatório para impersonação.', 400)
