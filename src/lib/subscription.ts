@@ -13,6 +13,12 @@ import type { Profile } from '@/types/auth'
  */
 export function isUserPro(profile: Profile | null | undefined): boolean {
   if (!profile) return false
+  
+  // Administrators and super administrators always have PRO access
+  if (profile.role === 'admin' || profile.role === 'super_admin') {
+    return true
+  }
+
   const tier = profile.subscription_tier
 
   if (!tier || tier === 'free' || tier === 'plano-gratuito') {

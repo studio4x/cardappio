@@ -292,65 +292,206 @@ function normalizeTags(rawTags: unknown): AdminRecipeJsonImportResult['tags'] {
     })
 }
 
+const UNIT_ALIAS_GROUPS: Array<{ aliases: string[]; targets: string[] }> = [
+  // Peso
+  {
+    aliases: ['kg', 'quilo', 'quilos', 'quilograma', 'quilogramas', 'kilo', 'kilos'],
+    targets: ['kg', 'quilo', 'quilos', 'g'],
+  },
+  {
+    aliases: ['g', 'grama', 'gramas'],
+    targets: ['g', 'grama', 'gramas'],
+  },
+  {
+    aliases: ['mg', 'miligrama', 'miligramas', 'milligrama', 'milligramas'],
+    targets: ['mg', 'miligrama', 'milligrama', 'miligramas', 'milligramas'],
+  },
+
+  // Volume
+  {
+    aliases: ['ml', 'mililitro', 'mililitros', 'millilitro', 'millilitros'],
+    targets: ['ml', 'mililitro', 'millilitro', 'mililitros', 'millilitros'],
+  },
+  {
+    aliases: ['l', 'litro', 'litros', 'liter'],
+    targets: ['l', 'litro', 'litros', 'liter'],
+  },
+  {
+    aliases: ['cl', 'centilitro', 'centilitros'],
+    targets: ['cl', 'centilitro', 'centilitros'],
+  },
+  {
+    aliases: ['dl', 'decilitro', 'decilitros'],
+    targets: ['dl', 'decilitro', 'decilitros'],
+  },
+
+  // Unidades e contagens
+  {
+    aliases: ['unidade', 'unidades', 'un', 'un.', 'unid', 'unid.'],
+    targets: ['unidade', 'unidades'],
+  },
+  {
+    aliases: ['dente', 'dentes'],
+    targets: ['dente', 'dentes'],
+  },
+  {
+    aliases: ['fatia', 'fatias'],
+    targets: ['fatia', 'fatias'],
+  },
+  {
+    aliases: ['folha', 'folhas'],
+    targets: ['folha', 'folhas'],
+  },
+  {
+    aliases: ['maço', 'maços', 'maco', 'macos'],
+    targets: ['maço', 'maços'],
+  },
+  {
+    aliases: ['molho', 'molhos'],
+    targets: ['molho', 'molhos'],
+  },
+  {
+    aliases: ['pedaço', 'pedaços', 'pedaco', 'pedacos'],
+    targets: ['pedaço', 'pedaços'],
+  },
+  {
+    aliases: ['ramo', 'ramos'],
+    targets: ['ramo', 'ramos'],
+  },
+  {
+    aliases: ['talo', 'talos'],
+    targets: ['talo', 'talos'],
+  },
+  {
+    aliases: ['tablete', 'tabletes'],
+    targets: ['tablete', 'tabletes'],
+  },
+
+  // Colheres
+  {
+    aliases: [
+      'colher (sopa)',
+      'colheres (sopa)',
+      'colher de sopa',
+      'colheres de sopa',
+      'c. sopa',
+      'c.sopa',
+      'cs',
+    ],
+    targets: ['colher (sopa)', 'colher de sopa', 'colheres (sopa)', 'colheres de sopa'],
+  },
+  {
+    aliases: [
+      'colher (chá)',
+      'colheres (chá)',
+      'colher de chá',
+      'colheres de chá',
+      'colher de cha',
+      'colheres de cha',
+      'c. chá',
+      'c. cha',
+    ],
+    targets: ['colher (chá)', 'colher de chá', 'colheres (chá)', 'colheres de chá'],
+  },
+  {
+    aliases: [
+      'colher (sobremesa)',
+      'colheres (sobremesa)',
+      'colher de sobremesa',
+      'colheres de sobremesa',
+      'c. sobremesa',
+      'c.sobremesa',
+    ],
+    targets: ['colher (sobremesa)', 'colher de sobremesa', 'colheres (sobremesa)', 'colheres de sobremesa'],
+  },
+  {
+    aliases: [
+      'colher (café)',
+      'colheres (café)',
+      'colher de café',
+      'colheres de café',
+      'colher de cafe',
+      'colheres de cafe',
+      'c. café',
+      'c. cafe',
+    ],
+    targets: ['colher (café)', 'colher de café', 'colheres (café)', 'colheres de café'],
+  },
+
+  // Recipientes / Copos / Xícaras
+  {
+    aliases: [
+      'xícara (chá)',
+      'xícaras (chá)',
+      'xicara (cha)',
+      'xicaras (cha)',
+      'xícara de chá',
+      'xícaras de chá',
+      'xicara de cha',
+      'xicaras de cha',
+      'xícara',
+      'xícaras',
+      'xicara',
+      'xicaras',
+    ],
+    targets: ['xícara (chá)', 'xícara de chá', 'xícara', 'xícaras (chá)', 'xícaras'],
+  },
+  {
+    aliases: ['copo', 'copos'],
+    targets: ['copo', 'copos'],
+  },
+  {
+    aliases: ['lata', 'latas'],
+    targets: ['lata', 'latas'],
+  },
+  {
+    aliases: ['caixa', 'caixas'],
+    targets: ['caixa', 'caixas'],
+  },
+  {
+    aliases: ['pacote', 'pacotes'],
+    targets: ['pacote', 'pacotes'],
+  },
+  {
+    aliases: ['vidro', 'vidros'],
+    targets: ['vidro', 'vidros'],
+  },
+
+  // Medidas
+  {
+    aliases: ['cm', 'centímetro', 'centímetros', 'centimetro', 'centimetros'],
+    targets: ['cm', 'centímetro', 'centímetros'],
+  },
+  {
+    aliases: ['mm', 'milímetro', 'milímetros', 'milimetro', 'milimetros'],
+    targets: ['mm', 'milímetro', 'milímetros'],
+  },
+
+  // Geral
+  {
+    aliases: ['a gosto', 'quanto baste', 'q.b.', 'qb'],
+    targets: ['a gosto', 'quanto baste'],
+  },
+  {
+    aliases: ['pitada', 'pitadas'],
+    targets: ['pitada', 'pitadas'],
+  },
+  {
+    aliases: ['porção', 'porções', 'porcao', 'porcoes'],
+    targets: ['porção', 'porções'],
+  },
+]
+
 function matchActiveUnit(unitText: string, activeSymbols: string[]): string | null {
   const clean = unitText.trim().toLowerCase()
   if (activeSymbols.includes(clean)) return clean
 
-  // Map common names and variations to active symbols
-  const maps: Record<string, string> = {
-    // Peso
-    'g': 'g', 'grama': 'g', 'gramas': 'g',
-    'kg': 'kg', 'quilo': 'kg', 'quilos': 'kg', 'quilograma': 'kg', 'quilogramas': 'kg',
-    'mg': 'mg', 'miligrama': 'mg', 'miligramas': 'mg', 'milligrama': 'mg', 'milligramas': 'mg',
-    
-    // Volume
-    'ml': 'ml', 'mililitro': 'ml', 'mililitros': 'ml', 'millilitro': 'ml', 'millilitros': 'ml',
-    'l': 'l', 'litro': 'l', 'litros': 'l', 'liter': 'l',
-    'cl': 'cl', 'centilitro': 'cl', 'centilitros': 'cl',
-    'dl': 'dl', 'decilitro': 'dl', 'decilitros': 'dl',
-    
-    // Unidade e frações
-    'unidade': 'unidade', 'unidades': 'unidade', 'un': 'unidade', 'un.': 'unidade',
-    'dente': 'dente', 'dentes': 'dentes',
-    'fatia': 'fatia', 'fatias': 'fatias',
-    'folha': 'folha', 'folhas': 'folhas',
-    'maço': 'maço', 'maços': 'maço',
-    'molho': 'molho', 'molhos': 'molhos',
-    'pedaço': 'pedaço', 'pedaços': 'pedaços',
-    'ramo': 'ramo', 'ramos': 'ramo',
-    
-    // Colheres
-    'colher (sopa)': 'colher (sopa)', 'colheres (sopa)': 'colheres (sopa)',
-    'colher de sopa': 'colher de sopa', 'colheres de sopa': 'colher de sopa',
-    'colher (chá)': 'colher (chá)', 'colheres (chá)': 'colheres (chá)',
-    'colher de chá': 'colher de chá', 'colheres de chá': 'colher de chá',
-    'colher (sobremesa)': 'colher (sobremesa)', 'colheres (sobremesa)': 'colheres (sobremesa)',
-    'colher de sobremesa': 'colher de sobremesa', 'colheres de sobremesa': 'colher de sobremesa',
-    'colher (café)': 'colher (café)', 'colheres (café)': 'colheres (café)',
-    'colher de café': 'colher de café', 'colheres de café': 'colher de café',
-    
-    // Recipientes / Copos
-    'copo': 'copo', 'copos': 'copo',
-    'xícara': 'xícara', 'xícaras': 'xícaras', 'xicara': 'xícara', 'xicaras': 'xícaras',
-    'xícara de chá': 'xícara de chá', 'xícaras de chá': 'xícara de chá',
-    'lata': 'lata', 'latas': 'lata',
-    'caixa': 'caixa', 'caixas': 'caixa',
-    'pacote': 'pacote', 'pacotes': 'pacote',
-    'vidro': 'vidro', 'vidros': 'vidro',
-    
-    // Medidas
-    'cm': 'cm', 'centímetro': 'cm', 'centímetros': 'cm',
-    'mm': 'mm', 'milímetro': 'mm', 'milímetros': 'mm',
-    
-    // Geral
-    'a gosto': 'a gosto',
-    'pitada': 'pitada', 'pitadas': 'pitada',
-    'porção': 'porção', 'porções': 'porção',
-  }
-
-  const mapped = maps[clean]
-  if (mapped && activeSymbols.includes(mapped)) {
-    return mapped
+  for (const group of UNIT_ALIAS_GROUPS) {
+    if (group.aliases.includes(clean)) {
+      const foundActive = group.targets.find((target) => activeSymbols.includes(target))
+      if (foundActive) return foundActive
+      return group.targets[0]
+    }
   }
 
   return null

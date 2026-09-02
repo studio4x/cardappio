@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { getServiceClient, getAuthenticatedUser } from "../_shared/auth.ts"
-import { isAdmin } from "../_shared/permissions.ts"
 import { corsHeaders } from "../_shared/cors.ts"
 import { createResponse } from "../_shared/response.ts"
 
@@ -30,7 +29,7 @@ serve(async (req) => {
       .eq('id', user.id)
       .single()
 
-    if (!profile || !isAdmin(profile.role)) {
+    if (!profile || !(profile.role === 'admin' || profile.role === 'super_admin')) {
       return createResponse(null, { code: 'FORBIDDEN', message: 'Admin access required' }, 403)
     }
 

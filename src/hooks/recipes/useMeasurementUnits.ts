@@ -70,7 +70,9 @@ const RAW_MEASUREMENT_UNITS_DATA = [
   { symbol: "vidro", name: "Vidro(s)", category: "Recipiente", sort_order: 60 },
   { symbol: "xícara", name: "Xícara(s)", category: "Xícaras e Copos", sort_order: 61 },
   { symbol: "xícaras", name: "Xícaras (xícaras)", category: "Xícaras e Copos", sort_order: 62 },
-  { symbol: "xícara de chá", name: "Xícara(s) de chá", category: "Xícaras e Copos", sort_order: 63 }
+  { symbol: "xícara de chá", name: "Xícara(s) de chá", category: "Xícaras e Copos", sort_order: 63 },
+  { symbol: "xícara (chá)", name: "Xícara (chá)", category: "Xícaras e Copos", sort_order: 64 },
+  { symbol: "xícaras (chá)", name: "Xícaras (chá)", category: "Xícaras e Copos", sort_order: 65 }
 ]
 
 export const DEFAULT_MEASUREMENT_UNITS_DATA = [...RAW_MEASUREMENT_UNITS_DATA].sort((a, b) => 
