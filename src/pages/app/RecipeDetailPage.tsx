@@ -30,7 +30,36 @@ function formatNotesHtml(html: string): string {
   if (!html) return ''
   let formatted = html
 
-  // 1. Converte links <a> com href para imagens em elementos <img>
+  // 1. Decodificar entidades HTML escapadas como &lt;img ... &gt;
+  formatted = formatted.replace(
+    /(?:&amp;)*&lt;img\s+([^&]*?)(?:(?:\/&gt;)|&gt;|>)/gi,
+    (_match, rawAttrs) => {
+      let src = ''
+      let alt = 'Foto da Dica'
+
+      const cleanAttrs = rawAttrs
+        .replace(/&quot;/g, '"')
+        .replace(/&#34;/g, '"')
+        .replace(/&amp;/g, '&')
+
+      const srcMatch = cleanAttrs.match(/src=["']([^"']+)["']/i) || cleanAttrs.match(/src=([^\s>]+)/i)
+      if (srcMatch && srcMatch[1]) {
+        src = srcMatch[1]
+      }
+
+      const altMatch = cleanAttrs.match(/alt=["']([^"']+)["']/i)
+      if (altMatch && altMatch[1]) {
+        alt = altMatch[1]
+      }
+
+      if (src) {
+        return `<img src="${src}" alt="${alt}" class="rounded-2xl max-w-full h-auto my-3 shadow-md border border-amber-200/80 mx-auto block" />`
+      }
+      return _match
+    }
+  )
+
+  // 2. Converte links <a> com href para imagens em elementos <img>
   formatted = formatted.replace(
     /<a\s+[^>]*href=["'](https?:\/\/[^"']+\.(?:png|jpg|jpeg|gif|webp|svg)(?:\?[^"']*)?|https?:\/\/[^"']+\/storage\/v1\/object\/public\/[^"']+)["'][^>]*>(.*?)<\/a>/gi,
     (_match, url) => {
@@ -38,7 +67,7 @@ function formatNotesHtml(html: string): string {
     }
   )
 
-  // 2. Converte URLs de imagem em texto plano que não estejam dentro de tags HTML em <img>
+  // 3. Converte URLs de imagem em texto plano que não estejam dentro de tags HTML em <img>
   const plainImageUrlRegex = /(?<!src=["'])(?<!href=["'])(https?:\/\/[^\s<"']+\.(?:png|jpg|jpeg|gif|webp|svg)(?:\?[^\s<"']*)?)/gi
   formatted = formatted.replace(plainImageUrlRegex, (url) => {
     return `<img src="${url}" alt="Foto da Dica" class="rounded-2xl max-w-full h-auto my-3 shadow-md border border-amber-200/80 mx-auto block" />`

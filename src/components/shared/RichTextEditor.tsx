@@ -204,8 +204,10 @@ export function RichTextEditor({
     if (!editor) return
     const url = window.prompt('Digite ou cole a URL da foto/imagem:')
     if (!url || !url.trim()) return
-    const imgHtml = `<img src="${url.trim()}" alt="Foto da Dica" style="max-width: 100%; height: auto; border-radius: 16px; margin: 16px auto; display: block;" />`
-    editor.chain().focus().insertContent(imgHtml).run()
+    editor.chain().focus().insertContent({
+      type: 'image',
+      attrs: { src: url.trim(), alt: 'Foto da Dica' }
+    }).run()
   }
 
   return (
@@ -413,8 +415,10 @@ export function RichTextEditor({
         title="Selecionar Imagem para o Artigo"
         onSelect={(url) => {
           if (!editor) return
-          const imgHtml = `<img src="${url}" alt="Imagem do Artigo" style="max-width: 100%; height: auto; border-radius: 16px; margin: 16px 0;" />`
-          editor.chain().focus().insertContent(imgHtml).run()
+          editor.chain().focus().insertContent({
+            type: 'image',
+            attrs: { src: url, alt: 'Imagem da Dica' }
+          }).run()
           setMediaModalOpen(false)
         }}
       />
