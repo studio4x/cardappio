@@ -26,6 +26,27 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 
+function formatNotesHtml(html: string): string {
+  if (!html) return ''
+  let formatted = html
+
+  // 1. Converte links <a> com href para imagens em elementos <img>
+  formatted = formatted.replace(
+    /<a\s+[^>]*href=["'](https?:\/\/[^"']+\.(?:png|jpg|jpeg|gif|webp|svg)(?:\?[^"']*)?|https?:\/\/[^"']+\/storage\/v1\/object\/public\/[^"']+)["'][^>]*>(.*?)<\/a>/gi,
+    (_match, url) => {
+      return `<img src="${url}" alt="Foto da Dica" class="rounded-2xl max-w-full h-auto my-3 shadow-md border border-amber-200/80 mx-auto block" />`
+    }
+  )
+
+  // 2. Converte URLs de imagem em texto plano que não estejam dentro de tags HTML em <img>
+  const plainImageUrlRegex = /(?<!src=["'])(?<!href=["'])(https?:\/\/[^\s<"']+\.(?:png|jpg|jpeg|gif|webp|svg)(?:\?[^\s<"']*)?)/gi
+  formatted = formatted.replace(plainImageUrlRegex, (url) => {
+    return `<img src="${url}" alt="Foto da Dica" class="rounded-2xl max-w-full h-auto my-3 shadow-md border border-amber-200/80 mx-auto block" />`
+  })
+
+  return formatted
+}
+
 export function RecipeDetailPage() {
   const { recipeSlug } = useParams()
   const navigate = useNavigate()
@@ -433,8 +454,8 @@ export function RecipeDetailPage() {
                   </h3>
                 </div>
                 <div
-                  className="prose prose-sm max-w-none text-slate-800 text-xs leading-relaxed pt-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:font-semibold [&_strong]:text-amber-950 [&_em]:italic [&_u]:underline [&_a]:text-primary [&_a]:font-semibold [&_a]:underline [&_a]:underline-offset-2 [&_a:hover]:opacity-80"
-                  dangerouslySetInnerHTML={{ __html: recipe.notes }}
+                  className="prose prose-sm max-w-none text-slate-800 text-xs leading-relaxed pt-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:font-semibold [&_strong]:text-amber-950 [&_em]:italic [&_u]:underline [&_a]:text-primary [&_a]:font-semibold [&_a]:underline [&_a]:underline-offset-2 [&_a:hover]:opacity-80 [&_img]:rounded-2xl [&_img]:max-w-full [&_img]:h-auto [&_img]:my-3 [&_img]:shadow-md [&_img]:border [&_img]:border-amber-200/80 [&_img]:block [&_img]:mx-auto"
+                  dangerouslySetInnerHTML={{ __html: formatNotesHtml(recipe.notes) }}
                 />
               </section>
             )}

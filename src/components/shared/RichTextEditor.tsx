@@ -1,4 +1,5 @@
 import { useEditor, EditorContent } from '@tiptap/react'
+import { Node, mergeAttributes } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import Underline from '@tiptap/extension-underline'
@@ -26,6 +27,33 @@ import {
   DropdownMenuContent,
   DropdownMenuItem
 } from '@/components/ui/dropdown-menu'
+
+const CustomImage = Node.create({
+  name: 'image',
+  group: 'block',
+  selectable: true,
+  draggable: true,
+  atom: true,
+  addAttributes() {
+    return {
+      src: { default: null },
+      alt: { default: '' },
+      title: { default: null },
+      style: { default: 'max-width: 100%; height: auto; border-radius: 16px; margin: 16px auto; display: block;' },
+      class: { default: 'rounded-2xl max-w-full h-auto my-4 shadow-sm border border-slate-200 block mx-auto' }
+    }
+  },
+  parseHTML() {
+    return [
+      {
+        tag: 'img[src]',
+      },
+    ]
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['img', mergeAttributes(HTMLAttributes)]
+  },
+})
 
 interface RichTextEditorProps {
   value: string
@@ -90,6 +118,7 @@ export function RichTextEditor({
         horizontalRule: false,
       }),
       Underline,
+      CustomImage,
       Placeholder.configure({
         placeholder: placeholder ?? 'Digite o conteúdo aqui...',
         emptyEditorClass:
@@ -169,6 +198,14 @@ export function RichTextEditor({
       </div>
     `
     editor.chain().focus().insertContent(videoHtml).run()
+  }
+
+  const handleInsertImageUrlPrompt = () => {
+    if (!editor) return
+    const url = window.prompt('Digite ou cole a URL da foto/imagem:')
+    if (!url || !url.trim()) return
+    const imgHtml = `<img src="${url.trim()}" alt="Foto da Dica" style="max-width: 100%; height: auto; border-radius: 16px; margin: 16px auto; display: block;" />`
+    editor.chain().focus().insertContent(imgHtml).run()
   }
 
   return (
@@ -315,12 +352,27 @@ export function RichTextEditor({
             </ToolbarButton>
           )}
 
-          <ToolbarButton
-            title="Inserir Imagem (Biblioteca de Mídia)"
-            onClick={() => setMediaModalOpen(true)}
-          >
-            <ImageIcon className={iconSize} />
-          </ToolbarButton>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                title="Inserir Imagem / Foto"
+                className="rounded-xl p-2 text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-900 border border-slate-200 bg-white shadow-xs cursor-pointer select-none"
+              >
+                <ImageIcon className={iconSize} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()} className="bg-white border p-1 rounded-xl shadow-md min-w-44">
+              <DropdownMenuItem onSelect={() => setMediaModalOpen(true)} className="text-xs font-bold text-slate-700 py-1.5 px-3 hover:bg-slate-50 cursor-pointer rounded-lg flex items-center gap-2">
+                <ImageIcon className="h-3.5 w-3.5 text-emerald-600" />
+                Biblioteca de Mídia
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={handleInsertImageUrlPrompt} className="text-xs font-bold text-slate-700 py-1.5 px-3 hover:bg-slate-50 cursor-pointer rounded-lg flex items-center gap-2">
+                <Link2 className="h-3.5 w-3.5 text-blue-600" />
+                Inserir por URL da Foto
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <ToolbarButton
             title="Inserir Vídeo (Youtube/Vimeo)"

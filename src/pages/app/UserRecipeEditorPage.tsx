@@ -12,6 +12,7 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { RichTextEditor } from '@/components/shared/RichTextEditor'
 import { useMeasurementUnits } from '@/hooks/recipes/useMeasurementUnits'
+import { slugify } from '@/lib/slugify'
 
 export function UserRecipeEditorPage() {
   const { units: INGREDIENT_UNITS } = useMeasurementUnits()
@@ -230,7 +231,8 @@ export function UserRecipeEditorPage() {
         }
       }
 
-      const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.random().toString(36).substring(2, 7)
+      const baseSlug = slugify(title) || 'receita'
+      const slug = id ? baseSlug : `${baseSlug}-${Math.random().toString(36).substring(2, 7)}`
       
       const recipeData = {
         title,

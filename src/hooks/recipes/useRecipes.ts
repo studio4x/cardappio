@@ -102,15 +102,17 @@ export function useRecipes(filters?: {
 }
 
 /**
- * Fetch a single recipe by slug.
+ * Fetch a single recipe by slug or ID.
  */
-export function useRecipe(slug: string | undefined) {
+export function useRecipe(slugOrId: string | undefined) {
   return useQuery({
-    queryKey: ['recipe', slug],
+    queryKey: ['recipe', slugOrId],
     queryFn: async () => {
-      if (!slug) return null
+      if (!slugOrId) return null
 
-      const { data, error } = await supabase
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId)
+
+      let query = supabase
         .from('recipes')
         .select(`
           *,
@@ -121,16 +123,43 @@ export function useRecipe(slug: string | undefined) {
           variations:recipe_variations!parent_recipe_id(*),
           creator:profiles!created_by(id, full_name, role)
         `)
-        .eq('slug', slug)
+
+      if (isUuid) {
+        query = query.eq('id', slugOrId)
+      } else {
+        query = query.eq('slug', slugOrId)
+      }
+
+      const { data, error } = await query
         .order('sort_order', { foreignTable: 'recipe_ingredients' })
         .order('step_number', { foreignTable: 'recipe_steps' })
         .maybeSingle()
 
-      // PGRST116 = no rows returned (recipe blocked by RLS or not found)
       if (error && error.code !== 'PGRST116') throw error
+
+      if (!data && !isUuid) {
+        const { data: fallbackData } = await supabase
+          .from('recipes')
+          .select(`
+            *,
+            category:recipe_categories(*),
+            ingredients:recipe_ingredients!recipe_ingredients_recipe_id_fkey(*, linked_recipe:recipes!linked_recipe_id(id, slug, title)),
+            steps:recipe_steps(*),
+            tags:recipe_tag_links(tag:recipe_tags(*)),
+            variations:recipe_variations!parent_recipe_id(*),
+            creator:profiles!created_by(id, full_name, role)
+          `)
+          .eq('id', slugOrId)
+          .maybeSingle()
+
+        if (fallbackData) {
+          return fallbackData as Recipe
+        }
+      }
+
       return (data ?? null) as Recipe | null
     },
-    enabled: !!slug,
+    enabled: !!slugOrId,
   })
 }
 

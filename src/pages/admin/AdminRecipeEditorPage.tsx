@@ -15,6 +15,7 @@ import { StepEditor } from '@/components/shared/StepEditor'
 import { RichTextEditor } from '@/components/shared/RichTextEditor'
 import { RecipeLinkModal } from '@/components/shared/RecipeLinkModal'
 import { useMeasurementUnits } from '@/hooks/recipes/useMeasurementUnits'
+import { slugify } from '@/lib/slugify'
 
 /**
  * AdminRecipeEditorPage
@@ -190,11 +191,13 @@ export function AdminRecipeEditorPage() {
     setLoading(true)
     try {
       const { ingredients, steps, ...cleanData } = recipeData
+      const generatedSlug = slugify(cleanData.title || '') || cleanData.slug || `receita-${Date.now()}`
+      const payload = { ...cleanData, slug: generatedSlug }
       
       // 1. Save Basic Recipe Info
       const { data: savedRecipe, error: recipeError } = isNew 
-        ? await supabase.from('recipes').insert(cleanData).select().single()
-        : await supabase.from('recipes').update(cleanData).eq('id', id).select().single()
+        ? await supabase.from('recipes').insert(payload).select().single()
+        : await supabase.from('recipes').update(payload).eq('id', id).select().single()
 
       if (recipeError) throw recipeError
       const recipeId = savedRecipe.id
@@ -372,7 +375,7 @@ export function AdminRecipeEditorPage() {
             <input
               type="text"
               value={recipeData.title}
-              onChange={(e) => setRecipeData({...recipeData, title: e.target.value})}
+              onChange={(e) => setRecipeData((prev: any) => ({ ...prev, title: e.target.value, slug: slugify(e.target.value) }))}
               className="w-full rounded-lg border p-2 focus:ring-2 focus:ring-primary outline-none"
             />
           </div>
